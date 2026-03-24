@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -83,9 +83,13 @@
             transition: gap .3s ease, bottom .3s ease;
         }
 
-        .bag:hover {
+        .bag:not(.pause):hover {
             bottom: 10px;
             gap: 40px;
+        }
+
+        .bag.pause {
+            user-select: none;
         }
 
         .stone {
@@ -98,7 +102,11 @@
             cursor: grab;
         }
 
-        .stone:hover .stonevisual {
+        .stone.pause {
+            user-select: none;
+        }
+
+        .stone:not(.pause):hover .stonevisual {
             height: 170px;
             width: 170px;
             margin-bottom: 30px;
@@ -119,7 +127,29 @@
             color: white;
             font-size: 30px;
         }
+
+        .startbutton {
+            position: absolute;
+            bottom: 40px;
+            z-index: 10;
+            height: 100px;
+            width: 300px;
+            outline: none;
+            border: none;
+            background-color: yellowgreen;
+            font-size: large;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.1s ease, background-color 0.1s ease, color 0.1s ease;
+        }
+
+        .startbutton:hover {
+            background-color: rgb(160, 223, 35);
+            transform: scale(1.05);
+            color: white;
+        }
     </style>
+    <p th:id="${roomId}" th:text="'room: ' + ${roomId}" style="position: fixed; top: 0; left: 0; margin: 10px">></p>
 </head>
 
 <body>
@@ -137,8 +167,10 @@
             <div class="slot"></div>
         </div>
     </div>
-
-    <div class="bag" id="bag"></div>
+    <button id="bagBtn" class="startbutton">
+        Click me to start the game
+    </button>
+    <div class="bag pause" id="bag"></div>
     <script>
         async function updatebaackendline() {
             const theline = document.querySelectorAll(".slot .stonevisual");
@@ -166,16 +198,29 @@
         }
     </script>
     <script>
+        async function loadProduct() {
+            const productId = window.location.pathname.split("/").pop();
+            const res = await fetch("/tellstones/getplayers/" + productId)
+            .then(res => res.json())
+            .then(players => {
+                alert("Players: " + players.join(", "));
+            });
+        }
+        window.onload = loadProduct;
+    </script>
+    <script>
         /* SPAWN STONES */
         const bag = document.getElementById("bag");
 
         for (let i = 2; i <= 8; i++) {
             const stone = document.createElement("div");
-            stone.className = "stone";
+            stone.className = "stone pause";
             stone.draggable = true;
             stone.id = i;
 
             stone.innerHTML = `<div class="stonevisual">${i}</div>`;
+
+            stone.draggable = false;
 
             bag.appendChild(stone);
         }
@@ -252,6 +297,17 @@
             const id = e.dataTransfer.getData("text");
 
             placeStone(id, "right");
+        });
+    </script>
+    <script>
+        document.getElementById("bagBtn").addEventListener("click", function() {
+            this.style.display = "none";
+            bag.classList.remove("pause");
+
+            document.querySelectorAll(".stone").forEach(stone => {
+                stone.classList.remove("pause");
+                stone.draggable = true;
+    });
         });
     </script>
 </body>
