@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title th:text="${pageTitle} ?: 'Sản phẩm'">Sản phẩm</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.4.0/socket.io.js"></script>
+	<style>
+		:root {
+			--yellow: #ffd500;
+			--black: #111;
+			--gray: #f4f4f4;
+			--border: #e5e5e5;
+			--danger: #d70000;
+			--primary: #007aff;
+			--text: #333;
+		}
+		* { box-sizing: border-box; }
+		body {
+			margin: 0;
+			font-family: 'Inter', 'Segoe UI', sans-serif;
+			background-color: #e98000;
+			background-size: cover;
+			background-position: center;
+			background-repeat: no-repeat;
+			height: 100%;
+			color: var(--text);
+		}
+		a { text-decoration: none; color: inherit; }
+		.topbar-wrap {
+			position: sticky;
+			top: 0;
+			z-index: 20;
+			display: flex;
+			flex-direction: column;
+		}
+		.topbar {
+			background-color: #ff9000;
+			padding: 14px 22px;
+			display: flex;
+			justify-content: right;
+			align-items: center;
+			gap: 14px;
+			box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+		}
+		.topbar .hide {
+			transform: translateY(-100%);
+		}
+		.search {
+			flex: 1;
+			display: flex;
+			align-items: center;
+			background: white;
+			border-radius: 4px;
+			padding: 8px 12px;
+			height: 70%;
+			width: auto;
+			border: 2px solid rgba(255,255,255,0.2);
+		}
+		.search input {
+			border: none;
+			outline: none;
+			flex: 1;
+			font-size: 20px;
+			background: transparent;
+			height: 100%;
+		}
+		.nav-actions { margin-top: 0; display: flex; flex-direction: row; align-items: center; justify-content: flex-end; gap: 10px; font-size: 14px; padding: 0; }
+		.nav-pill {
+			background: rgba(0,0,0,0.06);
+			border-radius: 14px;
+			padding: 9px 12px;
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			font-weight: 700;
+		}
+		.location-pill {
+			background: #ffe87a;
+			border-radius: 18px;
+			padding: 10px 14px;
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			font-weight: 800;
+			border: 1px solid rgba(0,0,0,0.05);
+		}
+		.menu-bar {
+			background: #ff9000;
+			height: 40px;
+			align-items: center;
+			padding: 6px 22px 10px;
+			display: flex;
+			flex-wrap: wrap;
+			gap: 16px;
+		}
+		.menu-bar a {
+			text-decoration: none;
+			display: flex;
+			align-items: center;
+			font-size: 20px;
+			font-weight: 400;
+			color: #1a1a1a;
+		}
+		.logo {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			font-weight: 900;
+			font-size: 20px;
+			color: #000;
+		}
+		.logo img{
+			height: 80px;
+    		width: auto;
+			object-fit: contain;
+		}
+		.hero {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			overflow: hidden;
+		}
+		.hero img {
+			display: block;
+			width: 100%;
+			height: auto;
+		}
+
+		.section {}
+		.section-title { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; color: #fff; }
+		.section-title h3 { margin: 0; font-size: 20px; }
+		.pill-filter { display: flex; gap: 8px; flex-wrap: wrap; }
+		.pill-filter .pill { padding: 8px 12px; border-radius: 14px; background: #fff; border: 1px solid rgba(255,255,255,0.4); font-weight: 700; color: #b30000; cursor: pointer; }
+
+		/* Flash sale board */
+		.flash-board {
+			padding: 14px 14px 18px;
+			box-shadow: 0 12px 26px rgba(12, 12, 12, 0.25);
+			position: relative;
+			overflow: hidden;
+		}
+		.flash-tabs {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+			gap: 6px;
+		}
+		.flash-tab {
+			background: rgba(255,255,255,0.16);
+			padding: 10px 12px;
+			border-radius: 10px 10px 0 0;
+			border: 1px solid rgba(255,255,255,0.3);
+			cursor: pointer;
+		}
+		.flash-tab button {
+			background: transparent; outline: none; width: 100%; height: 100%; border: none;
+			text-align: center;
+			font-weight: 700;
+			color: #fff;
+			cursor: pointer;
+		}
+		.flash-tab:hover {
+			background: rgba(255, 225, 0, 0.348);
+		}
+		.flash-row {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+			gap: 10px;
+			background: rgba(255,255,255,0.08);
+			padding: 12px;
+			border-radius: 0 0 12px 12px;
+			border: 1px solid rgba(255,255,255,0.2);
+		}
+		.time-box { background: #fff; color: #d70000; font-weight: 800; padding: 10px; border-radius: 10px; text-align: center; }
+		.time-box small { display: block; color: #555; font-weight: 600; }
+
+		.grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+			gap: 12px;
+		}
+		.card {
+			background: #fff;
+			border: 1px solid #f9c900;
+			border-radius: 12px;
+			padding: 10px 12px;
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+			transition: transform .15s ease, box-shadow .15s ease;
+		}
+		.card:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(0,0,0,0.12); }
+		.card .thumb {
+			height: 150px;
+			border-radius: 8px;
+			background: linear-gradient(135deg, #ffe2b3, #ffd36f);
+			display: grid;
+			place-items: center;
+			color: #b36b00;
+			font-weight: 700;
+			font-size: 26px;
+		}
+		.card .name { font-weight: 800; font-size: 15px; min-height: 40px; color: #222; }
+		.card .desc { color: #666; font-size: 13px; min-height: 32px; }
+		.price-row { display: flex; align-items: baseline; gap: 8px; }
+		.price { color: var(--danger); font-weight: 900; font-size: 18px; }
+		.old-price { color: #999; text-decoration: line-through; font-size: 13px; }
+		.badge { display: inline-flex; align-items: center; gap: 4px; background: #ffe8e8; color: #c40000; padding: 4px 8px; border-radius: 10px; font-size: 12px; font-weight: 700; }
+		.cta-row { display: flex; gap: 8px; margin-top: 4px; }
+		.btn { border: none; border-radius: 10px; padding: 10px 12px; font-weight: 800; cursor: pointer; transition: transform .1s ease; }
+		.btn:hover { transform: translateY(-1px); }
+		.btn-primary { background: var(--danger); color: #fff; flex: 1; box-shadow: 0 6px 10px rgba(215,0,0,0.25); }
+		.btn-outline { background: #fff; color: var(--black); border: 1px solid var(--border); flex: 1; }
+		.stock-row { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #c40000; }
+		.progress {
+			flex: 1;
+			background: #ffe8e8;
+			height: 10px;
+			border-radius: 999px;
+			overflow: hidden;
+		}
+		.progress span {
+			display: block;
+			height: 100%;
+			background: linear-gradient(90deg, #ff8f00, #ff0000);
+		}
+		.admin-bar { position: fixed; bottom: 16px; right: 16px; display: flex; gap: 10px; z-index: 20; }
+		.chip { background: #000; color: #fff; padding: 10px 14px; border-radius: 12px; font-weight: 700; box-shadow: 0 8px 18px rgba(0,0,0,0.15); }
+		.empty { text-align: center; padding: 40px 0; color: #777; }
+		@media (max-width: 900px) {
+			.hero { grid-template-columns: 1fr; }
+			.hero-banner { justify-self: center; }
+			.topbar { flex-wrap: wrap; }
+			.nav-actions { width: 100%; justify-content: space-between; }
+		}
+		.profile-link div {
+			border-radius: 50%; background-color: #c42e0896; height: 55px; width: 55px; padding: auto; align-items: center; justify-content: center; display: flex;
+			transition: background-color .2s ease, height .2s ease, width .2s ease;
+		}
+		.profile-link div:hover {
+			height: 50px;
+			width: 50px;
+			background-color: #ff3300;
+		}
+		.profile-link div svg {
+			width: 17px;
+			height: 19px;
+			transition: width .2s ease, height .2s ease;
+		}
+		.profile-link div:hover svg {
+			width: 23px;
+			height: 25px;
+		}
+		.thesit {
+			background: white;
+			width: 100%;
+			height: 0;
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+			gap: 10px;
+			padding: 0;
+			overflow: hidden;
+			transition: height .3s ease;
+		}
+
+		.thesit.show {
+			height: fit-content;
+			padding: 12px;
+		}
+		.flash-item {
+			background: #fff;
+			border-radius: 10px;
+			padding: 10px;
+			display: flex;
+			flex-direction: column;
+			gap: 6px;
+			border: 1px solid #ffd36f;
+			box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+			transition: transform .15s ease, box-shadow .15s ease;
+		}
+
+		.flash-item:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+		}
+
+		.flash-item .thumb {
+			height: 120px;
+			border-radius: 6px;
+			background-color: #fff8e1;
+			background-size: contain;
+			background-position: center;
+			background-repeat: no-repeat;
+		}
+
+		.flash-item .name {
+			font-weight: 700;
+			font-size: 14px;
+			color: #222;
+			min-height: 32px;
+		}
+
+		.flash-item .desc {
+			font-size: 12px;
+			color: #777;
+			min-height: 24px;
+		}
+
+		.flash-item .price-row {
+			display: flex;
+			align-items: baseline;
+			gap: 6px;
+		}
+
+		.flash-item .price {
+			color: #d70000;
+			font-weight: 900;
+			font-size: 16px;
+		}
+
+		.flash-item .old-price {
+			color: #999;
+			text-decoration: line-through;
+			font-size: 12px;
+		}
+		/* Center the room + guest inputs and button */
+#roomId,
+#guestname,
+button {
+	display: block;
+	margin: 10px auto;
+	text-align: center;
+}
+
+/* Optional: center the whole block better */
+body > input,
+body > button {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+	</style>
+</head>
+<body>
+	<div class="topbar-wrap">
+		<header class="topbar" style="height: 60px;">
+			<div class="nav-actions" style="width: 200px;">
+				<button class="profile-link" style="background: transparent; border: none; cursor: pointer; margin-top: 0; margin-left: auto; width: 55px; height: 55px; justify-items: center; align-items: center;">
+					<div>
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 17 19" fill="none" aria-hidden="true" class="innericon">
+							<circle cx="8.5" cy="5.8125" r="4.625" stroke="#fff" stroke-width="2"></circle>
+							<path d="M16 18C16 13.8579 12.6421 10.5 8.5 10.5C4.35786 10.5 1 13.8579 1 18" stroke="#fff" stroke-width="2" stroke-linecap="round"></path>
+						</svg>
+					</div>
+				</button>
+			</div>
+			
+		</header>
+		<nav class="menu-bar" style="height: 90px;">
+			<div style="height: 100%; width: 55px; justify-content: center; align-items: center; display: flex;">
+			</div>
+		</nav>
+	</div>
+
+	<script>
+		const header = document.querySelector(".topbar");
+		const nav = document.querySelector(".menu-bar");
+
+		let currentY = 0;
+		let targetY = 0;
+
+		function lerp(start, end, t) {
+		return start + (end - start) * t;
+		}
+
+		window.addEventListener("wheel", (e) => {
+		if (e.deltaY > 0) {
+			targetY = -60;
+		} else {
+			targetY = 0;
+		}
+		});
+
+		function animate() {
+		currentY = lerp(currentY, targetY, 0.1);
+		header.style.transform = `translateY(${currentY}px)`;
+		nav.style.transform = `translateY(${currentY}px)`;
+		requestAnimationFrame(animate);
+		}
+
+		animate();
+	</script>
+
+	<input type="text" id="roomId" placeholder="Enter Room ID">
+<button onclick="startRoom()">Play</button>
+
+<br><br>
+
+<input type="text" id="guestname" placeholder="guest name">
+
+<ul id="messages"></ul>
+
+<script>
+        async function updatebaackendline(data) {
+            try {
+				const res = await fetch("/tellstones/welcomeplayer", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data)
+				});
+
+				if (res.ok) {
+					const restone = await res.json();
+				} else {
+				}
+			} catch (err) {
+				console.error(err);
+			}
+        }
+</script>
+
+<script>
+    const socket = io("http://localhost:9092", {
+        transports: ["websocket"]
+    });
+
+    socket.on("connect", () => {
+        console.log("CONNECTED");
+    });
+
+    socket.on("connect_error", (err) => {
+        console.log("ERROR:", err);
+    });
+
+    socket.on("message", (data) => {
+        const li = document.createElement("li");
+        li.innerText = data;
+        document.getElementById("messages").appendChild(li);
+    });
+
+    let data = [];
+
+    socket.on("sessionID", (sessionID) => {
+        data = {
+            username: document.getElementById("guestname").value,
+            session: sessionID
+        };
+        updatebaackendline(data);
+    });
+
+    socket.on("roomJoined", (roomId) => {
+        console.log("Joined room:", roomId);
+        window.location.href = `/tellstones/room/${roomId}`;
+    });
+
+    // 🔹 Start room
+    function startRoom() {
+        const roomId = document.getElementById("roomId").value;
+        socket.emit("startRoom", roomId);
+        console.log("Started room:", roomId);
+    }
+
+    // 🔹 Send message
+    function sendMessage() {
+        const msg = document.getElementById("message").value;
+        socket.emit("message", msg);
+    }
+</script>
+
+	<script>
+		async function handleProfileClick() {
+			const res = await fetch("/login/dashboard");
+
+			if (res.ok) {
+				const acc = await res.json();
+				window.location.href = "/login/Profile/"+acc.id;
+			} else {
+				window.location.href = "/login/Login";
+			}
+		}
+
+		window.onload = () => {
+			document.querySelector(".profile-link")
+				.addEventListener("click", handleProfileClick);
+		};
+	</script>
+	<script>
+		document.querySelectorAll("#addtocart").forEach(form => {
+			form.addEventListener("submit", async (e) => {
+				e.preventDefault();
+				const button = form.querySelector("button[type='submit']");
+				const productId = form.querySelector("input[name='productId']").value;
+				const quantity = form.querySelector("input[name='quantity']").value;
+				const productname = document.querySelector(".name").textContent.trim();
+				
+				let ok = true;
+				const errordetail = new Map();
+
+				for(let i = 0; i < quantity; i++) {
+					const res = await fetch(`products/add-to-cart/${productId}`, {
+						method: "POST",
+						headers: { "Content-Type": "application/json" }
+					});
+
+					if (res.ok) {
+						continue;
+					}else{
+						ok = false;
+						const errormsg = await res.text();
+						errordetail.set(productname, errormsg || "Lỗi không xác định");
+						continue;
+					}
+				}
+				
+				if(ok){
+						alert("Đã thêm vào giỏ hàng!");
+					}else{
+						const message = ``;
+						for (const entry of errordetail.entries()) {
+							const key = entry[0];
+							const value = entry[1];
+							alert(`Lỗi khi thêm ${key} vào giỏ hàng: ${value}`);
+						}
+					}
+			});
+		});
+	</script>
+	<script>
+		async function pullproduct(category){
+			try {
+				const res = await fetch(`products/category=${parseInt(category)}`);
+				if (res.ok) {
+					const cart = await res.json();
+					return cart;
+				} else {
+					const m = await res.text();
+					alert(m);
+				}
+			} catch (error) {
+				alert(error.message);	
+			}
+			return;
+		}
+	</script>
+	<script>
+		const tabs = document.querySelector(".flash-board");
+		const tab = document.getElementsByClassName("flash-tab");
+		const thetab = document.querySelector(".thesit");
+		for(let i = 0; i < tab.length; i++){
+			tab[i].addEventListener("click", () => {
+				thetab.classList.toggle("show");
+				if(thetab.classList.contains("show")){
+					let a = pullproduct(tab[i].querySelector("button").id);
+					if(a != null){
+						thetab.innerHTML = "";
+						const categoryname = document.createElement("h2");
+						categoryname.textContent = tab[i].querySelector("button").textContent;
+						thetab.appendChild(categoryname);
+						a.then(products => {
+							products.forEach(product => {
+								const itemElement = document.createElement("div");
+								itemElement.className = "flash-item";
+								itemElement.innerHTML = `
+									<div class="thumb" style="background-image: url(${product.image_string}); background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
+									<div class="name">${product.name}</div>
+									<div class="desc">${product.description}</div>
+									<div class="price-row">
+										<span class="price">${product.price}đ</span>
+										<span class="old-price">${Math.round(product.price * 1.1)}đ</span>
+									</div>
+								`;
+								thetab.appendChild(itemElement);
+							});
+						});
+					}
+				} else {
+					thetab.innerHTML = "";
+				}
+			})
+		}
+	</script>
+
+	<div class="admin-bar">
+		<a th:href="@{/products/add}" class="chip">+ Thêm sản phẩm</a>
+		<a th:href="@{/categories}" class="chip" style="background:#ff9500;">Quản lý danh mục</a>
+	</div>
+</body>
+</html>

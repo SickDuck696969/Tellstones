@@ -4,6 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title th:text="${pageTitle} ?: 'Sản phẩm'">Sản phẩm</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.4.0/socket.io.js"></script>
 	<style>
 		:root {
 			--yellow: #ffd500;
@@ -323,6 +324,22 @@
 			text-decoration: line-through;
 			font-size: 12px;
 		}
+		/* Center the room + guest inputs and button */
+#roomId,
+#guestname,
+button {
+	display: block;
+	margin: 10px auto;
+	text-align: center;
+}
+
+/* Optional: center the whole block better */
+body > input,
+body > button {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
 	</style>
 </head>
 <body>
@@ -341,28 +358,10 @@
 			
 		</header>
 		<nav class="menu-bar" style="height: 90px;">
-			<a class="logo" href="/products">
-				<img src="buyhub.png">
-			</a>
-			<div class="search" style="width: 0px;">
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-				<input type="search" placeholder="Mở bán vivo Y31d" />
-			</div>
 			<div style="height: 100%; width: 55px; justify-content: center; align-items: center; display: flex;">
-				<a href="/products/cart">
-					<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<circle cx="9" cy="21" r="1.5"></circle>
-						<circle cx="18" cy="21" r="1.5"></circle>
-						<path d="M1 1h4l2.68 12.39a2 2 0 0 0 2 1.61h7.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-					</svg>
-				</a>
 			</div>
 		</nav>
 	</div>
-
-	<section class="hero">
-		<img th:src="@{/thumbnail.png}" alt="Banner khuyến mãi" loading="lazy">
-	</section>
 
 	<script>
 		const header = document.querySelector(".topbar");
@@ -393,156 +392,81 @@
 		animate();
 	</script>
 
-	<main class="section">
-		<div class="flash-board">
-			<div class="flash-tabs">
-				<div class="flash-tab"><button id="1">
-					<div style="color:#ffffff">
-						<!-- laptop icon -->
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-							<circle cx="12" cy="12" r="9"></circle>
-							<path d="M12 7v5"></path>
-							<path d="M12 12l3 2"></path>
-						</svg>
-					</div>
-					FlashSale
-				</button></div>
-				<div class="flash-tab"><button id="2">
-					<div style="color:#ffffff">
-						<!-- laptop icon -->
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-							<rect x="2" y="4" width="20" height="16" rx="2"></rect>
-							<line x1="2" y1="8" x2="22" y2="8"></line>
-							<circle cx="5" cy="6" r="0.8"></circle>
-							<circle cx="8" cy="6" r="0.8"></circle>
-							<circle cx="11" cy="6" r="0.8"></circle>
-						</svg>
-					</div>
-					Online Only
-				</button></div>
-				<div class="flash-tab"><button id="1">
-					<div style="color:#ffffff">
-						<!-- laptop icon -->
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-						<rect x="7" y="2" width="10" height="20" rx="2"></rect>
-						<circle cx="12" cy="18" r="1"></circle>
-					</svg>
-					</div>
-					Điện thoại</button></div>
-				<div class="flash-tab"><button id="1">
-					<div style="color:#ffffff">
-						<!-- laptop icon -->
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2">
-							<rect x="3" y="4" width="18" height="12" rx="2"></rect>
-							<path d="M2 20h20"></path>
-						</svg>
-					</div>
-					<span>Laptop</span>
-				</button></div>
-				<div class="flash-tab"><button id="1">
-					<div style="color:#ffffff">
-						<!-- laptop icon -->
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-							<path d="M4 13a8 8 0 0 1 16 0"></path>
-							<rect x="3" y="13" width="4" height="7" rx="2"></rect>
-							<rect x="17" y="13" width="4" height="7" rx="2"></rect>
-						</svg>
-					</div>
-					Phụ kiện</button></div>
-				<div class="flash-tab"><button id="1">
-					<div style="color:#ffffff">
-						<!-- laptop icon -->
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-							<path d="M9 2h6l1 3H8l1-3z"></path>
-							<rect x="6" y="5" width="12" height="14" rx="3"></rect>
-							<path d="M9 22h6l1-3H8l1 3z"></path>
-							<circle cx="12" cy="12" r="3"></circle>
-							<path d="M12 10v2l1.5 1"></path>
-						</svg>
-					</div>
-					Đồng hồ</button></div>
-				<div class="flash-tab"><button id="1">
-					<div style="color:#ffffff">
-						<!-- laptop icon -->
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-							<rect x="3" y="4" width="18" height="12" rx="2"></rect>
-							<path d="M12 16v3"></path>
-							<path d="M8 21h8"></path>
-						</svg>
-					</div>
-					PC, Máy in</button></div>
-			</div>
-			<div class="thesit">
+	<input type="text" id="roomId" placeholder="Enter Room ID">
+<button onclick="startRoom()">Play</button>
 
-			</div>
-			<div class="flash-row" style="margin-top: 4px;">
-				<div class="time-box">
-					<small>Chỉ còn:</small>
-					<div>01 : 54 : 05</div>
-				</div>
-				<div class="time-box">
-					<small>Sắp đến ra</small>
-					<div>12:00</div>
-				</div>
-				<div class="time-box">
-					<small>Sắp đến ra</small>
-					<div>15:00</div>
-				</div>
-				<div class="time-box">
-					<small>Sắp đến ra</small>
-					<div>18:00</div>
-				</div>
-			</div>
-			<div class="section-title" style="margin: 12px 0 10px;">
-				<h3>Khuyến mãi online</h3>
-				<div class="pill-filter">
-					<span class="pill">Điện thoại</span>
-					<span class="pill">Laptop</span>
-					<span class="pill">Phụ kiện</span>
-				</div>
-			</div>
-			<div class="grid" th:if="${products != null and !#lists.isEmpty(products)}">
-				<article class="card" th:each="product : ${products}">
-					<div class="thumb" th:style="${'background-image: url(' + product.image_string + '); background-size: contain; background-position: center; background-repeat: no-repeat'}" th:text="${product.image_string == null ? product.category.name : ''}"></div>
-					<div class="name" th:text="${product.name}">Tên sản phẩm</div>
-					<div class="desc" th:text="${product.description} ?: 'Mô tả đang cập nhật'">Mô tả sản phẩm</div>
-					<div class="price-row">
-						<span class="price" th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + ' ₫'">12.990.000 ₫</span>
-						<span class="old-price" th:text="${#numbers.formatDecimal(product.price * 1.1, 0, 'COMMA', 0, 'POINT')} + ' ₫'">14.290.000 ₫</span>
-					</div>
-					<span class="badge" th:text="'Giảm ' + ${#numbers.formatDecimal((product.price * 0.1), 0, 'COMMA', 0, 'POINT')} + ' ₫'">Giảm 1.000.000 ₫</span>
-					<div class="stock-row">
-						<div class="progress">
-							<span th:style="${'width:' + (((product.id != null ? product.id : 1) % 100)) + '%'}"></span>
-						</div>
-						<span th:text="${'Còn ' + ((((product.id != null ? product.id : 1) * 3) % 10) + 1) + ' suất'}">Còn 5 suất</span>
-					</div>
-					<div class="cta-row">
-						<form id="addtocart" style="flex:1; display:flex; gap:8px; align-items:center;">
-							<input type="hidden" name="productId" th:value="${product.id}" />
-							<input type="number" name="quantity" min="1" value="1" style="width:64px; padding:8px; border:1px solid var(--border); border-radius:10px;" />
-							<button type="submit" class="btn btn-primary">Add to Cart</button>
-						</form>
-					</div>
-					<div class="cta-row">
-						<a th:href="@{/products/edit/{id}(id=${product.id})}" class="btn btn-outline" style="text-align:center;">Sửa</a>
-						<form th:action="@{/products/delete/{id}(id=${product.id})}"
-							method="post"
-							onsubmit="return confirm('Xóa sản phẩm này?')">
-							<button type="submit"
-									class="btn btn-outline"
-									style="text-align:center; color:#c40000;">
-								Xóa
-							</button>
-						</form>
-					</div>
-				</article>
-			</div>
-			<div class="empty" th:if="${products == null or #lists.isEmpty(products)}" style="background:#fff; border-radius:10px; padding:16px; margin-top:10px; color:#d70000;">
-				Hiện chưa có sản phẩm. <a th:href="@{/products/add}" style="color: #fff; font-weight: 700; text-decoration: underline;">Thêm sản phẩm ngay</a>.
-			</div>
-		</div>
-	</main>
+<br><br>
+
+<input type="text" id="guestname" placeholder="guest name">
+
+<ul id="messages"></ul>
+
+<script>
+        async function updatebaackendline(data) {
+            try {
+				const res = await fetch("/tellstones/welcomeplayer", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data)
+				});
+
+				if (res.ok) {
+					const restone = await res.json();
+				} else {
+				}
+			} catch (err) {
+				console.error(err);
+			}
+        }
+</script>
+
+<script>
+    const socket = io("http://localhost:9092", {
+        transports: ["websocket"]
+    });
+
+    socket.on("connect", () => {
+        console.log("CONNECTED");
+    });
+
+    socket.on("connect_error", (err) => {
+        console.log("ERROR:", err);
+    });
+
+    socket.on("message", (data) => {
+        const li = document.createElement("li");
+        li.innerText = data;
+        document.getElementById("messages").appendChild(li);
+    });
+
+    let data = [];
+
+    socket.on("sessionID", (sessionID) => {
+        data = {
+            username: document.getElementById("guestname").value,
+            session: sessionID
+        };
+        updatebaackendline(data);
+    });
+
+    socket.on("roomJoined", (roomId) => {
+        console.log("Joined room:", roomId);
+        window.location.href = `/tellstones/room/${roomId}`;
+    });
+
+    // 🔹 Start room
+    function startRoom() {
+        const roomId = document.getElementById("roomId").value;
+        socket.emit("startRoom", roomId);
+        console.log("Started room:", roomId);
+    }
+
+    // 🔹 Send message
+    function sendMessage() {
+        const msg = document.getElementById("message").value;
+        socket.emit("message", msg);
+    }
+</script>
 
 	<script>
 		async function handleProfileClick() {

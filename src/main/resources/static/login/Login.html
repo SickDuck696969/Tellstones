@@ -1,16 +1,520 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-<meta charset="UTF-8">
-<title>Unrolling Mat Banner</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title th:text="${pageTitle} ?: 'Sản phẩm'">Sản phẩm</title>
+	<style>
+		:root {
+			--yellow: #ffd500;
+			--black: #111;
+			--gray: #f4f4f4;
+			--border: #e5e5e5;
+			--danger: #d70000;
+			--primary: #007aff;
+			--text: #333;
+		}
+		* { box-sizing: border-box; }
+		body {
+			margin: 0;
+			font-family: 'Inter', 'Segoe UI', sans-serif;
+			background-color: #e98000;
+			background-size: cover;
+			background-position: center;
+			background-repeat: no-repeat;
+            height: 100%;
+            min-height: 100vh;
+			color: var(--text);
+			display: flex;
+			gap: 0;
+			flex-direction: column;
+		}
+		a { text-decoration: none; color: inherit; }
+		.topbar-wrap {
+			position: sticky;
+			top: 0;
+			z-index: 20;
+			display: flex;
+			flex-direction: column;
+		}
+		.topbar {
+			background-color: #ff9000;
+			padding: 14px 22px 10px;
+			display: flex;
+			justify-content: right;
+			align-items: center;
+			gap: 14px;
+		}
+		.topbar.hide {
+			transform: translateY(-100%);
+		}
+		.search {
+			flex: 1;
+			display: flex;
+			align-items: center;
+			background: white;
+			border-radius: 14px;
+			padding: 8px 12px;
+			min-width: 280px;
+			height: 80%;
+			width: auto;
+			border: 2px solid rgba(255,255,255,0.2);
+		}
+		.search input {
+			border: none;
+			outline: none;
+			flex: 1;
+			font-size: 20px;
+			background: transparent;
+			height: 100%;
+		}
+		.nav-actions { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+		.nav-pill {
+			background: rgba(0,0,0,0.06);
+			border-radius: 14px;
+			padding: 9px 12px;
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			font-weight: 700;
+		}
+		.location-pill {
+			background: #ffe87a;
+			border-radius: 18px;
+			padding: 10px 14px;
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			font-weight: 800;
+			border: 1px solid rgba(0,0,0,0.05);
+		}
+		.menu-bar {
+			background: #ff910000;
+			height: 40px;
+			align-items: center;
+			padding: 6px 24px 10px;
+			display: flex;
+			flex-wrap: wrap;
+			gap: 16px;
+            transition: background 0.3s ease;
+		}
+		.menu-bar a {
+			text-decoration: none;
+			display: flex;
+			align-items: center;
+			font-size: 20px;
+			font-weight: 400;
+			color: #1a1a1a;
+		}
+        .menu-bar.hide{
+            background: #ff9100;
+        }
+		.logo {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			font-weight: 900;
+			font-size: 20px;
+			color: #000;
+		}
+		.logo img{
+			height: 80px;
+    		width: auto;
+			object-fit: contain;
+		}
+		.hero {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			overflow: hidden;
+		}
+		.hero img {
+			display: block;
+			width: 100%;
+			height: auto;
+		}
 
+		.section {}
+		.section-title { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; color: #fff; }
+		.section-title h3 { margin: 0; font-size: 20px; }
+		.pill-filter { display: flex; gap: 8px; flex-wrap: wrap; }
+		.pill-filter .pill { padding: 8px 12px; border-radius: 14px; background: #fff; border: 1px solid rgba(255,255,255,0.4); font-weight: 700; color: #b30000; cursor: pointer; }
+
+		/* Flash sale board */
+		.flash-board {
+			padding: 14px 14px 18px;
+			box-shadow: 0 12px 26px rgba(12, 12, 12, 0.25);
+			position: relative;
+			overflow: hidden;
+		}
+		.flash-tabs {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+			gap: 6px;
+		}
+		.flash-tab {
+			background: rgba(255,255,255,0.16);
+			color: #fff;
+			padding: 10px 12px;
+			border-radius: 10px 10px 0 0;
+			text-align: center;
+			font-weight: 700;
+			border: 1px solid rgba(255,255,255,0.3);
+		}
+		.flash-row {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+			gap: 10px;
+			background: rgba(255,255,255,0.08);
+			padding: 12px;
+			border-radius: 0 0 12px 12px;
+			border: 1px solid rgba(255,255,255,0.2);
+		}
+		.time-box { background: #fff; color: #d70000; font-weight: 800; padding: 10px; border-radius: 10px; text-align: center; }
+		.time-box small { display: block; color: #555; font-weight: 600; }
+
+		.grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+			gap: 12px;
+		}
+		.card {
+			background: #fff;
+			border: 1px solid #f9c900;
+			border-radius: 12px;
+			padding: 10px 12px;
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+			transition: transform .15s ease, box-shadow .15s ease;
+		}
+		.card:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(0,0,0,0.12); }
+		.card .thumb {
+			height: 150px;
+			border-radius: 8px;
+			background: linear-gradient(135deg, #ffe2b3, #ffd36f);
+			display: grid;
+			place-items: center;
+			color: #b36b00;
+			font-weight: 700;
+			font-size: 26px;
+		}
+		.card .name { font-weight: 800; font-size: 15px; min-height: 40px; color: #222; }
+		.card .desc { color: #666; font-size: 13px; min-height: 32px; }
+		.price-row { display: flex; align-items: baseline; gap: 8px; }
+		.price { color: var(--danger); font-weight: 900; font-size: 18px; }
+		.old-price { color: #999; text-decoration: line-through; font-size: 13px; }
+		.badge { display: inline-flex; align-items: center; gap: 4px; background: #ffe8e8; color: #c40000; padding: 4px 8px; border-radius: 10px; font-size: 12px; font-weight: 700; }
+		.cta-row { display: flex; gap: 8px; margin-top: 4px; }
+		.btn { border: none; border-radius: 10px; padding: 10px 12px; font-weight: 800; cursor: pointer; transition: transform .1s ease; }
+		.btn:hover { transform: translateY(-1px); }
+		.btn-primary { background: var(--danger); color: #fff; flex: 1; box-shadow: 0 6px 10px rgba(215,0,0,0.25); }
+		.btn-outline { background: #fff; color: var(--black); border: 1px solid var(--border); flex: 1; }
+		.stock-row { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #c40000; }
+		.progress {
+			flex: 1;
+			background: #ffe8e8;
+			height: 10px;
+			border-radius: 999px;
+			overflow: hidden;
+		}
+		.progress span {
+			display: block;
+			height: 100%;
+			background: linear-gradient(90deg, #ff8f00, #ff0000);
+		}
+		.admin-bar { position: fixed; bottom: 16px; right: 16px; display: flex; gap: 10px; z-index: 20; }
+		.chip { background: #000; color: #fff; padding: 10px 14px; border-radius: 12px; font-weight: 700; box-shadow: 0 8px 18px rgba(0,0,0,0.15); }
+		.empty { text-align: center; padding: 40px 0; color: #777; }
+		@media (max-width: 900px) {
+			.hero { grid-template-columns: 1fr; }
+			.hero-banner { justify-self: center; }
+			.topbar { flex-wrap: wrap; }
+			.nav-actions { width: 100%; justify-content: space-between; }
+		}
+        .loginpanel {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 60px);
+            padding: 40px 16px;
+            height: 120vh;
+        }
+        .login-card {
+            background-color: #ff9000;
+            border-radius: 4px;
+            padding: 28px 26px;
+            width: 100%;
+            max-width: 120vh;
+            height: 100%;
+            max-height: 70vh;
+            box-shadow: 0 14px 40px rgba(255, 0, 0, 0.18);
+			border: 2px solid rgba(255, 255, 255, 0.123);
+			display: inline-block;
+			position: relative;
+        }
+
+        .login-card h2 {
+            margin: 0 0 18px;
+            font-size: 24px;
+            font-weight: 900;
+            color: #222;
+            text-align: center;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 14px;
+            border: 2px solid rgba(196, 196, 196, 0.05);
+        }
+
+        .field label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #444;
+        }
+
+        .field input {
+            padding: 12px 12px;
+            border: 2px solid rgba(78, 78, 78, 0.123);
+            font-size: 15px;
+            outline: none;
+            transition: border .15s, box-shadow .15s;
+        }
+
+        .field input:focus {
+            border-color: rgb(255, 51, 0);
+            box-shadow: 0 0 0 3px rgba(255,138,0,0.15);
+        }
+		.passwordinput{
+			position: relative;
+		}
+		.passwordinput input {
+			width: 100%;
+			z-index: 1;
+		}
+		.passwordinput button {
+			position: absolute;
+			top: 50%;
+			right: 10px;
+			transform: translateY(-50%);
+			z-index: 2;
+
+			border: none;
+			background: transparent;
+			cursor: pointer;
+			font-size: 15px;
+			color: #979797;
+			transition: color .3s ease;
+		}
+		.passwordinput button:hover {
+			color: rgb(255, 51, 0);
+		}
+        .login-btn {
+            width: 100%;
+            margin-top: 8px;
+            padding: 12px;
+            border: none;
+            background-color: #1c1c1c;
+            color: #565656;
+            font-weight: 800;
+            font-size: 15px;
+            cursor: pointer;
+            transition: transform .1s ease, box-shadow .1s ease, color .1s ease, background-color .1s ease;
+        }
+        .login-btn:hover {
+            color: #1c1c1c;
+			background-color: rgb(255, 51, 0);
+            box-shadow: inset 0 -5px 22px rgba(255, 136, 0, 0.45);
+        }
+		.forgotpassword {
+			font-size: small;
+			color: #943400;
+			font-weight: 400;
+			transition: color .3s ease;
+		}
+		.forgotpassword:hover {
+			color: rgb(255, 51, 0);
+		}
+		.signup .box {
+			position: absolute;
+			width: 0px;
+			height: 4px;
+			background: #35353500;
+			transform: translate(-106px, 22px);
+			transition: width .3s ease-out, background .3s ease-out;
+		}
+		.signup:hover .box{
+			background: #353535;
+			width: 112px;
+		}
+		.logwith{
+			width: 350px;
+			height: 50px;
+			display: block;
+  			margin: 0 auto;
+		}
+		.footerup {
+			background-color: #1c1c1c;
+			height: 40vh;
+			margin-bottom: 0;
+			color: white;
+			padding-left: 20px;
+			padding-right: 20px;
+		}
+		.footerbottom {
+			margin-top: 0;
+			background-color: rgb(223, 18, 18);
+			height: 10vh;
+			display: flex;
+			padding-left: 20px;
+			padding-right: 20px;
+			align-items: center;
+			font-size: small;
+			color: white;
+		}
+	</style>
 </head>
-
 <body>
+	<div class="topbar-wrap">
+		<header class="topbar" style="height: 60px;">
+			<div class="nav-actions" style="width: 200px;">
+				<button class="profile-link" style="background: transparent; border: none; cursor: pointer; margin: 0; margin-left: auto; width: 55px; height: 55px; justify-items: center;">
+					<div>
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 17 19" fill="none" aria-hidden="true" class="innericon">
+							<circle cx="8.5" cy="5.8125" r="4.625" stroke="#fff" stroke-width="2"></circle>
+							<path d="M16 18C16 13.8579 12.6421 10.5 8.5 10.5C4.35786 10.5 1 13.8579 1 18" stroke="#fff" stroke-width="2" stroke-linecap="round"></path>
+						</svg>
+					</div>
+				</button>
+			</div>
+		</header>
+        <nav class="menu-bar" style="height: 90px;">
+			<a class="logo" href="/products">
+				<img src="/buyhub.png">
+			</a>
+		</nav>
+	</div>
 
-<video autoplay muted playsinline width="400">
-  <source src="/2026-03-01 00-57-42.mp4" type="video/mp4">
-</video>
+	<script>
+		const header = document.querySelector(".topbar");
+		const nav = document.querySelector(".menu-bar");
 
+		let currentY = 0;
+		let targetY = 0;
+
+		function lerp(start, end, t) {
+		return start + (end - start) * t;
+		}
+
+		window.addEventListener("wheel", (e) => {
+		if (e.deltaY > 0) {
+			targetY = -60;
+		} else {
+			targetY = 0;
+		}
+		});
+
+        window.addEventListener("scroll", () => {
+            if (window.scrollY > 0) {
+                nav.classList.add("hide");
+            } else {
+                nav.classList.remove("hide");
+            }
+        });
+
+		function animate() {
+		currentY = lerp(currentY, targetY, 0.1);
+		header.style.transform = `translateY(${currentY}px)`;
+		nav.style.transform = `translateY(${currentY}px)`;
+		requestAnimationFrame(animate);
+		}
+
+		animate();
+	</script>
+
+    <div class="loginpanel">
+        <div class="login-card">
+            <h2>LOGIN</h2>
+
+            <form id="loginform">
+                <div class="field">
+                    <label>Email</label>
+                    <input type="email" name="email" placeholder="Enter Email" required>
+                </div>
+
+                <div class="field">
+                    <label>Password</label>
+					<div class="passwordinput">
+						<input type="password" id="passwordfield" name="password" placeholder="Enter Password" required>
+						<button type="button" id="hidenshow">show</button>
+					</div>
+					<script>
+						const input = document.getElementById("passwordfield");
+						const btn = document.getElementById("hidenshow");
+
+						function hidenshow() {
+							if (input.type === "password") {
+								input.type = "text";
+								btn.textContent = "hide";
+							} else {
+								input.type = "password";
+								btn.textContent = "show";
+							}
+						}
+						btn.addEventListener("click", hidenshow);
+					</script>
+                </div>
+
+                <button type="submit" class="login-btn">CONNECTION</button>
+				<a href="/login/Reset" class="forgotpassword">forgot password?</a>
+				<p style="font-weight: 600; font-size: large; color: #dc512ebc; text-align: center;">──────────────────────────── or ────────────────────────────</p>
+				<div style="display: flex; justify-content: center; align-items: center;">
+					<p style="font-weight: 400; color: #c23c1bde; text-align: center;">New to Buyhub? <a href="/login/Register" class="signup" style="color: #353535; font-weight: 700;">Sign Up Here<span class="box"></span></a></p>
+				</div>
+            </form>
+        </div>
+		<script>
+				document.getElementById("loginform")
+				.addEventListener("submit", function(e) {
+					e.preventDefault();
+					const email = document.getElementsByName("email")[0].value;
+					const password = document.getElementsByName("password")[0].value;
+
+					fetch("/login/Login", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/x-www-form-urlencoded"
+						},
+						body: 
+						"email=" + encodeURIComponent(email) + "&password=" + encodeURIComponent(password)
+					})
+					.then(res => res.json())
+					.then(data => {
+						const msg = document.getElementById("email");
+
+						if (data.status === "ok") {
+							alert("Login successful!");
+							location.href = "/products";
+						} else {
+							alert(data.message);
+						}
+					})
+					.catch(() => {
+						document.getElementById("email").value =
+							alert("server error");
+					});
+				});
+			</script>
+    </div>
+	<div class="footerup">
+		<p>butt</p>
+	</div>
+	<div class="footerbottom">
+		<p>© 2015 - Copyright belongs to Group Whatever The freak Limited</p>
+	</div>
 </body>
 </html>

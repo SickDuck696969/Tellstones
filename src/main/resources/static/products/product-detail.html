@@ -310,7 +310,7 @@
     const productId = window.location.pathname.split("/").pop();
 
     async function loadProduct() {
-        const res = await fetch("/products/product/" + productId);
+        const res = await fetch("/tellstones/getplayers/" + productId);
 
         if (!res.ok) {
             alert("Product not found");
@@ -319,11 +319,7 @@
 
         const product = await res.json();
 
-        document.getElementById("product-name").textContent = product.name;
-        document.getElementById("product-price").textContent = product.price + "đ";
-        document.getElementById("product-description").textContent = product.description;
-        document.getElementById("product-image").src = product.image_string;
-        document.getElementById("product-image").alt = product.name;
+        alert(JSON.stringify(product));
     }
 
     document.getElementById("add-to-cart").addEventListener("click", async () => {
