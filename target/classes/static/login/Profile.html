@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title th:text="${pageTitle} ?: 'Sản phẩm'">Sản phẩm</title>
+	<style>
+		:root {
+			--yellow: #ffd500;
+			--black: #111;
+			--gray: #f4f4f4;
+			--border: #e5e5e5;
+			--danger: #d70000;
+			--primary: #007aff;
+			--text: #333;
+		}
+		* { box-sizing: border-box; }
+		body {
+			margin: 0;
+			font-family: 'Inter', 'Segoe UI', sans-serif;
+			background: linear-gradient(180deg, #ffbf00 0%, #ff6a00 100%);
+			background-size: cover;
+			background-position: center;
+			background-repeat: no-repeat;
+			height: 100%;
+			color: var(--text);
+		}
+		a { text-decoration: none; color: inherit; }
+		.topbar-wrap {
+			position: sticky;
+			top: 0;
+			z-index: 20;
+			display: flex;
+			flex-direction: column;
+		}
+		.topbar {
+			background-color: #ff9000;
+			padding: 14px 22px;
+			display: flex;
+			justify-content: right;
+			align-items: center;
+			gap: 14px;
+			box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+		}
+		.topbar .hide {
+			transform: translateY(-100%);
+		}
+		.search {
+			flex: 1;
+			display: flex;
+			align-items: center;
+			background: white;
+			border-radius: 4px;
+			padding: 8px 12px;
+			height: 70%;
+			width: auto;
+			border: 2px solid rgba(255,255,255,0.2);
+		}
+		.search input {
+			border: none;
+			outline: none;
+			flex: 1;
+			font-size: 20px;
+			background: transparent;
+			height: 100%;
+		}
+		.nav-actions { margin-top: 0; display: flex; flex-direction: row; align-items: center; justify-content: flex-end; gap: 10px; font-size: 14px; padding: 0; }
+		.nav-pill {
+			background: rgba(0,0,0,0.06);
+			border-radius: 14px;
+			padding: 9px 12px;
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			font-weight: 700;
+		}
+		.location-pill {
+			background: #ffe87a;
+			border-radius: 18px;
+			padding: 10px 14px;
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			font-weight: 800;
+			border: 1px solid rgba(0,0,0,0.05);
+		}
+		.menu-bar {
+			background: #ff9000;
+			height: 40px;
+			align-items: center;
+			padding: 6px 22px 10px;
+			display: flex;
+			flex-wrap: wrap;
+			gap: 16px;
+		}
+		.menu-bar a {
+			text-decoration: none;
+			display: flex;
+			align-items: center;
+			font-size: 20px;
+			font-weight: 400;
+			color: #1a1a1a;
+		}
+		.logo {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			font-weight: 900;
+			font-size: 20px;
+			color: #000;
+		}
+		.logo img{
+			height: 80px;
+    		width: auto;
+			object-fit: contain;
+		}
+		.hero {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			overflow: hidden;
+		}
+		.hero img {
+			display: block;
+			width: 100%;
+			height: auto;
+		}
+
+		.section {}
+		.section-title { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; color: #fff; }
+		.section-title h3 { margin: 0; font-size: 20px; }
+		.pill-filter { display: flex; gap: 8px; flex-wrap: wrap; }
+		.pill-filter .pill { padding: 8px 12px; border-radius: 14px; background: #fff; border: 1px solid rgba(255,255,255,0.4); font-weight: 700; color: #b30000; cursor: pointer; }
+
+		/* Flash sale board */
+		.flash-board {
+			padding: 14px 14px 18px;
+			box-shadow: 0 12px 26px rgba(12, 12, 12, 0.25);
+			position: relative;
+			overflow: hidden;
+		}
+		.flash-tabs {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+			gap: 6px;
+		}
+		.flash-tab {
+			background: rgba(255,255,255,0.16);
+			color: #fff;
+			padding: 10px 12px;
+			border-radius: 10px 10px 0 0;
+			text-align: center;
+			font-weight: 700;
+			border: 1px solid rgba(255,255,255,0.3);
+		}
+		.flash-row {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+			gap: 10px;
+			background: rgba(255,255,255,0.08);
+			padding: 12px;
+			border-radius: 0 0 12px 12px;
+			border: 1px solid rgba(255,255,255,0.2);
+		}
+		.time-box { background: #fff; color: #d70000; font-weight: 800; padding: 10px; border-radius: 10px; text-align: center; }
+		.time-box small { display: block; color: #555; font-weight: 600; }
+
+		.grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+			gap: 12px;
+		}
+		.card {
+			background: #fff;
+			border: 1px solid #f9c900;
+			border-radius: 12px;
+			padding: 10px 12px;
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+			transition: transform .15s ease, box-shadow .15s ease;
+		}
+		.card:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(0,0,0,0.12); }
+		.card .thumb {
+			height: 150px;
+			border-radius: 8px;
+			background: linear-gradient(135deg, #ffe2b3, #ffd36f);
+			display: grid;
+			place-items: center;
+			color: #b36b00;
+			font-weight: 700;
+			font-size: 26px;
+		}
+		.card .name { font-weight: 800; font-size: 15px; min-height: 40px; color: #222; }
+		.card .desc { color: #666; font-size: 13px; min-height: 32px; }
+		.price-row { display: flex; align-items: baseline; gap: 8px; }
+		.price { color: var(--danger); font-weight: 900; font-size: 18px; }
+		.old-price { color: #999; text-decoration: line-through; font-size: 13px; }
+		.badge { display: inline-flex; align-items: center; gap: 4px; background: #ffe8e8; color: #c40000; padding: 4px 8px; border-radius: 10px; font-size: 12px; font-weight: 700; }
+		.cta-row { display: flex; gap: 8px; margin-top: 4px; }
+		.btn { border: none; border-radius: 10px; padding: 10px 12px; font-weight: 800; cursor: pointer; transition: transform .1s ease; }
+		.btn:hover { transform: translateY(-1px); }
+		.btn-primary { background: var(--danger); color: #fff; flex: 1; box-shadow: 0 6px 10px rgba(215,0,0,0.25); }
+		.btn-outline { background: #fff; color: var(--black); border: 1px solid var(--border); flex: 1; }
+		.stock-row { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #c40000; }
+		.progress {
+			flex: 1;
+			background: #ffe8e8;
+			height: 10px;
+			border-radius: 999px;
+			overflow: hidden;
+		}
+		.progress span {
+			display: block;
+			height: 100%;
+			background: linear-gradient(90deg, #ff8f00, #ff0000);
+		}
+		.admin-bar { position: fixed; bottom: 16px; right: 16px; display: flex; gap: 10px; z-index: 20; }
+		.chip { background: #000; color: #fff; padding: 10px 14px; border-radius: 12px; font-weight: 700; box-shadow: 0 8px 18px rgba(0,0,0,0.15); }
+		.empty { text-align: center; padding: 40px 0; color: #777; }
+		@media (max-width: 900px) {
+			.hero { grid-template-columns: 1fr; }
+			.hero-banner { justify-self: center; }
+			.topbar { flex-wrap: wrap; }
+			.nav-actions { width: 100%; justify-content: space-between; }
+		}
+		.profile-link div {
+			border-radius: 50%; background-color: #c42e0896; height: 55px; width: 55px; padding: auto; align-items: center; justify-content: center; display: flex;
+			transition: background-color .2s ease, height .2s ease, width .2s ease;
+		}
+		.profile-link div:hover {
+			height: 50px;
+			width: 50px;
+			background-color: #ff3300;
+		}
+		.profile-link div svg {
+			width: 17px;
+			height: 19px;
+			transition: width .2s ease, height .2s ease;
+		}
+		.profile-link div:hover svg {
+			width: 23px;
+			height: 25px;
+		}
+	</style>
+</head>
+<body>
+	<div class="topbar-wrap">
+		<header class="topbar" style="height: 60px;">
+			<div class="nav-actions" style="width: 200px;">
+				<button class="profile-link" style="background: transparent; border: none; cursor: pointer; margin-top: 0; margin-left: auto; width: 55px; height: 55px; justify-items: center; align-items: center;">
+					<div>
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 17 19" fill="none" aria-hidden="true" class="innericon">
+							<circle cx="8.5" cy="5.8125" r="4.625" stroke="#fff" stroke-width="2"></circle>
+							<path d="M16 18C16 13.8579 12.6421 10.5 8.5 10.5C4.35786 10.5 1 13.8579 1 18" stroke="#fff" stroke-width="2" stroke-linecap="round"></path>
+						</svg>
+					</div>
+				</button>
+			</div>
+			
+		</header>
+		<nav class="menu-bar" style="height: 90px;">
+			<a class="logo" href="/products">
+				<img src="/buyhub.png">
+			</a>
+			<div class="search" style="width: 0px;">
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+				<input type="search" placeholder="Mở bán vivo Y31d" />
+			</div>
+			<div style="height: 100%; width: 55px; justify-content: center; align-items: center; display: flex;">
+				<a href="/products/cart">
+					<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<circle cx="9" cy="21" r="1.5"></circle>
+						<circle cx="18" cy="21" r="1.5"></circle>
+						<path d="M1 1h4l2.68 12.39a2 2 0 0 0 2 1.61h7.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+					</svg>
+				</a>
+			</div>
+		</nav>
+	</div>
+	<script>
+		const header = document.querySelector(".topbar");
+		const nav = document.querySelector(".menu-bar");
+
+		let currentY = 0;
+		let targetY = 0;
+
+		function lerp(start, end, t) {
+		return start + (end - start) * t;
+		}
+
+		window.addEventListener("wheel", (e) => {
+		if (e.deltaY > 0) {
+			targetY = -60;
+		} else {
+			targetY = 0;
+		}
+		});
+
+		function animate() {
+		currentY = lerp(currentY, targetY, 0.1);
+		header.style.transform = `translateY(${currentY}px)`;
+		nav.style.transform = `translateY(${currentY}px)`;
+		requestAnimationFrame(animate);
+		}
+
+		animate();
+	</script>
+
+	<main class="section" style="padding:20px;">
+	<div class="flash-board">
+
+		<!-- PROFILE HEADER -->
+		<div class="card" style="padding:20px; margin-bottom:25px;">
+
+			<div style="display:flex; gap:25px; flex-wrap:wrap; align-items:center;">
+
+				<!-- Avatar -->
+				<div style="text-align:center;">
+					<div style="
+						height:130px;
+						width:130px;
+						border-radius:50%;
+						background:linear-gradient(135deg,#ffe2b3,#ffd36f);
+						display:flex;
+						align-items:center;
+						justify-content:center;
+						overflow:hidden;
+						box-shadow:0 8px 18px rgba(0,0,0,0.1);
+					">
+						<img id="profileImage"
+							style="width:100%; height:100%; object-fit:cover; display:none;" />
+
+						<span id="profileInitial"
+							style="font-size:42px; font-weight:800; color:#b36b00;">
+							A
+						</span>
+					</div>
+				</div>
+
+				<!-- Basic Info -->
+				<div style="flex:1; min-width:260px;">
+					<div style="display:flex; justify-content:space-between; align-items:center;">
+						<div>
+							<h2 id="profileName"
+								style="margin:0; font-size:24px; font-weight:900;">
+								Loading...
+							</h2>
+
+							<div id="profileEmail"
+								style="color:#666; margin-top:4px;">
+								email@gmail.com
+							</div>
+
+							<div style="margin-top:6px; font-size:14px; color:#999;">
+								Sinh nhật:
+								<span id="profileBirthday">--</span>
+							</div>
+
+							<div style="margin-top:8px;">
+								<span id="profileRole"
+									class="badge"
+									style="background:#ffe8e8; color:#c40000;">
+									Customer
+								</span>
+							</div>
+						</div>
+
+						<div>
+							<a href="/profile/edit"
+							class="btn btn-outline">
+								Chỉnh sửa
+							</a>
+						</div>
+					</div>
+
+					<div class="cta-row" style="margin-top:18px;">
+						<a href="/login/Changepassword/${acc.id}"
+						id="changePasswordBtn"
+						class="btn btn-outline">
+							Đổi mật khẩu
+						</a>
+
+						<a href="/login/logout"
+						class="btn btn-primary"
+						style="background:#000;">
+							Đăng xuất
+						</a>
+					</div>
+
+				</div>
+
+			</div>
+		</div>
+		<div class="flash-board">
+
+			<!-- DASHBOARD HEADER -->
+			<div class="section-title">
+				<h3>Tài khoản của tôi</h3>
+			</div>
+
+			<div class="grid" style="grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); margin-bottom:20px;">
+				
+				<div class="card">
+					<div class="name">Đơn hàng</div>
+					<div class="price">12</div>
+					<div class="desc">Tổng đơn đã đặt</div>
+				</div>
+
+				<div class="card">
+					<div class="name">Đang xử lý</div>
+					<div class="price" style="color:#ff8f00;">2</div>
+					<div class="desc">Đơn chưa hoàn tất</div>
+				</div>
+
+				<div class="card">
+					<div class="name">Yêu thích</div>
+					<div class="price">5</div>
+					<div class="desc">Sản phẩm đã lưu</div>
+				</div>
+
+				<div class="card">
+					<div class="name">Điểm thưởng</div>
+					<div class="price" style="color:#007aff;">1,250</div>
+					<div class="desc">Có thể sử dụng</div>
+				</div>
+
+			</div>
+
+
+			<!-- ORDER SECTION -->
+			<div class="section-title" style="margin-top:30px;">
+				<h3>Đơn hàng gần đây</h3>
+			</div>
+
+			<div class="card" style="gap:12px;">
+				<div style="display:flex; justify-content:space-between; font-weight:700;">
+					<span>#ORD1024</span>
+					<span style="color:#ff8f00;">Đang giao</span>
+				</div>
+				<div class="desc">3 sản phẩm • 03/03/2026</div>
+				<div class="price-row">
+					<span class="price">12.990.000 ₫</span>
+				</div>
+				<div class="cta-row">
+					<button class="btn btn-outline">Theo dõi</button>
+					<button class="btn btn-primary">Mua lại</button>
+				</div>
+			</div>
+
+
+			<!-- ADDRESS -->
+			<div class="section-title" style="margin-top:30px;">
+				<h3>Địa chỉ giao hàng</h3>
+			</div>
+
+			<div class="card">
+				<div class="name">Nguyễn Văn A</div>
+				<div class="desc">0909 999 999</div>
+				<div class="desc">123 Nguyễn Trãi, Q1, TP.HCM</div>
+				<div class="cta-row">
+					<button class="btn btn-outline">Chỉnh sửa</button>
+					<button class="btn btn-outline">Thêm địa chỉ</button>
+				</div>
+			</div>
+
+
+			<!-- ACCOUNT SETTINGS -->
+			<div class="section-title" style="margin-top:30px;">
+				<h3>Cài đặt tài khoản</h3>
+			</div>
+		</div>
+	</main>
+	<script>
+	async function loadProfile() {
+		try {
+			const res = await fetch("/login/dashboard");
+
+			if (!res.ok) {
+				window.location.href = "/login/Login";
+				return;
+			}
+
+			const acc = await res.json();
+
+			// Gán dữ liệu
+			document.getElementById("profileName").textContent = acc.name;
+			document.getElementById("profileEmail").textContent = acc.email;
+			document.getElementById("profileBirthday").textContent = acc.birthday;
+			document.getElementById("changePasswordBtn").href = `/login/Changepassword/${acc.id}`;
+
+			const role = document.getElementById("profileRole");
+			role.textContent = acc.admin ? "Admin" : "Customer";
+
+			// Avatar logic
+			const img = document.getElementById("profileImage");
+			const initial = document.getElementById("profileInitial");
+
+			if (acc.image_string) {
+				img.src = acc.image_string;
+				img.style.display = "block";
+				initial.style.display = "none";
+			} else {
+				initial.textContent = acc.name.charAt(0).toUpperCase();
+				img.style.display = "none";
+				initial.style.display = "block";
+			}
+
+		} catch (error) {
+			console.error("Profile load error:", error);
+			window.location.href = "/login/Login";
+		}
+	}
+</script>
+	<script>
+		async function handleProfileClick() {
+			const res = await fetch("/login/dashboard");
+
+			if (res.ok) {
+				const acc = await res.json();
+				alert(`Xin chào, ${acc.name}!`);
+			} else {
+				window.location.href = "/login/Login";
+			}
+		}
+
+		window.onload = () => {
+			loadProfile();
+			document.querySelector(".profile-link")
+				.addEventListener("click", handleProfileClick);
+		};
+	</script>
+	<script>
+		document.querySelectorAll("#addtocart").forEach(form => {
+			form.addEventListener("submit", async (e) => {
+				e.preventDefault();
+				const button = form.querySelector("button[type='submit']");
+				const productId = form.querySelector("input[name='productId']").value;
+				const quantity = form.querySelector("input[name='quantity']").value;
+				const productname = document.querySelector(".name").textContent.trim();
+				let ok = true;
+				const errordetail = new Map();
+
+				for(let i = 0; i < quantity; i++) {
+					const res = await fetch(`products/add-to-cart/${productId}`, {
+						method: "POST",
+						headers: { "Content-Type": "application/json" }
+					});
+
+					if (res.ok) {
+						continue;
+					}else{
+						ok = false;
+						const errormsg = await res.text();
+						errordetail.set(productname, errormsg || "Lỗi không xác định");
+						continue;
+					}
+				}
+				
+				if(ok){
+						alert("Đã thêm vào giỏ hàng!");
+					}else{
+						const message = ``;
+						for (const entry of errordetail.entries()) {
+							const key = entry[0];
+							const value = entry[1];
+							alert(`Lỗi khi thêm ${key} vào giỏ hàng: ${value}`);
+						}
+					}
+			});
+		});
+	</script>
+
+	<div class="admin-bar">
+		<a th:href="@{/products/add}" class="chip">+ Thêm sản phẩm</a>
+		<a th:href="@{/categories}" class="chip" style="background:#ff9500;">Quản lý danh mục</a>
+	</div>
+</body>
+</html>
