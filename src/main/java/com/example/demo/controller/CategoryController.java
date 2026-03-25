@@ -3,7 +3,6 @@ package com.example.demo.controller;
 import com.example.demo.model.Category;
 import com.example.demo.service.CategoryService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -14,10 +13,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import java.util.List;
 
 @Controller
-@RequiredArgsConstructor
 public class CategoryController {
 
     private final CategoryService categoryService;
+
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
     @GetMapping("/categories/add") 
     public String showAddForm(Model model) { 
     model.addAttribute("category", new Category()); 
@@ -61,7 +63,7 @@ public class CategoryController {
     // GET request for deleting category 
     @GetMapping("/categories/delete/{id}") 
     public String deleteCategory(@PathVariable("id") Long id, Model model) { 
-        Category category = categoryService.getCategoryById(id) 
+        categoryService.getCategoryById(id) 
         .orElseThrow(() -> new IllegalArgumentException("Invalid category Id:" 
         + id)); 
         categoryService.deleteCategoryById(id); 

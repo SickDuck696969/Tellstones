@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Payment</title>
+    <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
+</head>
+<body>
+    <div class="page-shell">
+        <header class="topbar compact">
+            <a class="brand-mark" href="/">
+                <img src="/logo.png" alt="Tellstones Logo">
+            </a>
+            <div class="nav-cluster">
+                <a href="/shop" class="fantasy-btn ghost">Back to Shop</a>
+            </div>
+        </header>
+
+        <main class="center-stage" style="padding: 1rem 0 2rem;">
+            <div class="payment-grid">
+                <section class="panel card">
+                    <div class="eyebrow">Gem Exchange</div>
+                    <h1 class="title-lg">Provision your treasury</h1>
+                    <p class="lead">Choose a ritual bundle, then confirm the payment details used to fund more boards, spirits, and stone sets.</p>
+                    <div class="offer-list">
+                        <div class="offer-row"><strong>Squire's Pouch</strong><span>280 Gems • $4.99</span></div>
+                        <div class="offer-row"><strong>Royal Coffer</strong><span>720 Gems • $11.99</span></div>
+                        <div class="offer-row"><strong>Grand Treasury</strong><span>1600 Gems • $24.99</span></div>
+                    </div>
+                </section>
+
+                <section class="panel card">
+                    <div class="eyebrow">Payment</div>
+                    <h2 class="title-md">Seal the transaction</h2>
+                    <form data-payment-form class="field-stack">
+                        <label class="field-label">
+                            <span>Card Number</span>
+                            <input type="text" placeholder="0000 0000 0000 0000" required>
+                        </label>
+                        <label class="field-label">
+                            <span>Cardholder Name</span>
+                            <input type="text" placeholder="Name on the royal seal" required>
+                        </label>
+                        <div class="shop-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+                            <label class="field-label">
+                                <span>MM/YY</span>
+                                <input type="text" placeholder="08/29" required>
+                            </label>
+                            <label class="field-label">
+                                <span>CVC</span>
+                                <input type="text" placeholder="123" required>
+                            </label>
+                        </div>
+                        <button type="submit" class="fantasy-btn primary">Complete Payment</button>
+                    </form>
+                </section>
+            </div>
+        </main>
+
+        <div id="payment-confirmation" class="modal-backdrop">
+            <div class="modal-panel panel">
+                <button class="icon-btn close-link" type="button" data-close-modal aria-label="Close">✕</button>
+                <div class="eyebrow">Payment Confirmed</div>
+                <h2 class="title-md">The treasury has acknowledged your offering.</h2>
+                <p class="text-muted">Your gem balance has been refreshed, and the market hall stands ready for new acquisitions.</p>
+                <div class="menu-actions">
+                    <a href="/shop" class="fantasy-btn primary">Return to Shop</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script th:src="@{/js/tellstone-ui.js}"></script>
+</body>
+</html>

@@ -2,7 +2,6 @@ package com.example.demo.service;
 
 import com.example.demo.model.Category;
 import com.example.demo.repository.CategoryRepository;
-import lombok.RequiredArgsConstructor; 
 import org.springframework.stereotype.Service; 
 import org.springframework.transaction.annotation.Transactional; 
  
@@ -14,11 +13,14 @@ import java.util.Optional;
  * Service class for managing categories. 
  */ 
 @Service 
-@RequiredArgsConstructor 
 @Transactional 
 public class CategoryService { 
  
     private final CategoryRepository categoryRepository; 
+
+    public CategoryService(CategoryRepository categoryRepository) {
+        this.categoryRepository = categoryRepository;
+    }
  
     /** 
      * Retrieve all categories from the database. 

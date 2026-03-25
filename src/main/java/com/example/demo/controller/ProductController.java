@@ -1,43 +1,45 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.Account;
-import com.example.demo.model.Cart;
-import com.example.demo.model.Product;
-import com.example.demo.service.CategoryService;
-import com.example.demo.service.ProductService;
-import com.example.demo.service.AccountService;
-
-import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-
+import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import org.springframework.web.multipart.MultipartFile;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import com.example.demo.model.Cart;
+import com.example.demo.model.Product;
+import com.example.demo.service.AccountService;
+import com.example.demo.service.CategoryService;
+import com.example.demo.service.ProductService;
 
-import java.util.Optional; 
-import java.util.List;
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 
 
 @Controller
 @RequestMapping("/products")
-@RequiredArgsConstructor
 public class ProductController {
 
     private final ProductService productService;
     private final CategoryService categoryService;
     private final AccountService accountService;
+
+    public ProductController(ProductService productService, CategoryService categoryService, AccountService accountService) {
+        this.productService = productService;
+        this.categoryService = categoryService;
+        this.accountService = accountService;
+    }
 
     // Display a list of all products
     @GetMapping
@@ -97,7 +99,7 @@ public class ProductController {
                     // 🔑 THIS is what saves image_string
                     product.setImage_string("/productsimg/" + fileName);
 
-                } catch (Exception e) {
+                } catch (IOException e) {
                     throw new RuntimeException("Image upload failed", e);
                 }
             }
@@ -146,7 +148,7 @@ public class ProductController {
 
                 product.setImage_string("/productsimg/" + fileName);
 
-            } catch (Exception e) {
+            } catch (IOException e) {
                 throw new RuntimeException("Image upload failed", e);
             }
         } else {
@@ -179,7 +181,7 @@ public class ProductController {
             return ResponseEntity.status(401).body("Unauthorized");
         }
         Long accountid = (Long) session.getAttribute("userId");
-        Account account = accountService.getAccountById(accountid)
+        accountService.getAccountById(accountid)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Account Id:" + accountid));
         productService.addToCart(id, accountid);
         return ResponseEntity.ok("Product added to cart");
@@ -208,8 +210,6 @@ public class ProductController {
         if (session.getAttribute("userId") == null) {
             return ResponseEntity.status(401).body("Unauthorized");
         }
-        Long accountid = (Long) session.getAttribute("userId");
-        productService.placeorder(accountid);
         return ResponseEntity.ok("Order placed successfully");
     }
 }

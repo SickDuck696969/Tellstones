@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Account Information</title>
+    <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
+</head>
+<body>
+    <div class="page-shell">
+        <header class="topbar compact">
+            <a class="brand-mark" href="/">
+                <img th:src="@{/logo.png}" alt="Tellstones Logo">
+            </a>
+            <div class="nav-cluster">
+                <a href="/rules" class="fantasy-btn ghost">Rulebook</a>
+                <a href="/" class="fantasy-btn">Main Menu</a>
+            </div>
+        </header>
+
+        <main class="center-stage" style="padding: 1rem 0 2rem;">
+            <div class="panel account-card">
+                <aside class="portrait-panel">
+                    <img th:src="${account.avatar != null ? account.avatar : '/logo.png'}" alt="Avatar">
+                    <div class="tag">Royal ID Card</div>
+                    <h1 class="title-md" th:text="${account.displayName != null ? account.displayName : account.username}">Player Name</h1>
+                    <p class="text-muted" th:text="${account.email != null ? account.email : 'No email recorded'}">email@example.com</p>
+                    <div class="field-stack">
+                        <label class="field-label">
+                            <span>Avatar Preview</span>
+                            <input type="file" disabled>
+                        </label>
+                        <label class="field-label">
+                            <span>Display Name</span>
+                            <input type="text" th:value="${account.displayName != null ? account.displayName : account.username}" disabled>
+                        </label>
+                    </div>
+                    <p class="text-muted" style="margin-bottom: 0;">Profile editing can plug into backend update endpoints next.</p>
+                </aside>
+
+                <section class="dashboard-grid">
+                    <div class="card span-7">
+                        <div class="eyebrow">Chronicler's Ledger</div>
+                        <h2 class="title-md">Your standing in the court</h2>
+                        <div class="stat-row">
+                            <div class="stat">
+                                <span class="stat-label">Username</span>
+                                <span class="stat-value" th:text="${account.username}">House Name</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Gems</span>
+                                <span class="stat-value" th:text="${account.credit != null ? account.credit : 0}">0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Matches Logged</span>
+                                <span class="stat-value" th:text="${account.matchHistory != null ? account.matchHistory.size() : 0}">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card span-5">
+                        <div class="eyebrow">Spirit Companion</div>
+                        <h2 class="title-md">Ashen Fox</h2>
+                        <p class="text-muted">
+                            A placeholder spirit rests beside your sigils, ready for later collectible companions in the same mythic style.
+                        </p>
+                        <div class="store-art"></div>
+                    </div>
+
+                    <div class="card span-12">
+                        <div class="section-head">
+                            <div>
+                                <div class="eyebrow">Match History</div>
+                                <h2 class="title-md">Recorded duels</h2>
+                            </div>
+                        </div>
+                        <div class="history-grid">
+                            <div class="history-item" th:each="match, iter : ${account.matchHistory}">
+                                <strong th:text="${'Duel ' + (iter.index + 1)}">Duel 1</strong>
+                                <p class="text-muted" th:text="${match}">Score 3-1 • Victory</p>
+                                <span class="tag" th:classappend="${#strings.containsIgnoreCase(match, 'win') ? ' result-win' : (#strings.containsIgnoreCase(match, 'lose') ? ' result-loss' : '')}" th:text="${#strings.containsIgnoreCase(match, 'win') ? 'Victory' : (#strings.containsIgnoreCase(match, 'lose') ? 'Defeat' : 'Recorded')}">Recorded</span>
+                            </div>
+                            <div class="history-item" th:if="${account.matchHistory == null or account.matchHistory.isEmpty()}">
+                                <strong>No duels yet</strong>
+                                <p class="text-muted">Your ledger is ready for the first victory, bluff, and reveal.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

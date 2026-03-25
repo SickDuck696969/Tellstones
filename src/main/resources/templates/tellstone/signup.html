@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign Up</title>
+    <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
+</head>
+<body>
+    <div class="page-shell">
+        <main class="auth-layout">
+            <section class="auth-copy">
+                <div class="eyebrow">Found A New House</div>
+                <h1 class="title-lg">Swear your banner and join the line of challengers.</h1>
+                <p class="lead">
+                    Create your court identity, claim an empty chamber, and begin collecting spirits, boards, and engraved stones.
+                </p>
+                <ul class="feature-list">
+                    <li><span class="rune">✦</span><div><strong>Claim A Crest</strong><br>Reserve your username and prepare a display name worthy of the tournament hall.</div></li>
+                    <li><span class="rune">✦</span><div><strong>Grow Your Treasury</strong><br>Unlock cosmetics, gather gems, and shape a complete medieval persona over time.</div></li>
+                </ul>
+            </section>
+            <section class="auth-card panel">
+                <div class="eyebrow">Sign Up</div>
+                <h2 class="title-md">Light your first lantern</h2>
+                <form action="/signup" method="post" class="field-stack">
+                    <label class="field-label">
+                        <span>Username</span>
+                        <input type="text" name="username" placeholder="Choose a name for your house" required>
+                    </label>
+                    <label class="field-label">
+                        <span>Password</span>
+                        <input type="password" name="password" placeholder="Forge a secure oath" required>
+                    </label>
+                    <label class="field-label">
+                        <span>Email</span>
+                        <input type="email" name="email" placeholder="Summon updates here" required>
+                    </label>
+                    <button type="submit" class="fantasy-btn primary">Create Account</button>
+                </form>
+                <p class="text-muted" style="margin-bottom: 0;">
+                    Already sworn in?
+                    <a class="subtle-link" href="/login">Return to login</a>
+                </p>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

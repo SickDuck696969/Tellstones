@@ -1,11 +1,121 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Socket Room Client</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.4.0/socket.io.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tellstones: King's Gambit</title>
+    <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
 </head>
 <body>
+    <div class="page-shell">
+        <header class="topbar">
+            <a class="brand-mark" href="/">
+                <img th:src="@{/logo.png}" alt="Tellstones Logo">
+            </a>
+            <div class="nav-cluster">
+                <div sec:authorize="isAuthenticated()" class="action-row">
+                    <a href="/account" class="fantasy-chip" title="Account">
+                        <img class="avatar-badge" th:src="${#authentication.principal.avatar != null ? #authentication.principal.avatar : '/logo.png'}" alt="Avatar">
+                    </a>
+                    <a href="/shop" class="fantasy-btn">Cart</a>
+                </div>
+                <div sec:authorize="!isAuthenticated()">
+                    <a href="/login" class="fantasy-btn ghost">Account</a>
+                </div>
+                <a href="/rules" class="fantasy-btn ghost">Rulebook</a>
+                <button class="icon-btn" type="button" data-open-modal="settings-modal" aria-label="Settings">⚙</button>
+            </div>
+        </header>
+
+        <main class="hero panel">
+            <div class="hero-grid">
+                <section>
+                    <div class="eyebrow">High Fantasy Strategy</div>
+                    <h1 class="title-xl">The line is drawn. The stones remember.</h1>
+                    <p class="lead">
+                        Enter a carved-stone court of hidden intent, royal gambits, and fast multiplayer duels.
+                    </p>
+                    <div class="menu-actions">
+                        <div sec:authorize="isAuthenticated()">
+                            <a href="/play" class="fantasy-btn primary">Enter The Chamber</a>
+                        </div>
+                        <div sec:authorize="!isAuthenticated()">
+                            <a href="/login" class="fantasy-btn primary">Enter The Chamber</a>
+                        </div>
+                        <a href="/rules" class="fantasy-btn ghost">Study The Rulebook</a>
+                    </div>
+                    <ul class="feature-list">
+                        <li>
+                            <span class="rune">I</span>
+                            <div><strong>Royal Table</strong><br>Create a room, copy the sigil, and bring rivals to the board.</div>
+                        </li>
+                        <li>
+                            <span class="rune">II</span>
+                            <div><strong>Ancient Relics</strong><br>Boards, stones, and spirits share one medieval fantasy look.</div>
+                        </li>
+                        <li>
+                            <span class="rune">III</span>
+                            <div><strong>Persistent Legend</strong><br>Keep your account, spirit, and duel history in one place.</div>
+                        </li>
+                    </ul>
+                </section>
+
+                <aside class="panel play-callout">
+                    <div>
+                        <div class="eyebrow">King's Gambit</div>
+                        <h2 class="title-md">A ceremonial duel of memory, bluff, and nerve.</h2>
+                        <p class="text-muted">
+                            Every reveal pushes the match toward victory or ruin.
+                        </p>
+                    </div>
+                    <div class="play-medallion" aria-hidden="true"></div>
+                    <div class="mini-stats">
+                        <div class="stat">
+                            <span class="stat-label">Mode</span>
+                            <span class="stat-value">Multiplayer</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Setting</span>
+                            <span class="stat-value">Medieval Court</span>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+
+        <div id="settings-modal" class="modal-backdrop">
+            <div class="modal-panel panel">
+                <button class="icon-btn close-link" type="button" data-close-modal aria-label="Close settings">✕</button>
+                <div class="eyebrow">Settings</div>
+                <h2 class="title-md">Wardrobe of the Realm</h2>
+                <div class="field-stack" style="margin-top: 1rem;">
+                    <label class="field-label">
+                        <span>BGM Volume</span>
+                        <input data-bgm-volume type="range" min="0" max="1" step="0.05">
+                    </label>
+                </div>
+                <div class="shop-grid" style="margin-top: 1.25rem;">
+                    <div class="choice-card">
+                        <strong>Board Skin</strong>
+                        <p class="text-muted">Moonlit oak, scorched obsidian, and tournament velvet motifs prepared for future unlocks.</p>
+                    </div>
+                    <div class="choice-card">
+                        <strong>Stone Skin</strong>
+                        <p class="text-muted">Swap engraved relic sets and heraldic inlays to make your chamber unmistakable.</p>
+                    </div>
+                    <div class="choice-card">
+                        <strong>Spirit Aura</strong>
+                        <p class="text-muted">Preview atmospheric companions and ceremonial effects without leaving the main hall.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <audio data-bgm loop>
+        <source th:src="@{/audio/bgm.mp3}" type="audio/mpeg">
+    </audio>
+    <script th:src="@{/js/tellstone-ui.js}"></script>
 
 <h2>Join Room Now</h2>
 
