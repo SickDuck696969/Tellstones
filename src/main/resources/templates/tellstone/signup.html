@@ -23,7 +23,12 @@
             <section class="auth-card panel">
                 <div class="eyebrow">Sign Up</div>
                 <h2 class="title-md">Light your first lantern</h2>
+                <p th:if="${error}" style="color:red;" th:text="${error}"></p>
+                <p th:if="${success}" style="color:green;" th:text="${success}"></p>
                 <form action="/signup" method="post" class="field-stack">
+                    <input type="hidden"
+                    th:name="${_csrf.parameterName}"
+                    th:value="${_csrf.token}">
                     <label class="field-label">
                         <span>Username</span>
                         <input type="text" name="username" placeholder="Choose a name for your house" required>
