@@ -10,6 +10,7 @@ import com.example.demo.model.Stone;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.var;
 
 import java.lang.reflect.Array;
 import java.net.Socket;
@@ -39,6 +40,10 @@ import java.util.HashMap;
 import tools.jackson.databind.JsonNode;
 
 import com.example.demo.socketio.*;
+
+import java.util.Collection;
+
+import java.util.Random;
 
 
 @Controller
@@ -91,6 +96,12 @@ public class GameController {
     @GetMapping("/room/{id}")
     public String loadroom(@PathVariable String id, Model model) {
         model.addAttribute("roomId", id);
+        var clients = socketservice.getServer().getRoomOperations(id).getClients();
+
+        for (var c : clients) {
+            System.out.println("Player session: " + c.getSessionId());
+            System.out.println(playerService.getPlayers());
+        }
         return "tellstone/game";
     }
 
@@ -100,17 +111,19 @@ public class GameController {
         System.out.println(id);
 
         var clients = socketservice.getServer().getRoomOperations(id).getClients();
+        var playersl = playerService.getPlayers();
+        List<Account> players = new ArrayList<Account>();
 
         for (var c : clients) {
             System.out.println("Player session: " + c.getSessionId());
-            System.out.println(playerService.getPlayers());
+            for (var cl : playersl){
+                if(cl.containsKey(c.getSessionId().toString()) && c.getAllRooms().contains(id)){
+                    Account vc = cl.get(c.getSessionId().toString());
+                    players.add(vc);
+                }
+            }
         }
 
-        List<String> players = clients.stream()
-                .map(c -> c.getSessionId().toString())
-                .toList();
-
-        System.out.println(players);
         return ResponseEntity.ok(players);
     }
 
@@ -130,12 +143,14 @@ public class GameController {
 
     @PostMapping("/welcomeplayer")
     public ResponseEntity<?> welcomePlayer(@RequestBody Map<String, Object> body) {
-        Map<String, String> player = new HashMap<>();
-        player.put("username", (String) body.get("username"));
-        player.put("session", (String) body.get("session"));
-
+        Map<String, Account> player = new HashMap<>();
+        Random random = new Random();
+        long id = random.nextLong();
+        Account tempAccount = new Account(id, null, (String) body.get("username"), null, null, null, null, 0);
+        player.put((String) body.get("session"), tempAccount);
         playerService.addPlayer(player);
 
+        System.out.println(playerService.getPlayers());
         return ResponseEntity.ok(playerService.getPlayers());
     }
 }

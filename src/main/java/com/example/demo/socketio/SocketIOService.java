@@ -36,10 +36,14 @@ public class SocketIOService {
         System.out.printf("butt %d\n", server.getConfiguration().getPort());
 
         server.addEventListener("startRoom", String.class, (client, roomId, ack) -> {
+            client.sendEvent("roomJoined", roomId);
+            client.sendEvent("sessionID", client.getSessionId().toString());
+        });
+
+        server.addEventListener("inRoom", String.class, (client, roomId, ack) -> {
             System.out.println("Start room: " + roomId);
             client.joinRoom(roomId);
-            client.sendEvent("sessionID", client.getSessionId().toString());
-            client.sendEvent("roomJoined", roomId);
+            client.sendEvent("Youin");
         });
 
         try {
