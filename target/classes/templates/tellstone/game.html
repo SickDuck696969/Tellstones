@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<<<<<<< Updated upstream
-=======
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.4.0/socket.io.js"></script>
->>>>>>> Stashed changes
     <title>Game</title>
 
     <style>
@@ -152,8 +149,6 @@
             transform: scale(1.05);
             color: white;
         }
-<<<<<<< Updated upstream
-=======
 
         .playerbox {
             position: fixed;
@@ -168,16 +163,12 @@
             /* Optional styling */
             z-index: 1000;
         }
->>>>>>> Stashed changes
     </style>
     <p th:id="${roomId}" th:text="'room: ' + ${roomId}" style="position: fixed; top: 0; left: 0; margin: 10px">></p>
 </head>
 
 <body>
-<<<<<<< Updated upstream
-=======
     <div class="playerbox"></div>
->>>>>>> Stashed changes
     <div class="theline">
         <div class="side left"></div>
         <div class="side right"></div>
@@ -223,17 +214,6 @@
         }
     </script>
     <script>
-<<<<<<< Updated upstream
-        async function loadProduct() {
-            const productId = window.location.pathname.split("/").pop();
-            const res = await fetch("/tellstones/getplayers/" + productId)
-            .then(res => res.json())
-            .then(players => {
-                alert("Players: " + players.join(", "));
-            });
-        }
-        window.onload = loadProduct;
-=======
         async function updatebaackendlinea(data) {
             try {
 				const res = await fetch("/tellstones/welcomeplayer", {
@@ -326,7 +306,6 @@
                 console.error("Error loading players:", err);
             }
         }
->>>>>>> Stashed changes
     </script>
     <script>
         /* SPAWN STONES */
