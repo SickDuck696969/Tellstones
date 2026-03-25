@@ -7,6 +7,7 @@ import com.example.demo.service.PlayerService;
 import com.example.demo.model.Game;
 import com.example.demo.model.Stone;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import java.nio.file.Paths;
 import java.security.Security;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -45,6 +47,8 @@ import java.util.Collection;
 
 import java.util.Random;
 
+import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @Controller
 @RequestMapping("/tellstones")
@@ -55,9 +59,12 @@ public class GameController {
     private final Client coreclient;
     List<Map<String, String>> playerlistlist = new ArrayList<Map<String, String>>();
     private final PlayerService playerService;
+    private final Emailservice themailman;
 
     private Game game = new Game();
     private final AccountService accountService;
+    public int howmany = 0;
+    public int forhow = 0;
     private List<Stone> bag = Arrays.asList(
         new Stone(2, "/Sword.png", true),
         new Stone(3, "/Horse.png", true),
@@ -68,6 +75,14 @@ public class GameController {
         new Stone(8, "/Scale.png", true)
     );
     private Stone[] theline = new Stone[7];
+    private List<String> phases = Arrays.asList(
+        "standby",
+        "action",
+        "choose",
+        "end"
+    );
+
+    private int phase = 0;
 
     @GetMapping("/")
     public String backtologin() {
@@ -82,7 +97,20 @@ public class GameController {
         return "tellstone/game";
     }
 
-    @GetMapping("/room/{id}")
+    @GetMapping("/leave")
+    public String leave() {
+        try {
+            if(coreclient.socket == null){
+                coreclient.init();
+            }
+        }
+        catch (Exception e){
+            System.out.println(e);
+        }
+        return "tellstone/game";
+    }
+
+    @GetMapping("/room/{id}/{userid}")
     public String loadroom(@PathVariable String id, Model model) {
         model.addAttribute("roomId", id);
         var clients = socketservice.getServer().getRoomOperations(id).getClients();
@@ -96,18 +124,17 @@ public class GameController {
 
     @GetMapping("/getplayers/{id}")
     public ResponseEntity<?> getPlayers(@PathVariable String id) {
-
         System.out.println(id);
-
         var clients = socketservice.getServer().getRoomOperations(id).getClients();
         var playersl = playerService.getPlayers();
         List<Account> players = new ArrayList<Account>();
 
         for (var c : clients) {
-            System.out.println("Player session: " + c.getSessionId());
+            System.out.println(" in room " + c.getSessionId().toString());
             for (var cl : playersl){
                 if(cl.containsKey(c.getSessionId().toString()) && c.getAllRooms().contains(id)){
                     Account vc = cl.get(c.getSessionId().toString());
+                    System.out.println("Player " + vc.getUsername() + " in room " + c.getAllRooms());
                     players.add(vc);
                 }
             }
@@ -145,6 +172,56 @@ public class GameController {
         playerService.addPlayer(player);
 
         System.out.println("welcome" + playerService.getPlayers());
-        return ResponseEntity.ok(playerService.getPlayers());
+        return ResponseEntity.ok(tempAccount);
+    }
+
+    @PostMapping("/startgame/{id}")
+    public String start(@PathVariable String id) {
+        var clients = socketservice.getServer().getRoomOperations(id).getClients();
+        var playersl = playerService.getPlayers();
+        List<Account> players = new ArrayList<Account>();
+
+        for (var c : clients) {
+            System.out.println(" in room " + c.getSessionId().toString());
+            for (var cl : playersl){
+                if(cl.containsKey(c.getSessionId().toString()) && c.getAllRooms().contains(id)){
+                    Account vc = cl.get(c.getSessionId().toString());
+                    System.out.println("Player " + vc.getUsername() + " in room " + c.getAllRooms());
+                    players.add(vc);
+                }
+            }
+        }
+        game.setPlayers(players);
+        phase = 0;
+        return phases.get(phase);
+    }
+
+    @PostMapping("/keeptabs")
+    public ResponseEntity<?> handlePayment(@RequestBody Map<String, Integer> request, @AuthenticationPrincipal UserDetails user) {
+        System.out.println("Username: " + user.getUsername());
+        int gems = request.get("gems");
+        howmany = gems;
+        forhow = request.get("price");
+        return ResponseEntity.ok().body("Received!");
+    }
+
+    @GetMapping("/vn-pay-callback")
+    public String payCallbackHandler(HttpServletRequest request, @AuthenticationPrincipal UserDetails user) {
+        String status = request.getParameter("vnp_ResponseCode");
+        if (status.equals("00")) {
+            Account s = accountService.getAccountByUsername(user.getUsername()).get();
+            s.setCredit(s.getCredit() + howmany);
+            accountService.save(s);
+            String mail = "You just bought %d gems for %d ₫ in Tellstones the digital"
+            .formatted(howmany, forhow);
+            themailman.sendHtmlEmail(
+                s.getEmail(),
+                "Diamond Cheque",
+                mail
+            );
+            return "redirect:/shop";
+        } else {
+            return "redirect:/shop/gem";
+        }
     }
 }

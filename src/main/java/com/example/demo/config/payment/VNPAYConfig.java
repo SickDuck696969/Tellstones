@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class VNPAYConfig {
     @Getter
     private String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    private String vnp_ReturnUrl = "http://localhost:8080/moolah/vn-pay-callback";
+    private String vnp_ReturnUrl = "http://localhost:8080/tellstones/vn-pay-callback";
     private String vnp_TmnCode = "X1KO58QJ";
     @Getter
     private String secretKey = "5UM0A2VISEHCKRT9Y6IM89SE6IJYBL0N";

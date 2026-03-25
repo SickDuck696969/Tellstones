@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Shop</title>
+    <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
+</head>
+<body>
+    <div class="page-shell">
+        <header class="topbar compact">
+            <a class="brand-mark" href="/">
+                <img th:src="@{/logo.png}" alt="Tellstones Logo">
+            </a>
+            <div class="nav-cluster">
+                <div class="gem-pill">💎 <span th:text="${num} + ' Gems'"></div>
+                <a href="#" class="icon-btn" title="Buy gems">+</a>
+                <a href="/" class="fantasy-btn ghost">Main Menu</a>
+            </div>
+        </header>
+
+        <main class="center-stage" style="padding: 1rem 0 2rem;">
+            <section class="panel card">
+                <div class="eyebrow">Royal Market</div>
+                <h1 class="title-lg">Curio hall of boards, stones, and spirits</h1>
+                <p class="lead">
+                    A three-wing storefront inspired by arena brawlers, but steeped in carved oak, enamel sigils, and medieval pageantry.
+                </p>
+            </section>
+
+            <section class="panel card" style="margin-top: 1.25rem;">
+                    <div class="section-head">
+                        <div>
+                            <div class="eyebrow">Currency</div>
+                            <h2 class="title-md">Gem Vault</h2>
+                        </div>
+                    </div>
+
+                    <div class="shop-grid">
+                        <!-- Small Pack -->
+                        <div class="store-item">
+                            <div class="store-art"></div>
+                            <div>
+                                <strong>Apprentice Pouch</strong>
+                                <p class="text-muted">A modest stash for small upgrades.</p>
+                            </div>
+                            <div class="store-meta">
+                                <span>100 Gems · 20.000₫</span>
+                                <button class="fantasy-btn" onclick="pay(20000, 100)">Buy</button>
+                            </div>
+                        </div>
+
+                        <!-- Medium Pack -->
+                        <div class="store-item">
+                            <div class="store-art"></div>
+                            <div>
+                                <strong>Merchant Satchel</strong>
+                                <p class="text-muted">A balanced bundle for regular players.</p>
+                            </div>
+                            <div class="store-meta">
+                                <span>550 Gems · 100.000₫</span>
+                                <button class="fantasy-btn" onclick="pay(100000, 550)">Buy</button>
+                            </div>
+                        </div>
+
+                        <!-- Large Pack -->
+                        <div class="store-item">
+                            <div class="store-art"></div>
+                            <div>
+                                <strong>Royal Treasury</strong>
+                                <p class="text-muted">A kingly hoard for serious collectors.</p>
+                            </div>
+                            <div class="store-meta">
+                                <span>1200 Gems · 200.000₫</span>
+                                <button class="fantasy-btn" onclick="pay(200000, 1200)">Buy</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+        </main>
+    </div>
+    <script>
+    function pay(aamount, gemamount) {
+        const amount = aamount;
+        const bankCode = "NCB";
+
+        const url = `/moolah/vnpay?amount=${amount}&bankCode=${bankCode}`;
+
+        fetch('/tellstones/keeptabs', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                gems: gemamount,
+                price: aamount
+            })
+        })
+        .then(res => res.json())
+        .then(data => console.log(data))
+        .catch(err => console.error(err));
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                console.log(data);
+                if (data.paymentUrl) {
+                    window.location.href = data.paymentUrl;
+                }
+            })
+            .catch(err => console.error(err));
+    }
+    </script>
+</body>
+</html>

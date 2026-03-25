@@ -13,8 +13,8 @@
                 <img th:src="@{/logo.png}" alt="Tellstones Logo">
             </a>
             <div class="nav-cluster">
-                <div class="gem-pill">💎 <span>1000 Gems</span></div>
-                <a href="/payment" class="icon-btn" title="Buy gems">+</a>
+                <div class="gem-pill">💎 <span th:text="${num} + ' Gems'"></div>
+                <a href="/shop/gem" class="icon-btn" title="Buy gems">+</a>
                 <a href="/" class="fantasy-btn ghost">Main Menu</a>
             </div>
         </header>

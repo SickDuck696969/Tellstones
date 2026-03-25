@@ -46,6 +46,20 @@ public class SocketIOService {
             client.sendEvent("Youin");
         });
 
+        server.addEventListener("leaveRoom", String.class, (client, roomId, ack) -> {
+            System.out.println("Leave room: " + roomId);
+            client.leaveRoom(roomId);
+            client.sendEvent("outthedoor");
+        });
+
+        server.addEventListener("startgame", String.class, (client, roomId, ack) -> {
+            System.out.println("starting game");
+            var clients = server.getRoomOperations(roomId).getClients();
+            for (var c : clients) {
+                c.sendEvent("gamestart");
+            }
+        });
+
         try {
             server.start();
         } catch (Exception e) {

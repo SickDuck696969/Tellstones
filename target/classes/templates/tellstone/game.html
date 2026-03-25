@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
     <title>Tellstones - Game Room</title>
     <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.4.0/socket.io.js"></script>
@@ -74,17 +76,23 @@
         </main>
     </div>
     <script>
+        const token = document.querySelector('meta[name="_csrf"]').content;
+        const header = document.querySelector('meta[name="_csrf_header"]').content;
+        let restone = [];
         async function updatebaackendline(data) {
             try {
 				const res = await fetch("/tellstones/welcomeplayer", {
 				method: "POST",
-				headers: { "Content-Type": "application/json" },
+				headers: {
+                    'Content-Type': 'application/json',
+                    [header]: token
+                },
                 credentials: "include",
 				body: JSON.stringify(data)
 				});
 
 				if (res.ok) {
-					const restone = await res.json();
+					restone = await res.json();
 				} else {
 				}
 			} catch (err) {
@@ -113,18 +121,22 @@
     });
 
     let data = [];
+    let joined = null;
 
-    socket.on("sessionID", (sessionID) => {
+    socket.on("sessionID", async (sessionID) => {
         data = {
             username: document.getElementById("guestname").value,
             session: sessionID
         };
-        updatebaackendline(data);
+        await updatebaackendline(data);
+        if(joined != null){
+            window.location.href = `/tellstones/room/${joined}/${restone.id}`;
+        }
     });
 
     socket.on("roomJoined", (roomId) => {
         console.log("Joined room:", roomId);
-        window.location.href = `/tellstones/room/${roomId}`;
+        joined = roomId;
     });
 
 
