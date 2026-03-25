@@ -1,413 +1,76 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.4.0/socket.io.js"></script>
-    <title>Game</title>
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background: #f0f0f0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            width: 100%;
-            flex-direction: column;
-        }
-
-        /* LINE */
-        .theline {
-            background: blue;
-            height: 250px;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        /* LEFT / RIGHT DROP AREAS */
-        .side {
-            position: absolute;
-            top: 0;
-            height: 100%;
-            width: 50%;
-        }
-
-        .left {
-            left: 0;
-        }
-
-        .right {
-            right: 0;
-        }
-
-        /* SLOTS */
-        .slots {
-            display: flex;
-            gap: 100px;
-            width: 100%;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .slot {
-            width: 80px;
-            height: 80px;
-            border: 2px dashed white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            pointer-events:none;
-        }
-
-        /* BAG */
-        .bag {
-            display: flex;
-            width: 100%;
-            align-items: top;
-            justify-content: center;
-            gap: 5px;
-            position: absolute;
-            bottom: -120px;
-            height: 200px;
-            transition: gap .3s ease, bottom .3s ease;
-        }
-
-        .bag:not(.pause):hover {
-            bottom: 10px;
-            gap: 40px;
-        }
-
-        .bag.pause {
-            user-select: none;
-        }
-
-        .stone {
-            display: flex;
-            width: 150px;
-            height: 150px;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            cursor: grab;
-        }
-
-        .stone.pause {
-            user-select: none;
-        }
-
-        .stone:not(.pause):hover .stonevisual {
-            height: 170px;
-            width: 170px;
-            margin-bottom: 30px;
-            box-shadow: 0 0 10px rgba(128, 128, 128, .4);
-        }
-
-        .stonevisual {
-            position: absolute;
-            background: #333;
-            border-radius: 50%;
-            height: 150px;
-            width: 150px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 5px 5px 20px rgba(128, 128, 128, .4);
-            transition: height .3s, width .3s, margin-bottom .2s, box-shadow .3s;
-            color: white;
-            font-size: 30px;
-        }
-
-        .startbutton {
-            position: absolute;
-            bottom: 40px;
-            z-index: 10;
-            height: 100px;
-            width: 300px;
-            outline: none;
-            border: none;
-            background-color: yellowgreen;
-            font-size: large;
-            font-weight: 500;
-            cursor: pointer;
-            transition: transform 0.1s ease, background-color 0.1s ease, color 0.1s ease;
-        }
-
-        .startbutton:hover {
-            background-color: rgb(160, 223, 35);
-            transform: scale(1.05);
-            color: white;
-        }
-
-        .playerbox {
-            position: fixed;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            
-            width: fit-content;
-            height: fit-content;
-
-            background-color: #333;
-            /* Optional styling */
-            z-index: 1000;
-        }
-    </style>
-    <p th:id="${roomId}" th:text="'room: ' + ${roomId}" style="position: fixed; top: 0; left: 0; margin: 10px">></p>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tellstones - Game Room</title>
+    <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
 </head>
-
 <body>
-    <div class="playerbox"></div>
-    <div class="theline">
-        <div class="side left"></div>
-        <div class="side right"></div>
+    <div class="page-shell">
+        <header class="topbar compact">
+            <a class="brand-mark" href="/">
+                <img src="/logo.png" alt="Tellstones Logo">
+            </a>
+            <div class="nav-cluster">
+                <a href="/" class="fantasy-btn ghost">Main Menu</a>
+                <a href="/shop" class="fantasy-btn">Shop</a>
+            </div>
+        </header>
 
-        <div class="slots">
-            <div class="slot"></div>
-            <div class="slot"></div>
-            <div class="slot"></div>
-            <div class="slot"></div>
-            <div class="slot"></div>
-            <div class="slot"></div>
-            <div class="slot"></div>
-        </div>
+        <main class="center-stage" style="padding: 1rem 0 2rem;">
+            <div class="panel card">
+                <div class="eyebrow">Room Hall</div>
+                <h1 class="title-lg">Gather the challengers</h1>
+                <p class="lead" data-room-banner>
+                    Light a fresh chamber, copy its sigil, or step into another room before the duel begins.
+                </p>
+            </div>
+
+            <div class="dashboard-grid" style="margin-top: 1.25rem;">
+                <section class="card panel span-4">
+                    <div class="eyebrow">Your Room</div>
+                    <h2 class="title-md">Chamber Sigil</h2>
+                    <p class="text-muted" data-room-status>Your attendants are preparing the board.</p>
+                    <div class="stat">
+                        <span class="stat-label">Room ID</span>
+                        <span class="stat-value" data-room-id>------</span>
+                    </div>
+                    <div class="menu-actions">
+                        <button type="button" class="fantasy-btn primary" data-copy-room>Copy Sigil</button>
+                    </div>
+                </section>
+
+                <section class="card panel span-4">
+                    <div class="eyebrow">Join A Duel</div>
+                    <h2 class="title-md">Enter another chamber</h2>
+                    <label class="field-label">
+                        <span>Room ID</span>
+                        <input type="text" data-join-input placeholder="Type a chamber sigil">
+                    </label>
+                    <div class="menu-actions">
+                        <button type="button" class="fantasy-btn primary" data-join-room>Join Room</button>
+                    </div>
+                </section>
+
+                <section class="card panel span-4">
+                    <div class="eyebrow">Accessories</div>
+                    <h2 class="title-md">Ceremonial Loadout</h2>
+                    <div class="info-list">
+                        <div class="choice-card">
+                            <strong>Board Skin</strong>
+                            <p class="text-muted">Velvet tournament dais with gilt corners.</p>
+                        </div>
+                        <div class="choice-card">
+                            <strong>Stone Skin</strong>
+                            <p class="text-muted">Ivory face, obsidian edge, crestwork in brass.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
     </div>
-    <button id="bagBtn" class="startbutton">
-        Click me to start the game
-    </button>
-    <div class="bag pause" id="bag"></div>
-    <script>
-        async function updatebaackendline() {
-            const theline = document.querySelectorAll(".slot .stonevisual");
-            const data = [];
-            for(let i = 0; i < theline.length; i++){
-                data.push({position: i, stoneid: theline[i].textContent})
-            }
-            try {
-				const res = await fetch("/tellstones/settinggame", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(data)
-				});
-
-				if (res.ok) {
-					const restone = await res.json();
-					alert(JSON.stringify(restone));
-				} else {
-					alert(await res.text());
-				}
-			} catch (err) {
-				alert("Network error");
-				console.error(err);
-			}
-        }
-    </script>
-    <script>
-        async function updatebaackendlinea(data) {
-            try {
-				const res = await fetch("/tellstones/welcomeplayer", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(data)
-				});
-
-				if (res.ok) {
-					const restone = await res.json();
-				} else {
-				}
-			} catch (err) {
-				console.error(err);
-			}
-        }
-</script>
-
-<script>
-    let isSocketConnected = false;
-    const socket = io("http://localhost:9092", {
-        transports: ["websocket"]
-    });
-
-    socket.on("connect", () => {
-        inRoom();
-        console.log("CONNECTED");
-    });
-
-    socket.on("Youin", () => {
-        loadProduct();
-    });
-
-    socket.on("connect_error", (err) => {
-        console.log("ERROR:", err);
-    });
-
-    socket.on("message", (data) => {
-        const li = document.createElement("li");
-        li.innerText = data;
-        document.getElementById("messages").appendChild(li);
-    });
-
-    let data = [];
-
-    socket.on("roomJoined", (roomId) => {
-        console.log("Joined room:", roomId);
-        window.location.href = `/tellstones/room/${roomId}`;
-    });
-
-    // Start room
-    function startRoom() {
-        const roomId = document.getElementById("roomId").value;
-        socket.emit("startRoom", roomId);
-        console.log("Started room:", roomId);
-    }
-
-    // In room
-    function inRoom() {
-        const roomId = window.location.pathname.split("/").pop();
-        socket.emit("inRoom", roomId);
-        console.log("In room:", roomId);
-    }
-
-    // Send message
-    function sendMessage() {
-        const msg = document.getElementById("message").value;
-        socket.emit("message", msg);
-    }
-</script>
-    <script>
-        async function loadProduct() {
-            try {
-                const productId = window.location.pathname.split("/").pop();
-                const res = await fetch("/tellstones/getplayers/" + productId);
-                const players = await res.json(); // ✅ no .data
-
-                console.log(players);
-
-                const list = document.getElementById("messages");
-                list.innerHTML = "";
-
-                players.forEach(player => {
-                    const li = document.createElement("li");
-                    li.innerText = player.username + " (" + player.session + ")";
-                    list.appendChild(li);
-                });
-
-            } catch (err) {
-                console.error("Error loading players:", err);
-            }
-        }
-    </script>
-    <script>
-        /* SPAWN STONES */
-        const bag = document.getElementById("bag");
-
-        for (let i = 2; i <= 8; i++) {
-            const stone = document.createElement("div");
-            stone.className = "stone pause";
-            stone.draggable = true;
-            stone.id = i;
-
-            stone.innerHTML = `<div class="stonevisual">${i}</div>`;
-
-            stone.draggable = false;
-
-            bag.appendChild(stone);
-        }
-
-        /* DRAG */
-        const stones = document.querySelectorAll(".stone");
-        stones.forEach(stone => {
-            stone.addEventListener("dragstart", function(e) {
-                e.dataTransfer.setData("text", stone.id);
-            });
-        });
-
-        /* DROP AREAS */
-        const left = document.querySelector(".left");
-        const right = document.querySelector(".right");
-        const slots = document.querySelectorAll(".slot");
-
-        [left, right].forEach(side => {
-            side.addEventListener("dragover", e => e.preventDefault());
-        });
-
-        /* SLOT LOGIC */
-        function placeStone(id, side) {
-            let index;
-
-            const filled = [...slots].filter(s => s.children.length > 0);
-
-            if (filled.length === 0) {
-                index = Math.floor(slots.length / 2);
-            } else {
-                const mid = Math.floor(slots.length / 2);
-
-                if (side === "left") {
-                    for (let i = mid; i >= 0; i--) {
-                        if (slots[i].children.length === 0) {
-                            index = i;
-                            break;
-                        }
-                    }
-                }
-
-                if (side === "right") {
-                    for (let i = mid; i < slots.length; i++) {
-                        if (slots[i].children.length === 0) {
-                            index = i;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (index === undefined) return;
-
-            const stone = document.getElementById(id);
-            const visual = stone.querySelector(".stonevisual");
-
-            slots[index].appendChild(visual);
-
-            stone.remove();
-            updatebaackendline();
-        }
-
-        left.addEventListener("drop", function(e) {
-            e.preventDefault();
-
-            const id = e.dataTransfer.getData("text");
-
-            placeStone(id, "left");
-        });
-
-        right.addEventListener("drop", function(e) {
-            e.preventDefault();
-
-            const id = e.dataTransfer.getData("text");
-
-            placeStone(id, "right");
-        });
-    </script>
-    <script>
-        document.getElementById("bagBtn").addEventListener("click", function() {
-            this.style.display = "none";
-            bag.classList.remove("pause");
-
-            document.querySelectorAll(".stone").forEach(stone => {
-                stone.classList.remove("pause");
-                stone.draggable = true;
-    });
-        });
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.4.0/socket.io.js"></script>
+    <script th:src="@{/js/tellstone-ui.js}"></script>
 </body>
 </html>

@@ -109,6 +109,10 @@
 			<artifactId>socket.io-client</artifactId>
 			<version>2.1.0</version>
 		</dependency>
+        <dependency>
+            <groupId>org.thymeleaf.extras</groupId>
+            <artifactId>thymeleaf-extras-springsecurity6</artifactId>
+        </dependency>
  </dependencies>
 
 	<build>

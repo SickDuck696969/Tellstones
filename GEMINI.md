@@ -1,0 +1,44 @@
+This is a project to turn Tellstones King's Gambit into a multiplayer web game.
+---Please apply the original asthestic of the game combine with your own creativity to design this game, also using Nano Banana 2 to create icon for elements if possible---
+    ---Initial Flow---
+- First open the game will take you to Main Menu page.
+- Elements in Main Menu:
+    - A logo game using logo.png image in resources folder.
+    - A play button in center
+    - Top right row:
+        - Account button
+        - Check rule button
+        - Settings button with gear icon
+    ---MAIN MENU---
+- If player choose to play when not logging in the game will redirect to login page and then you can choose to sign up or log in. 
+- If player click Account button when not logging in the game will redirect to login page and then you can choose to sign up or log in.
+- If player click Account button when logged in it will redirect to Account Information page.
+    --Account Information page--
+- Design Account Information page to make it looks like a stylish ID Card. Fields include:
+    - Avatar image. Player can choose to upload image to update their Avatar
+    - Display name. Player can choose to edit their display name.
+    - Create a placeholder for mate in Master Duel or little legend in TFT. In this game, we call them Spirit.
+    - Match history grid. Show a list of matches player had played, show their score and win/lose result.
+- Also, change the generic account icon on Main Menu to player avatar after they have logged in.
+    --Setting page--
+- Setting is a panel popup, not a seperate page so it wont redirect the web.
+- Player can adjust bgm volume in this panel. BGM is a .mp3 file in resources folder.
+- Player can also choose to change accessories like Stones skin, Board skin.
+    --Check Rule--
+- click on the Check Rule button will open the Rule.pdf directly on web.
+- Adjust the size so it fits center of the web page, player can click on the right side of the page to move to next page, click left to previous page or click on X button on top right of the page to close the Rule book.
+    --PLAY--
+- Hitting Play button will redirect to room page.
+- In room page you can choose to see your room ID and copy room ID using button
+- You can also input another room ID in input zone below then hit it to join that room
+- Also there is a section to change accessories like the Setting panel.
+    ---MAIN MENU---
+- After logging in, a Shopping Cart button will appear beside player avatar in Main Menu
+- Click on it will redirect Shop page which sales Accessories mentions above.
+    --Shop page--
+- The shop will be structured like Brawlhalla shop which contains 3 sections: Board, Stone and Spirit.
+- Player purchase Spirit by using Gem.
+- The amount of Gem player have will be showed on top right of Shop page, this place show player Gem with a + button on its right, click on + button will redirect to Payment which player use real money to buy a fixed a mount of Gem. After complete payment a popup will appear to confirm that player had made that payment.
+
+Remember to make the style and color palette consistent among all pages.
+---

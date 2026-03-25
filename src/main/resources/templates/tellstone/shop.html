@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Shop</title>
+    <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
+</head>
+<body>
+    <div class="page-shell">
+        <header class="topbar compact">
+            <a class="brand-mark" href="/">
+                <img th:src="@{/logo.png}" alt="Tellstones Logo">
+            </a>
+            <div class="nav-cluster">
+                <div class="gem-pill">💎 <span>1000 Gems</span></div>
+                <a href="/payment" class="icon-btn" title="Buy gems">+</a>
+                <a href="/" class="fantasy-btn ghost">Main Menu</a>
+            </div>
+        </header>
+
+        <main class="center-stage" style="padding: 1rem 0 2rem;">
+            <section class="panel card">
+                <div class="eyebrow">Royal Market</div>
+                <h1 class="title-lg">Curio hall of boards, stones, and spirits</h1>
+                <p class="lead">
+                    A three-wing storefront inspired by arena brawlers, but steeped in carved oak, enamel sigils, and medieval pageantry.
+                </p>
+            </section>
+
+            <div class="dashboard-grid" style="margin-top: 1.25rem;">
+                <section class="panel card span-4">
+                    <div class="section-head">
+                        <div>
+                            <div class="eyebrow">Boards</div>
+                            <h2 class="title-md">Dais Collection</h2>
+                        </div>
+                    </div>
+                    <div class="shop-grid">
+                        <div class="store-item">
+                            <div class="store-art"></div>
+                            <div><strong>Moonkeep Board</strong><p class="text-muted">Silver tracery and velvet underlight.</p></div>
+                            <div class="store-meta"><span>420 Gems</span><button class="fantasy-btn">Buy</button></div>
+                        </div>
+                        <div class="store-item">
+                            <div class="store-art"></div>
+                            <div><strong>Ember Court</strong><p class="text-muted">Warm brass edges and dusky maroon felt.</p></div>
+                            <div class="store-meta"><span>560 Gems</span><button class="fantasy-btn">Buy</button></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel card span-4">
+                    <div class="section-head">
+                        <div>
+                            <div class="eyebrow">Stones</div>
+                            <h2 class="title-md">Relic Skins</h2>
+                        </div>
+                    </div>
+                    <div class="shop-grid">
+                        <div class="store-item">
+                            <div class="store-art"></div>
+                            <div><strong>Ivory Herald</strong><p class="text-muted">Pale stone faces with heraldic gold trim.</p></div>
+                            <div class="store-meta"><span>320 Gems</span><button class="fantasy-btn">Buy</button></div>
+                        </div>
+                        <div class="store-item">
+                            <div class="store-art"></div>
+                            <div><strong>Raven Marble</strong><p class="text-muted">Dark lacquer and moonlit engraving.</p></div>
+                            <div class="store-meta"><span>380 Gems</span><button class="fantasy-btn">Buy</button></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel card span-4">
+                    <div class="section-head">
+                        <div>
+                            <div class="eyebrow">Spirits</div>
+                            <h2 class="title-md">Companion Wing</h2>
+                        </div>
+                    </div>
+                    <div class="shop-grid">
+                        <div class="store-item">
+                            <div class="store-art"></div>
+                            <div><strong>Lantern Fox</strong><p class="text-muted">An ember-tailed guide for night matches.</p></div>
+                            <div class="store-meta"><span>700 Gems</span><button class="fantasy-btn">Buy</button></div>
+                        </div>
+                        <div class="store-item">
+                            <div class="store-art"></div>
+                            <div><strong>Stag Warden</strong><p class="text-muted">Forest-gold antlers and rune-bells.</p></div>
+                            <div class="store-meta"><span>880 Gems</span><button class="fantasy-btn">Buy</button></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

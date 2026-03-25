@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login</title>
+    <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
+</head>
+<body>
+    <div class="page-shell">
+        <main class="auth-layout">
+            <section class="auth-copy">
+                <div class="eyebrow">Return To Court</div>
+                <h1 class="title-lg">Step back beneath the banners of the King's Gambit.</h1>
+                <p class="lead">
+                    Log in to reclaim your chamber, gather your relic skins, and carry your spirit companion into the next match.
+                </p>
+                <ul class="feature-list">
+                    <li><span class="rune">✦</span><div><strong>Keep Your Identity</strong><br>Account, avatar, and match chronicle remain bound to your heraldry.</div></li>
+                    <li><span class="rune">✦</span><div><strong>Enter Fast</strong><br>Jump from the menu into a private room with a single ceremonial sigil.</div></li>
+                </ul>
+            </section>
+            <section class="auth-card panel">
+                <div class="eyebrow">Login</div>
+                <h2 class="title-md">Open the castle gates</h2>
+                <form action="/login" method="post" class="field-stack">
+                    <label class="field-label">
+                        <span>Username</span>
+                        <input type="text" name="username" placeholder="Enter your house name" required>
+                    </label>
+                    <label class="field-label">
+                        <span>Password</span>
+                        <input type="password" name="password" placeholder="Enter your secret phrase" required>
+                    </label>
+                    <button type="submit" class="fantasy-btn primary">Login</button>
+                </form>
+                <p class="text-muted" style="margin-bottom: 0;">
+                    New to the kingdom?
+                    <a class="subtle-link" href="/signup">Create an account</a>
+                </p>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
