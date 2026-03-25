@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tellstones - Game Room</title>
     <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.4.0/socket.io.js"></script>
 </head>
 <body>
     <div class="page-shell">
@@ -13,7 +14,6 @@
                 <img src="/logo.png" alt="Tellstones Logo">
             </a>
             <div class="nav-cluster">
-                <a href="/" class="fantasy-btn ghost">Main Menu</a>
                 <a href="/shop" class="fantasy-btn">Shop</a>
             </div>
         </header>
@@ -43,11 +43,16 @@
 
                 <label class="field-label">
                     <span>Room ID</span>
-                    <input type="text" data-room-input placeholder="Type or paste a chamber sigil">
+                    <input type="text" id="roomId" data-room-input placeholder="Type or paste a chamber sigil">
+                </label>
+
+                <label class="field-label">
+                    <span>Display Name</span>
+                    <input type="text" id="guestname" data-room-input placeholder="Choose a temporary alias">
                 </label>
 
                 <div class="menu-actions">
-                    <button type="button" class="fantasy-btn primary" style="margin-top: 20px;">Play</button>
+                    <button type="button" class="fantasy-btn primary" style="margin-top: 20px;" onclick="startRoom()">Play</button>
                 </div>
             </section>
 
@@ -68,5 +73,71 @@
             </div>
         </main>
     </div>
+    <script>
+        async function updatebaackendline(data) {
+            try {
+				const res = await fetch("/tellstones/welcomeplayer", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+                credentials: "include",
+				body: JSON.stringify(data)
+				});
+
+				if (res.ok) {
+					const restone = await res.json();
+				} else {
+				}
+			} catch (err) {
+				console.error(err);
+			}
+        }
+</script>
+
+<script>
+    const socket = io("http://localhost:9092", {
+        transports: ["websocket"]
+    });
+
+    socket.on("connect", () => {
+        console.log("CONNECTED");
+    });
+
+    socket.on("connect_error", (err) => {
+        console.log("ERROR:", err);
+    });
+
+    socket.on("message", (data) => {
+        const li = document.createElement("li");
+        li.innerText = data;
+        document.getElementById("messages").appendChild(li);
+    });
+
+    let data = [];
+
+    socket.on("sessionID", (sessionID) => {
+        data = {
+            username: document.getElementById("guestname").value,
+            session: sessionID
+        };
+        updatebaackendline(data);
+    });
+
+    socket.on("roomJoined", (roomId) => {
+        console.log("Joined room:", roomId);
+        window.location.href = `/tellstones/room/${roomId}`;
+    });
+
+
+    function startRoom() {
+        const roomId = document.getElementById("roomId").value;
+        socket.emit("startRoom", roomId);
+        console.log("Started room:", roomId);
+    }
+
+    function sendMessage() {
+        const msg = document.getElementById("message").value;
+        socket.emit("message", msg);
+    }
+</script>
 </body>
 </html>

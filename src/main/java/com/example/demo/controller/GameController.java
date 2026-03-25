@@ -79,7 +79,7 @@ public class GameController {
         catch (Exception e){
             System.out.println(e);
         }
-        return "tellstone/menu";
+        return "tellstone/game";
     }
 
     @GetMapping("/room/{id}")
@@ -91,7 +91,7 @@ public class GameController {
             System.out.println("Player session: " + c.getSessionId());
             System.out.println(playerService.getPlayers());
         }
-        return "tellstone/game";
+        return "tellstone/room";
     }
 
     @GetMapping("/getplayers/{id}")
@@ -112,6 +112,8 @@ public class GameController {
                 }
             }
         }
+
+        System.out.println(players);
 
         return ResponseEntity.ok(players);
     }
@@ -136,12 +138,13 @@ public class GameController {
         Random random = new Random();
         long id = random.nextLong();
         Account tempAccount = new Account();
+        System.out.println((String) body.get("username"));
         tempAccount.setId(id);
         tempAccount.setUsername((String) body.get("username"));
         player.put((String) body.get("session"), tempAccount);
         playerService.addPlayer(player);
 
-        System.out.println(playerService.getPlayers());
+        System.out.println("welcome" + playerService.getPlayers());
         return ResponseEntity.ok(playerService.getPlayers());
     }
 }
