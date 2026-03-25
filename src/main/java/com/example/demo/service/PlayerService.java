@@ -22,13 +22,13 @@ import java.util.ArrayList;
 @RequiredArgsConstructor
 @Transactional 
 public class PlayerService {
-    private final List<Map<String, String>> players = new ArrayList<>();
+    private final List<Map<String, Account>> players = new ArrayList<>();
 
-    public void addPlayer(Map<String, String> player) {
+    public void addPlayer(Map<String, Account> player) {
         players.add(player);
     }
 
-    public List<Map<String, String>> getPlayers() {
+    public List<Map<String, Account>> getPlayers() {
         return players;
     }
 }
