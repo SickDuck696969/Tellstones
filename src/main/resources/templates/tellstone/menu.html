@@ -10,13 +10,34 @@
 <h2>Join Room Now</h2>
 
 <input type="text" id="roomId" placeholder="Enter Room ID">
-<button onclick="startRoom()">Play</button>
+<button onclick="pay()">Play</button>
 
 <br><br>
 
 <input type="text" id="guestname" placeholder="guest name">
 
 <ul id="messages"></ul>
+
+<script>
+function pay() {
+    const amount = 100000;
+    const bankCode = "NCB"; // or ""
+
+    const url = `/moolah/vnpay?amount=${amount}&bankCode=${bankCode}`;
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            console.log(data);
+
+            // Redirect to VNPay
+            if (data.paymentUrl) {
+                window.location.href = data.paymentUrl;
+            }
+        })
+        .catch(err => console.error(err));
+}
+</script>
 
 <script>
         async function updatebaackendline(data) {
