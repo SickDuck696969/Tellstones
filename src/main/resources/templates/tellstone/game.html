@@ -27,46 +27,44 @@
                 </p>
             </div>
 
-            <div class="dashboard-grid" style="margin-top: 1.25rem;">
-                <section class="card panel span-4">
-                    <div class="eyebrow">Your Room</div>
-                    <h2 class="title-md">Chamber Sigil</h2>
-                    <p class="text-muted" data-room-status>Your attendants are preparing the board.</p>
-                    <div class="stat">
-                        <span class="stat-label">Room ID</span>
-                        <span class="stat-value" data-room-id>------</span>
-                    </div>
-                    <div class="menu-actions">
-                        <button type="button" class="fantasy-btn primary" data-copy-room>Copy Sigil</button>
-                    </div>
-                </section>
+            <div class="dashboard-grid" style="
+                margin-top: 1.25rem;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 2rem;
+            ">
+                <section class="card panel span">
+                <div class="eyebrow">Game Room</div>
+                <h2 class="title-md">Enter Chamber</h2>
 
-                <section class="card panel span-4">
-                    <div class="eyebrow">Join A Duel</div>
-                    <h2 class="title-md">Enter another chamber</h2>
-                    <label class="field-label">
-                        <span>Room ID</span>
-                        <input type="text" data-join-input placeholder="Type a chamber sigil">
-                    </label>
-                    <div class="menu-actions">
-                        <button type="button" class="fantasy-btn primary" data-join-room>Join Room</button>
-                    </div>
-                </section>
+                <p class="text-muted" data-room-status>
+                    Create a new chamber or join an existing one using its sigil.
+                </p>
 
-                <section class="card panel span-4">
-                    <div class="eyebrow">Accessories</div>
-                    <h2 class="title-md">Ceremonial Loadout</h2>
-                    <div class="info-list">
-                        <div class="choice-card">
-                            <strong>Board Skin</strong>
-                            <p class="text-muted">Velvet tournament dais with gilt corners.</p>
-                        </div>
-                        <div class="choice-card">
-                            <strong>Stone Skin</strong>
-                            <p class="text-muted">Ivory face, obsidian edge, crestwork in brass.</p>
-                        </div>
+                <label class="field-label">
+                    <span>Room ID</span>
+                    <input type="text" data-room-input placeholder="Type or paste a chamber sigil">
+                </label>
+
+                <div class="menu-actions">
+                    <button type="button" class="fantasy-btn primary" style="margin-top: 20px;">Play</button>
+                </div>
+            </section>
+
+            <section class="card panel span">
+                <div class="eyebrow">Accessories</div>
+                <h2 class="title-md">Ceremonial Loadout</h2>
+                <div class="info-list">
+                    <div class="choice-card">
+                        <strong>Board Skin</strong>
+                        <p class="text-muted">Velvet tournament dais with gilt corners.</p>
                     </div>
-                </section>
+                    <div class="choice-card">
+                        <strong>Stone Skin</strong>
+                        <p class="text-muted">Ivory face, obsidian edge, crestwork in brass.</p>
+                    </div>
+                </div>
+            </section>
             </div>
         </main>
     </div>
