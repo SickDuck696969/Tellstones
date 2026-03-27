@@ -239,6 +239,10 @@
         Click me to start the game
     </button>
     <div class="bag pause" id="bag"></div>
+    <audio data-bgm data-bgm-reset="true" loop>
+        <source th:src="@{/audio/bgm.mp3}" type="audio/mpeg">
+    </audio>
+    <script th:src="@{/js/tellstone-ui.js}"></script>
     <script>
         async function updatebaackendline() {
             const theline = document.querySelectorAll(".slot .stonevisual");
