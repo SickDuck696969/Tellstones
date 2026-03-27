@@ -101,8 +101,8 @@ img {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1rem;
-    padding: 1.3rem 2rem;
+    gap: 0.85rem;
+    padding: 1.1rem 1.6rem;
 }
 
 .topbar.compact {
@@ -117,7 +117,7 @@ img {
 }
 
 .brand-mark img {
-    width: min(20rem, 42vw);
+    width: min(17rem, 38vw);
     filter: drop-shadow(0 0 18px rgba(223, 193, 125, 0.18));
 }
 
@@ -126,7 +126,7 @@ img {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0.8rem;
+    gap: 0.65rem;
 }
 
 .fantasy-btn,
@@ -153,11 +153,16 @@ img {
 }
 
 .fantasy-btn {
-    padding: 0.82rem 1.35rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.8rem;
+    padding: 0.68rem 1.1rem;
     font-family: "Cinzel", serif;
-    font-size: 0.84rem;
-    letter-spacing: 0.08em;
+    font-size: 0.76rem;
+    letter-spacing: 0.07em;
     text-transform: uppercase;
+    line-height: 1;
 }
 
 .fantasy-btn.primary {
@@ -180,18 +185,19 @@ img {
 }
 
 .fantasy-chip {
-    padding: 0.75rem 1rem;
+    min-height: 2.8rem;
+    padding: 0.55rem 0.85rem;
 }
 
 .icon-btn {
-    width: 3rem;
-    height: 3rem;
-    font-size: 1.05rem;
+    width: 2.8rem;
+    height: 2.8rem;
+    font-size: 0.95rem;
 }
 
 .avatar-badge {
-    width: 3rem;
-    height: 3rem;
+    width: 2.65rem;
+    height: 2.65rem;
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid rgba(223, 193, 125, 0.48);
@@ -227,13 +233,13 @@ img {
 }
 
 .hero {
-    padding: 2rem;
+    padding: 1.7rem;
 }
 
 .hero-grid {
     display: grid;
     grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
-    gap: 2rem;
+    gap: 1.5rem;
     align-items: center;
 }
 
@@ -241,7 +247,7 @@ img {
     font-family: "Cinzel", serif;
     text-transform: uppercase;
     letter-spacing: 0.18em;
-    font-size: 0.78rem;
+    font-size: 0.7rem;
     color: var(--gold-bright);
 }
 
@@ -254,21 +260,21 @@ img {
 }
 
 .title-xl {
-    font-size: clamp(2.8rem, 8vw, 5.6rem);
+    font-size: clamp(2.35rem, 6.4vw, 4.8rem);
 }
 
 .title-lg {
-    font-size: clamp(2rem, 4vw, 3.3rem);
+    font-size: clamp(1.8rem, 3.6vw, 2.9rem);
 }
 
 .title-md {
-    font-size: clamp(1.4rem, 2.5vw, 2rem);
+    font-size: clamp(1.2rem, 2.1vw, 1.7rem);
 }
 
 .lead {
-    font-size: 1.28rem;
-    line-height: 1.6;
-    max-width: 36rem;
+    font-size: 1.06rem;
+    line-height: 1.5;
+    max-width: 32rem;
     color: rgba(234, 223, 202, 0.88);
 }
 
@@ -285,7 +291,7 @@ img {
 }
 
 .feature-list {
-    margin: 1.5rem 0 0;
+    margin: 1.1rem 0 0;
     padding: 0;
     list-style: none;
 }
@@ -293,9 +299,9 @@ img {
 .feature-list li,
 .info-list li {
     display: flex;
-    gap: 0.8rem;
+    gap: 0.7rem;
     align-items: flex-start;
-    padding: 0.8rem 0.95rem;
+    padding: 0.7rem 0.85rem;
     border-radius: 1rem;
     background: rgba(255, 255, 255, 0.035);
 }
@@ -356,7 +362,7 @@ img {
 .auth-card,
 .rule-frame,
 .modal-panel {
-    padding: 1.5rem;
+    padding: 1.3rem;
 }
 
 .section-head {
@@ -364,7 +370,7 @@ img {
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.85rem;
 }
 
 .stat-row,
@@ -372,12 +378,13 @@ img {
 .menu-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.9rem;
+    align-items: center;
+    gap: 0.7rem;
 }
 
 .stat {
     flex: 1 1 140px;
-    padding: 1rem;
+    padding: 0.85rem;
     border-radius: 1rem;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(223, 193, 125, 0.08);
@@ -386,7 +393,7 @@ img {
 .stat-label {
     display: block;
     font-family: "Cinzel", serif;
-    font-size: 0.76rem;
+    font-size: 0.68rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--parchment-deep);
@@ -394,14 +401,14 @@ img {
 
 .stat-value {
     display: block;
-    margin-top: 0.3rem;
-    font-size: 1.75rem;
+    margin-top: 0.25rem;
+    font-size: 1.32rem;
     font-weight: 600;
 }
 
 .play-callout {
-    min-height: 22rem;
-    padding: 1.6rem;
+    min-height: 19rem;
+    padding: 1.35rem;
     display: grid;
     align-content: space-between;
     background:
@@ -410,8 +417,8 @@ img {
 }
 
 .play-medallion {
-    width: 7rem;
-    height: 7rem;
+    width: 5.4rem;
+    height: 5.4rem;
     border-radius: 50%;
     margin-left: auto;
     margin-right: auto;

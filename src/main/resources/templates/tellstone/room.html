@@ -210,6 +210,16 @@
 </head>
 
 <body>
+    <header class="topbar compact" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1200;">
+        <a class="brand-mark" href="/">
+            <img th:src="@{/logo.png}" alt="Tellstones Logo">
+        </a>
+        <div class="nav-cluster">
+            <a href="/rules" class="fantasy-btn ghost">Rulebook</a>
+            <a href="/play" class="fantasy-btn ghost">Room Hall</a>
+            <a href="/" class="fantasy-btn ghost">Main Menu</a>
+        </div>
+    </header>
     <div class="playerbox"></div>
     <div class="theline">
         <div class="side left"></div>
