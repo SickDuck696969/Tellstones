@@ -122,7 +122,7 @@
 
         .stonevisual {
             position: absolute;
-            background: #333;
+            background: #e9ebd9;
             border-radius: 50%;
             height: 150px;
             width: 150px;
@@ -141,19 +141,9 @@
             z-index: 10;
             height: 100px;
             width: 300px;
-            outline: none;
-            border: none;
-            background-color: yellowgreen;
             font-size: large;
             font-weight: 500;
             cursor: pointer;
-            transition: transform 0.1s ease, background-color 0.1s ease, color 0.1s ease;
-        }
-
-        .startbutton:hover {
-            background-color: rgb(160, 223, 35);
-            transform: scale(1.05);
-            color: white;
         }
 
         .playerbox {
@@ -225,7 +215,14 @@
             <div class="slot"></div>
         </div>
     </div>
-    <button id="bagBtn" class="startbutton">
+    <button id="bagBtn" class="fantasy-btn" style="position: absolute;
+            bottom: 50px;
+            z-index: 10;
+            height: 70px;
+            width: 500px;
+            font-size: medium;
+            font-weight: 500;
+            cursor: pointer;">
         Click me to start the game
     </button>
     <div class="bag pause" id="bag"></div>
@@ -276,8 +273,11 @@
 
 <script>
     let isSocketConnected = false;
-    const socket = io("http://localhost:9092", {
-        transports: ["websocket"]
+    const socket = io("http://192.168.100.171:9092", {
+        transports: ["websocket"],
+        query: {
+            userId: window.location.pathname.split("/").pop()
+        }
     });
 
     socket.on("connect", () => {
@@ -286,8 +286,7 @@
     });
 
     socket.on("Youin", async () => {
-        await loadProduct();
-        spawnplayer();
+        massspawnplayer();
     });
 
     socket.on("connect_error", (err) => {
@@ -312,11 +311,6 @@
 
     let data = [];
 
-    socket.on("roomJoined", (roomId) => {
-        console.log("Joined room:", roomId);
-        window.location.href = `/tellstones/room/${roomId}`;
-    });
-
     function startRoom() {
         const roomId = document.getElementById("roomId").value;
         socket.emit("startRoom", roomId);
@@ -338,10 +332,19 @@
         socket.emit('leaveRoom', productId);
     }
 
-    socket.on("outthedoor", async () => {
+    socket.on("outthedoor", () => {
+        massspawnplayer();
+    });
+
+    function massspawnplayer() {
+        socket.emit('massspawn', productId);
+    }
+
+    socket.on("massspawnapprove", async () => {
         await loadProduct();
         spawnplayer();
-    });
+        loadskin();
+    })
 </script>
     <script>
         let players = [];
@@ -359,6 +362,24 @@
         }
     </script>
     <script>
+        let skin = [];
+        async function loadskin() {
+            try {
+                const res = await fetch("/tellstones/getskin/" + window.location.pathname.split("/")[window.location.pathname.split("/").length - 3]);
+                skin = await res.json();
+
+                console.log(skin)
+                let skinningstones = Array.from(document.querySelectorAll(".stonevisual"));
+                skinningstones.forEach(stone => {
+                    stone.innerHTML = `<img src=${Object.values(skin)[skinningstones.findIndex(s => s === stone)]} style="width: 80%; height: auto;">`;
+                })
+
+            } catch (err) {
+                console.error("Error loading players:", err);
+            }
+        }
+    </script>
+    <script>
         async function spawnplayer() {
             const playerbox = document.querySelector(".playerbox");
             playerbox.innerHTML = "";
@@ -368,7 +389,7 @@
                 icon.className = "playericon";
                 
                 icon.id = player.id;
-                if(player.id.toString() === window.location.pathname.split("/").pop()){
+                if(player.id.toString() === window.location.pathname.split("/")[window.location.pathname.split("/").length - 3]){
                     icon.innerHTML = `<div class="playericonvisual" style="background-color: red">${player.username}</div>`;
                 } else {
                     icon.innerHTML = `<div class="playericonvisual">${player.username}</div>`;
@@ -384,14 +405,13 @@
     <script>
         const bag = document.getElementById("bag");
         let who = null;
-
         for (let i = 2; i <= 8; i++) {
             const stone = document.createElement("div");
             stone.className = "stone pause";
             stone.draggable = true;
             stone.id = i;
 
-            stone.innerHTML = `<div class="stonevisual">${i}</div>`;
+            stone.innerHTML = `<div class="stonevisual"></div>`;
 
             stone.draggable = false;
 

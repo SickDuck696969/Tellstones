@@ -102,8 +102,11 @@
 </script>
 
 <script>
-    const socket = io("http://localhost:9092", {
-        transports: ["websocket"]
+    const socket = io("http://192.168.100.171:9092", {
+        transports: ["websocket"],
+        query: {
+            userId: document.getElementById("guestname").value
+        }
     });
 
     socket.on("connect", () => {
@@ -124,13 +127,13 @@
     let joined = null;
 
     socket.on("sessionID", async (sessionID) => {
+        console.log("Joined room:", sessionID);
         data = {
             username: document.getElementById("guestname").value,
-            session: sessionID
         };
         await updatebaackendline(data);
         if(joined != null){
-            window.location.href = `/tellstones/room/${joined}/${restone.id}`;
+            window.location.href = `/tellstones/room/${restone.id}/${joined}/${document.getElementById("guestname").value}`;
         }
     });
 

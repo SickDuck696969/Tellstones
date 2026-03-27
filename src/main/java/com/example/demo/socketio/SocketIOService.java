@@ -17,7 +17,7 @@ public class SocketIOService {
         Configuration config = new Configuration();
         config.setHostname("0.0.0.0");
         config.setPort(9092);
-        config.setOrigin("http://localhost:8080");
+        config.setOrigin("*");
 
         server = new SocketIOServer(config);
 
@@ -57,6 +57,14 @@ public class SocketIOService {
             var clients = server.getRoomOperations(roomId).getClients();
             for (var c : clients) {
                 c.sendEvent("gamestart");
+            }
+        });
+
+        server.addEventListener("massspawn", String.class, (client, roomId, ack) -> {
+            System.out.println("massspawning");
+            var clients = server.getRoomOperations(roomId).getClients();
+            for (var c : clients) {
+                c.sendEvent("massspawnapprove");
             }
         });
 

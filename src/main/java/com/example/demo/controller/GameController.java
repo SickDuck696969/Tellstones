@@ -19,6 +19,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.Security;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -65,14 +68,33 @@ public class GameController {
     private final AccountService accountService;
     public int howmany = 0;
     public int forhow = 0;
+    private List<String> skins = List.of(
+        "default",
+        "black",
+        "golden",
+        "neon",
+        "primitive"
+    );
+    int skinpointer = 0;
+    private Map<String, String> skinlinks = new HashMap<>(
+            Map.of(
+                "Sword", "/textu/stones/%s/sword.png".formatted(skins.get(skinpointer)),
+                "Shield", "/textu/stones/%s/shield.png".formatted(skins.get(skinpointer)),
+                "Scale", "/textu/stones/%s/Scale.png".formatted(skins.get(skinpointer)),
+                "Knight", "/textu/stones/%s/knight.png".formatted(skins.get(skinpointer)),
+                "Hammer", "/textu/stones/%s/hammer.png".formatted(skins.get(skinpointer)),
+                "Flag", "/textu/stones/%s/flag.png".formatted(skins.get(skinpointer)),
+                "Crown", "/textu/stones/%s/crown.png".formatted(skins.get(skinpointer))
+            )
+    );
     private List<Stone> bag = Arrays.asList(
-        new Stone(2, "/Sword.png", true),
-        new Stone(3, "/Horse.png", true),
-        new Stone(4, "/Shield.png", true),
-        new Stone(5, "/Hammer.png", true),
-        new Stone(6, "/Flag.png", true),
-        new Stone(7, "/Crown.png", true),
-        new Stone(8, "/Scale.png", true)
+        new Stone(2, skinlinks.get("Sword"), true),
+        new Stone(3, skinlinks.get("Shield"), true),
+        new Stone(4, skinlinks.get("Scale"), true),
+        new Stone(5, skinlinks.get("Knight"), true),
+        new Stone(6, skinlinks.get("Hammer"), true),
+        new Stone(7, skinlinks.get("Flag"), true),
+        new Stone(8, skinlinks.get("Crown"), true)
     );
     private Stone[] theline = new Stone[7];
     private List<String> phases = Arrays.asList(
@@ -110,7 +132,7 @@ public class GameController {
         return "tellstone/game";
     }
 
-    @GetMapping("/room/{id}/{userid}")
+    @GetMapping("/room/{actualid}/{id}/{userid}")
     public String loadroom(@PathVariable String id, Model model) {
         model.addAttribute("roomId", id);
         var clients = socketservice.getServer().getRoomOperations(id).getClients();
@@ -130,10 +152,12 @@ public class GameController {
         List<Account> players = new ArrayList<Account>();
 
         for (var c : clients) {
-            System.out.println(" in room " + c.getSessionId().toString());
+            String pp = java.net.URLDecoder.decode(c.getHandshakeData().getSingleUrlParam("userId"), StandardCharsets.UTF_8);
+            System.out.println(pp);
             for (var cl : playersl){
-                if(cl.containsKey(c.getSessionId().toString()) && c.getAllRooms().contains(id)){
-                    Account vc = cl.get(c.getSessionId().toString());
+                if(cl.containsKey(pp) && c.getAllRooms().contains(id)){
+                    System.out.println("player " + pp + " in room " + id );
+                    Account vc = cl.get(pp);
                     System.out.println("Player " + vc.getUsername() + " in room " + c.getAllRooms());
                     players.add(vc);
                 }
@@ -143,6 +167,11 @@ public class GameController {
         System.out.println(players);
 
         return ResponseEntity.ok(players);
+    }
+
+    @GetMapping("/getskin/{id}")
+    public ResponseEntity<?> getskin(@PathVariable String id) {
+        return ResponseEntity.ok(skinlinks);
     }
 
     @PostMapping("/settinggame")
@@ -168,7 +197,7 @@ public class GameController {
         System.out.println((String) body.get("username"));
         tempAccount.setId(id);
         tempAccount.setUsername((String) body.get("username"));
-        player.put((String) body.get("session"), tempAccount);
+        player.put((String) body.get("username"), tempAccount);
         playerService.addPlayer(player);
 
         System.out.println("welcome" + playerService.getPlayers());
