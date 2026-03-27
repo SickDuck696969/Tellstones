@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="_csrf" th:content="${_csrf.token}" />
     <meta name="_csrf_header" th:content="${_csrf.headerName}" />
-    <title>Tellstones - Game Room</title>
+    <title>Tellstones - Room Hall</title>
     <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.4.0/socket.io.js"></script>
 </head>
@@ -30,39 +30,73 @@
                 </p>
             </div>
 
-            <div class="dashboard-grid" style="
-                margin-top: 1.25rem;
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 2rem;
-            ">
-                <section class="card panel span">
-                <div class="eyebrow">Game Room</div>
-                <h2 class="title-md">Enter Chamber</h2>
+            <div class="dashboard-grid" style="margin-top: 1.25rem; display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 1.5rem;">
+                <section class="card panel" style="display: grid; gap: 1rem;">
+                    <div>
+                        <div class="eyebrow">Current Chamber</div>
+                        <h2 class="title-md">Active room</h2>
+                        <p class="text-muted" data-room-status style="margin: 0.45rem 0 0;">
+                            Create a chamber, copy its sigil, then start once your rivals arrive.
+                        </p>
+                    </div>
 
-                <p class="text-muted" data-room-status>
-                    Create a new chamber or join an existing one using its sigil.
-                </p>
+                    <div class="choice-card" style="display: grid; gap: 0.8rem;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+                            <div>
+                                <div class="eyebrow" style="margin-bottom: 0.25rem;">Room ID</div>
+                                <div class="title-md" id="currentRoomId" style="font-size: 1.55rem;">Awaiting Sigil</div>
+                            </div>
+                            <div class="menu-actions">
+                                <button type="button" class="icon-btn" id="copyRoomBtn" aria-label="Copy room id" title="Copy room id">⧉</button>
+                                <button type="button" class="fantasy-btn primary" id="startRoomBtn">Start Game</button>
+                            </div>
+                        </div>
+                    </div>
 
-                <label class="field-label">
-                    <span>Room ID</span>
-                    <input type="text" id="roomId" data-room-input placeholder="Type or paste a chamber sigil">
-                </label>
+                    <div class="choice-card">
+                        <div class="section-head" style="margin-bottom: 0.65rem;">
+                            <div>
+                                <div class="eyebrow">Player List</div>
+                                <h3 class="title-md" style="font-size: 1.2rem;">Inside the chamber</h3>
+                            </div>
+                        </div>
+                        <ul id="roomPlayerList" class="feature-list" style="margin-top: 0;">
+                            <li>
+                                <span class="rune">I</span>
+                                <div><strong>No challengers yet</strong><br>The chamber roster will appear here once players join.</div>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
 
-                <label class="field-label">
-                    <span>Display Name</span>
-                    <input type="text" id="guestname" data-room-input placeholder="Choose a temporary alias">
-                </label>
+                <section class="card panel" style="display: grid; gap: 1rem; align-content: start;">
+                    <div>
+                        <div class="eyebrow">Join Chamber</div>
+                        <h2 class="title-md">Enter by sigil</h2>
+                        <p class="text-muted" style="margin: 0.45rem 0 0;">
+                            Paste an existing room id to step directly into an ongoing table.
+                        </p>
+                    </div>
 
-                <div class="menu-actions">
-                    <button type="button" class="fantasy-btn primary" style="margin-top: 20px;" onclick="startRoom()">Play</button>
+                    <label class="field-label">
+                        <span>Room ID</span>
+                        <input type="text" id="roomId" data-room-input placeholder="Type or paste a chamber sigil">
+                    </label>
+
+                    <div class="menu-actions">
+                        <button type="button" class="fantasy-btn primary" id="joinRoomBtn">Join Room</button>
+                    </div>
+                </section>
+            </div>
+
+            <section class="card panel" style="margin-top: 1.5rem;">
+                <div class="section-head">
+                    <div>
+                        <div class="eyebrow">Accessories</div>
+                        <h2 class="title-md">Ceremonial Loadout</h2>
+                    </div>
                 </div>
-            </section>
-
-            <section class="card panel span">
-                <div class="eyebrow">Accessories</div>
-                <h2 class="title-md">Ceremonial Loadout</h2>
-                <div class="info-list">
+                <div class="shop-grid">
                     <div class="choice-card">
                         <strong>Board Skin</strong>
                         <p class="text-muted">Velvet tournament dais with gilt corners.</p>
@@ -73,85 +107,190 @@
                     </div>
                 </div>
             </section>
-            </div>
         </main>
     </div>
+
     <script>
         const token = document.querySelector('meta[name="_csrf"]').content;
         const header = document.querySelector('meta[name="_csrf_header"]').content;
         let restone = [];
+
         async function updatebaackendline(data) {
             try {
-				const res = await fetch("/tellstones/welcomeplayer", {
-				method: "POST",
-				headers: {
-                    'Content-Type': 'application/json',
-                    [header]: token
-                },
-                credentials: "include",
-				body: JSON.stringify(data)
-				});
+                const res = await fetch("/tellstones/welcomeplayer", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        [header]: token
+                    },
+                    credentials: "include",
+                    body: JSON.stringify(data)
+                });
 
-				if (res.ok) {
-					restone = await res.json();
-				} else {
-				}
-			} catch (err) {
-				console.error(err);
-			}
+                if (res.ok) {
+                    restone = await res.json();
+                }
+            } catch (err) {
+                console.error(err);
+            }
         }
-</script>
+    </script>
 
-<script>
-    const socket = io("http://localhost:9092", {
-        transports: ["websocket"]
-    });
+    <script>
+        const socket = io("http://localhost:9092", {
+            transports: ["websocket"]
+        });
 
-    socket.on("connect", () => {
-        console.log("CONNECTED");
-    });
+        const currentRoomIdLabel = document.getElementById("currentRoomId");
+        const roomStatusLabel = document.querySelector("[data-room-status]");
+        const roomBanner = document.querySelector("[data-room-banner]");
+        const roomInput = document.getElementById("roomId");
+        const roomPlayerList = document.getElementById("roomPlayerList");
+        const copyRoomBtn = document.getElementById("copyRoomBtn");
+        const startRoomBtn = document.getElementById("startRoomBtn");
+        const joinRoomBtn = document.getElementById("joinRoomBtn");
 
-    socket.on("connect_error", (err) => {
-        console.log("ERROR:", err);
-    });
+        let data = [];
+        let joined = null;
+        let currentRoomId = "";
+        let createMode = false;
 
-    socket.on("message", (data) => {
-        const li = document.createElement("li");
-        li.innerText = data;
-        document.getElementById("messages").appendChild(li);
-    });
-
-    let data = [];
-    let joined = null;
-
-    socket.on("sessionID", async (sessionID) => {
-        data = {
-            username: document.getElementById("guestname").value,
-            session: sessionID
-        };
-        await updatebaackendline(data);
-        if(joined != null){
-            window.location.href = `/tellstones/room/${joined}/${restone.id}`;
+        function generateRoomId() {
+            return Math.random().toString(36).slice(2, 8).toUpperCase();
         }
-    });
 
-    socket.on("roomJoined", (roomId) => {
-        console.log("Joined room:", roomId);
-        joined = roomId;
-    });
+        function renderPlayerList(players) {
+            if (!roomPlayerList) {
+                return;
+            }
 
+            if (!players || players.length === 0) {
+                roomPlayerList.innerHTML = `
+                    <li>
+                        <span class="rune">I</span>
+                        <div><strong>No challengers yet</strong><br>The chamber roster will appear here once players join.</div>
+                    </li>
+                `;
+                return;
+            }
 
-    function startRoom() {
-        const roomId = document.getElementById("roomId").value;
-        socket.emit("startRoom", roomId);
-        console.log("Started room:", roomId);
-    }
+            roomPlayerList.innerHTML = players.map((player, index) => `
+                <li>
+                    <span class="rune">${index + 1}</span>
+                    <div><strong>${player.displayName || player.username || "Player"}</strong><br>${player.username || "Unknown challenger"}</div>
+                </li>
+            `).join("");
+        }
 
-    function sendMessage() {
-        const msg = document.getElementById("message").value;
-        socket.emit("message", msg);
-    }
-</script>
+        async function loadPlayers(roomId) {
+            if (!roomId) {
+                renderPlayerList([]);
+                return;
+            }
+
+            try {
+                const res = await fetch("/tellstones/getplayers/" + roomId);
+                if (!res.ok) {
+                    renderPlayerList([]);
+                    return;
+                }
+                const players = await res.json();
+                renderPlayerList(players);
+            } catch (err) {
+                console.error(err);
+                renderPlayerList([]);
+            }
+        }
+
+        socket.on("connect", () => {
+            currentRoomId = generateRoomId();
+            if (currentRoomIdLabel) {
+                currentRoomIdLabel.textContent = currentRoomId;
+            }
+            if (roomStatusLabel) {
+                roomStatusLabel.textContent = "Your private chamber sigil is ready. Copy it or start the room.";
+            }
+            console.log("CONNECTED");
+        });
+
+        socket.on("connect_error", (err) => {
+            console.log("ERROR:", err);
+        });
+
+        socket.on("message", (data) => {
+            console.log(data);
+        });
+
+        socket.on("sessionID", async (sessionID) => {
+            data = {
+                username: "Player",
+                session: sessionID
+            };
+
+            await updatebaackendline(data);
+
+            if (joined != null) {
+                window.location.href = `/tellstones/room/${joined}/${restone.id}`;
+            }
+        });
+
+        socket.on("roomJoined", async (roomId) => {
+            console.log("Joined room:", roomId);
+            joined = roomId;
+
+            if (roomBanner) {
+                roomBanner.textContent = "Chamber " + roomId + " is assembled.";
+            }
+
+            if (roomStatusLabel) {
+                roomStatusLabel.textContent = createMode
+                    ? "Your chamber is open. Share the sigil and begin when everyone is present."
+                    : "You are joining an existing chamber.";
+            }
+
+            await loadPlayers(roomId);
+        });
+
+        if (copyRoomBtn) {
+            copyRoomBtn.addEventListener("click", async () => {
+                if (!currentRoomId) {
+                    return;
+                }
+                try {
+                    await navigator.clipboard.writeText(currentRoomId);
+                    copyRoomBtn.textContent = "✓";
+                    setTimeout(() => {
+                        copyRoomBtn.textContent = "⧉";
+                    }, 1000);
+                } catch (err) {
+                    console.error(err);
+                }
+            });
+        }
+
+        if (startRoomBtn) {
+            startRoomBtn.addEventListener("click", () => {
+                createMode = true;
+                joined = null;
+                socket.emit("startRoom", currentRoomId);
+                console.log("Started room:", currentRoomId);
+            });
+        }
+
+        if (joinRoomBtn) {
+            joinRoomBtn.addEventListener("click", () => {
+                const targetRoom = roomInput.value.trim().toUpperCase();
+                if (!targetRoom) {
+                    return;
+                }
+                createMode = false;
+                joined = null;
+                socket.emit("startRoom", targetRoom);
+                console.log("Joined room request:", targetRoom);
+            });
+        }
+    </script>
+
     <audio data-bgm loop>
         <source th:src="@{/audio/bgm.mp3}" type="audio/mpeg">
     </audio>

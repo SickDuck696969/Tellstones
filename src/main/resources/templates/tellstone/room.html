@@ -7,238 +7,158 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.4.0/socket.io.js"></script>
     <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
-    <title>Game</title>
-
+    <title>Tellstones Battle Chamber</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            width: 100%;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .theline {
-            background-image: url('/textu/360_F_166099507_4puS6NXaWOPugMfxcvkpVH4h8XwuhYXb.png');
-            height: 250px;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.6);
-        }
-
-        /* LEFT / RIGHT DROP AREAS */
-        .side {
-            position: absolute;
-            top: 0;
-            height: 100%;
-            width: 50%;
-        }
-
-        .left {
-            left: 0;
-        }
-
-        .right {
-            right: 0;
-        }
-
-        /* SLOTS */
-        .slots {
-            display: flex;
-            gap: 100px;
-            width: 100%;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .slot {
-            width: 80px;
-            height: 80px;
-            border: 2px dashed white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            pointer-events:none;
-        }
-
-        /* BAG */
-        .bag {
-            display: flex;
-            width: 100%;
-            align-items: top;
-            justify-content: center;
-            gap: 5px;
-            position: absolute;
-            bottom: -120px;
-            height: 200px;
-            transition: gap .3s ease, bottom .3s ease;
-        }
-
-        .bag:not(.pause):hover {
-            bottom: 10px;
-            gap: 40px;
-        }
-
-        .bag.pause {
-            user-select: none;
-        }
-
-        .stone {
-            display: flex;
-            width: 150px;
-            height: 150px;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            cursor: grab;
-        }
-
-        .stone.pause {
-            user-select: none;
-        }
-
-        .stone:not(.pause):hover .stonevisual {
-            height: 170px;
-            width: 170px;
-            margin-bottom: 30px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
-        }
-
-        .stonevisual {
-            position: absolute;
-            background: #333;
-            border-radius: 50%;
-            height: 150px;
-            width: 150px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.4);
-            transition: height .3s, width .3s, margin-bottom .2s, box-shadow .3s;
-            color: white;
-            font-size: 30px;
-        }
-
-        .startbutton {
-            position: absolute;
-            bottom: 40px;
-            z-index: 10;
-            height: 100px;
-            width: 300px;
-            outline: none;
-            border: none;
-            background-color: yellowgreen;
-            font-size: large;
-            font-weight: 500;
-            cursor: pointer;
-            transition: transform 0.1s ease, background-color 0.1s ease, color 0.1s ease;
-        }
-
-        .startbutton:hover {
-            background-color: rgb(160, 223, 35);
-            transform: scale(1.05);
-            color: white;
-        }
-
-        .playerbox {
-            position: fixed;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            
-            width: fit-content;
-            height: fit-content;
-
-            z-index: 1000;
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            transform: gap 0.1s ease;
-        }
-
-        .playerbox:hover{
-            gap: 10px;
-        }
-
-        .playericon {
-            display: flex;
-            width: 100px;
-            height: 100px;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .playericon:hover .playericonvisual{
-            transform: translateY(20px);
-        }
-
-        .playericonvisual {
-            background: #333;
-            border-radius: 50%;
-            height: 100px;
-            width: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: height .3s, width .3s, margin-bottom .2s, box-shadow .3s;
-            color: white;
-            font-size: 20px;
-            transition: transform 0.1s ease;
-            cursor: pointer;
-        }
+        :root { --room-board-texture: url('/textu/360_F_166099507_4puS6NXaWOPugMfxcvkpVH4h8XwuhYXb.png'); --room-wall-texture: url('/textu/360_F_931202313_YPl0fGR1iBUTm0RE3pi5oOI1tscZbdNm.jpg'); }
+        * { box-sizing: border-box; }
+        body { margin: 0; min-height: 100vh; overflow: hidden; font-family: "Cormorant Garamond", serif; color: #eadfca; background: radial-gradient(circle at top, rgba(185,147,79,.12), transparent 25%), linear-gradient(rgba(8,7,6,.78), rgba(8,7,6,.88)), var(--room-wall-texture) center/cover no-repeat fixed; }
+        body::before { content: ""; position: fixed; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,.22), transparent 22%, transparent 78%, rgba(0,0,0,.28)), repeating-linear-gradient(135deg, rgba(255,255,255,.012) 0, rgba(255,255,255,.012) 2px, transparent 2px, transparent 10px); opacity: .55; }
+        .room-shell { position: relative; min-height: 100vh; padding: 5.2rem 1rem 1rem; }
+        .battlefield { position: relative; display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 1rem; width: min(1500px, 100%); height: calc(100vh - 6.2rem); margin: 0 auto; }
+        .chat-panel, .scene-frame { position: relative; min-height: 100%; border-radius: 1.7rem; border: 1px solid rgba(223,193,125,.14); box-shadow: 0 26px 56px rgba(0,0,0,.34); }
+        .chat-panel { display: flex; flex-direction: column; padding: 1rem; background: linear-gradient(180deg, rgba(18,14,12,.92), rgba(10,8,7,.94)); }
+        .scene-frame { overflow: visible; background: linear-gradient(180deg, rgba(15,12,10,.32), rgba(15,12,10,.72)), radial-gradient(circle at top, rgba(223,193,125,.1), transparent 34%); }
+        .chat-panel::before, .scene-frame::before { content: ""; position: absolute; inset: .75rem; border-radius: 1rem; border: 1px solid rgba(223,193,125,.08); pointer-events: none; }
+        .chat-head { position: relative; z-index: 1; margin-bottom: .9rem; }
+        .chat-head h2 { margin: 0; font-family: "Cinzel", serif; font-size: 1.2rem; }
+        .chat-history { position: relative; z-index: 1; flex: 1; overflow-y: auto; }
+        .chat-history ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; }
+        .chat-history li { padding: .75rem .9rem; border-radius: .95rem; background: rgba(255,255,255,.045); border: 1px solid rgba(223,193,125,.08); font-size: 1rem; line-height: 1.35; word-break: break-word; }
+        .chat-empty { color: rgba(234,223,202,.58); font-size: 1rem; }
+        .chat-form { position: relative; z-index: 1; display: grid; gap: .7rem; margin-top: .9rem; }
+        .chat-form label { display: block; font-family: "Cinzel", serif; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: #c8b89a; }
+        .chat-form input { width: 100%; margin-top: .4rem; border: 1px solid rgba(223,193,125,.16); border-radius: 1rem; background: rgba(19,14,11,.88); color: #eadfca; padding: .95rem 1rem; font: inherit; }
+        .chat-actions { display: flex; gap: .65rem; }
+        .chat-actions .fantasy-btn { flex: 1; }
+        .room-stage { position: relative; min-height: 100%; overflow: hidden; padding: 5.8rem 1rem 12.6rem; }
+        .room-id-badge { position: absolute; z-index: 8; padding: .45rem .75rem; border-radius: 999px; border: 1px solid rgba(223,193,125,.16); background: rgba(10,8,7,.74); box-shadow: 0 16px 30px rgba(0,0,0,.22); }
+        .room-id-badge { top: 1rem; left: 1rem; font-family: "Cinzel", serif; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: #c8b89a; }
+        .playerbox { position: absolute; inset: 0; pointer-events: none; z-index: 6; }
+        .player-rail { position: absolute; right: 2rem; left: auto; transform: none; display: flex; align-items: flex-end; gap: .7rem; width: 385px; justify-content: flex-end; }
+        .player-rail.top { top: .95rem; }
+        .player-rail.bottom { bottom: 1.15rem; }
+        .player-stack { display: grid; gap: .4rem; width: 250px; }
+        .score-track { display: inline-flex; align-items: center; justify-content: center; gap: .35rem; width: fit-content; margin-left: auto; padding: .35rem .6rem; border-radius: 999px; border: 1px solid rgba(223,193,125,.16); background: rgba(10,8,7,.74); box-shadow: 0 12px 22px rgba(0,0,0,.2); }
+        .score-orb { width: .55rem; height: .55rem; border-radius: 50%; background: rgba(223,193,125,.16); border: 1px solid rgba(223,193,125,.26); box-shadow: inset 0 0 6px rgba(0,0,0,.24); }
+        .score-orb.lit { background: radial-gradient(circle at 35% 35%, rgba(255,249,220,.95), rgba(223,193,125,.92) 58%, rgba(185,147,79,.7) 100%); box-shadow: 0 0 10px rgba(223,193,125,.45); }
+        .player-card { display: flex; align-items: center; gap: .75rem; min-width: 240px; max-width: 290px; padding: .65rem .8rem; border-radius: 1.2rem; border: 1px solid rgba(223,193,125,.14); background: linear-gradient(180deg, rgba(64,44,31,.78), rgba(20,15,12,.9)); box-shadow: 0 18px 34px rgba(0,0,0,.26); pointer-events: auto; }
+        .player-card.opponent { background: linear-gradient(180deg, rgba(44,31,31,.76), rgba(17,13,11,.92)); }
+        .player-avatar { width: 3.3rem; height: 3.3rem; border-radius: 50%; overflow: hidden; border: 2px solid rgba(223,193,125,.4); background: rgba(255,255,255,.06); flex: 0 0 auto; }
+        .player-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .player-name { margin: 0; font-family: "Cinzel", serif; font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .player-subtitle { margin: .08rem 0 0; color: rgba(234,223,202,.7); font-size: .82rem; }
+        .spirit-wrap { display: grid; align-items: center; justify-items: center; gap: .45rem; width: 90px; padding: .55rem .45rem; border-radius: 1.1rem; border: 1px solid rgba(223,193,125,.14); background: rgba(12,10,8,.52); flex: 0 0 auto; }
+        .spirit-sprite { position: relative; width: 3.3rem; height: 3.3rem; border-radius: .9rem; background: radial-gradient(circle at 35% 32%, rgba(255,255,255,.36), transparent 22%), radial-gradient(circle at center, rgba(185,147,79,.44), rgba(74,31,31,.18) 60%, transparent 70%); border: 1px solid rgba(223,193,125,.22); box-shadow: 0 0 18px rgba(185,147,79,.18); animation: spiritFloat 3.4s ease-in-out infinite; }
+        .spirit-sprite::before { content: ""; position: absolute; width: 1.05rem; height: 1.05rem; left: .75rem; top: .65rem; border-radius: 50%; background: rgba(255,240,205,.85); box-shadow: 0 0 0 .22rem rgba(223,193,125,.12), 0 0 14px rgba(255,240,205,.36); animation: spiritBlink 1.8s ease-in-out infinite; }
+        .spirit-sprite::after { content: ""; position: absolute; width: 1.55rem; height: .72rem; left: .7rem; bottom: .52rem; border-radius: 50%; background: rgba(223,193,125,.28); }
+        .spirit-label { font-family: "Cinzel", serif; font-size: .58rem; letter-spacing: .07em; text-transform: uppercase; color: #c8b89a; text-align: center; }
+        .board-shell { position: absolute; left: calc(50% - 3rem); top: 50%; transform: translate(-50%, -50%); width: min(980px, calc(100% - 10rem)); height: min(380px, calc(100% - 18rem)); border-radius: 2rem; overflow: hidden; border: 1px solid rgba(223,193,125,.16); background: linear-gradient(180deg, rgba(17,13,11,.26), rgba(17,13,11,.38)), radial-gradient(circle at center, rgba(223,193,125,.08), transparent 38%), var(--room-board-texture) center/cover no-repeat; box-shadow: inset 0 0 80px rgba(0,0,0,.42), 0 24px 50px rgba(0,0,0,.28); z-index: 4; }
+        .board-shell::before { content: ""; position: absolute; inset: 1rem; border-radius: 1.35rem; border: 1px solid rgba(223,193,125,.12); pointer-events: none; }
+        .board-shell::after { content: ""; position: absolute; left: 50%; top: 1rem; bottom: 1rem; width: 1px; transform: translateX(-50%); background: linear-gradient(180deg, transparent, rgba(223,193,125,.18), transparent); pointer-events: none; }
+        .theline { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .side { position: absolute; top: 0; height: 100%; width: 50%; z-index: 2; }
+        .left { left: 0; }
+        .right { right: 0; }
+        .slots { position: relative; z-index: 3; display: flex; gap: clamp(.35rem, 1vw, .8rem); width: min(860px, calc(100% - 5rem)); align-items: center; justify-content: center; }
+        .slot { width: clamp(72px, 8vw, 106px); height: clamp(72px, 8vw, 106px); position: relative; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px dashed rgba(234,223,202,.46); background: radial-gradient(circle at center, rgba(255,255,255,.12), transparent 62%), rgba(11,9,8,.36); box-shadow: inset 0 0 24px rgba(0,0,0,.25); pointer-events: none; }
+        .slot::before { content: ""; position: absolute; inset: .45rem; border-radius: 50%; border: 1px solid rgba(223,193,125,.1); }
+        .bag { display: flex; width: min(820px, calc(100% - 20rem)); align-items: flex-end; justify-content: center; gap: .28rem; position: absolute; left: calc(50% - 10.5rem); transform: translateX(-50%); bottom: -1.1rem; height: 9.5rem; transition: gap .28s ease, bottom .28s ease; z-index: 30; }
+        .bag:not(.pause):hover { bottom: .9rem; gap: .72rem; }
+        .bag::before { content: ""; position: absolute; left: 50%; bottom: 3rem; transform: translateX(-50%); width: min(900px, 100%); height: 6rem; border-radius: 999px; background: radial-gradient(circle at center, rgba(223,193,125,.16), rgba(8,7,6,.1) 64%, transparent 74%); filter: blur(8px); pointer-events: none; }
+        .bag.pause, .stone.pause { user-select: none; }
+        .stone { display: flex; width: clamp(88px, 8vw, 116px); height: clamp(88px, 8vw, 116px); align-items: center; justify-content: center; position: relative; cursor: grab; }
+        .stone:not(.pause):hover .stonevisual { transform: translateY(-.7rem) scale(1.07); box-shadow: 0 24px 30px rgba(0,0,0,.24), 0 0 24px rgba(223,193,125,.18); }
+        .stonevisual { position: absolute; width: clamp(80px, 7.2vw, 104px); height: clamp(80px, 7.2vw, 104px); border-radius: 50%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 36% 28%, rgba(255,255,255,.18), transparent 24%), radial-gradient(circle at center, rgba(255,255,255,.06), transparent 58%), rgba(31,23,18,.94); border: 2px solid rgba(223,193,125,.36); box-shadow: inset 0 0 24px rgba(255,255,255,.06), 0 14px 24px rgba(0,0,0,.28); transition: transform .22s ease, box-shadow .24s ease; overflow: hidden; }
+        .stonevisual::before { content: ""; position: absolute; inset: .55rem; border-radius: 50%; background-image: var(--stone-face); background-position: center; background-repeat: no-repeat; background-size: contain; }
+        .stonevisual::after { content: ""; position: absolute; inset: .25rem; border-radius: 50%; border: 1px solid rgba(223,193,125,.16); }
+        .stone-id { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+        .action-dock { position: absolute; right: 2.1rem; top: 51%; transform: translateY(-50%); z-index: 25; display: flex; align-items: center; justify-content: center; pointer-events: auto; width: 4.3rem; height: 4.3rem; }
+        .action-trigger { display: inline-flex; align-items: center; justify-content: center; width: 4.3rem; height: 4.3rem; border-radius: 1.35rem; border: 1px solid rgba(223,193,125,.18); background: linear-gradient(180deg, rgba(79,55,40,.86), rgba(24,18,15,.94)); color: #eadfca; font-family: "Cinzel", serif; font-size: .82rem; letter-spacing: .08em; text-transform: uppercase; box-shadow: 0 18px 28px rgba(0,0,0,.24); }
+        .action-panel { position: absolute; right: calc(100% + .65rem); top: 50%; transform: translateY(-50%) translateX(1rem) scale(.96); transform-origin: right center; display: grid; grid-template-columns: repeat(2, minmax(110px, 1fr)); gap: .55rem; width: 250px; padding: .8rem; border-radius: 1.2rem; border: 1px solid rgba(223,193,125,.16); background: linear-gradient(180deg, rgba(22,17,14,.96), rgba(12,10,8,.96)); box-shadow: 0 18px 32px rgba(0,0,0,.28); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s ease, transform .22s ease, visibility 0s linear .22s; }
+        .action-dock.is-open .action-panel { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(-50%) translateX(0) scale(1); transition: opacity .2s ease, transform .22s ease, visibility 0s linear 0s; }
+        .action-dock.is-open .action-trigger { opacity: 0; pointer-events: none; transform: scale(.92); }
+        .action-trigger { transition: opacity .16s ease, transform .18s ease, box-shadow .18s ease; }
+        .action-choice { display: inline-flex; align-items: center; justify-content: center; min-height: 2.7rem; padding: .55rem .8rem; border-radius: .95rem; border: 1px solid rgba(223,193,125,.14); background: rgba(255,255,255,.04); color: #eadfca; font-family: "Cinzel", serif; font-size: .68rem; letter-spacing: .07em; text-transform: uppercase; text-align: center; }
+        .room-settings-panel { width: min(460px, 100%); }
+        .room-settings-actions { display: flex; gap: .7rem; flex-wrap: wrap; margin-top: 1.1rem; }
+        .chat-author { display: block; margin-bottom: .2rem; font-family: "Cinzel", serif; font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; color: #c8b89a; }
+        @keyframes spiritFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-.2rem); } }
+        @keyframes spiritBlink { 0%,100% { opacity: .9; transform: scale(1); } 50% { opacity: .6; transform: scale(.92); } }
+        @media (max-width: 980px) { .battlefield { grid-template-columns: 1fr; } .chat-panel { display: none; } .room-stage { padding: 5.2rem .75rem 10.8rem; } .board-shell { left: 50%; width: min(100%, calc(100% - 1.5rem)); height: min(360px, calc(100% - 16rem)); top: 47%; } .player-rail { right: 1rem; width: 330px; } .player-rail.top { top: 1rem; } .player-stack { width: 215px; } .bag { left: calc(50% - 7rem); width: calc(100% - 10rem); bottom: -.2rem; height: 8.8rem; } .bag:not(.pause):hover { bottom: 1.2rem; } .action-dock { right: 1.3rem; } .action-panel { width: 220px; grid-template-columns: repeat(2, minmax(96px, 1fr)); } }
+        @media (max-width: 720px) { .player-rail { right: .7rem; width: 242px; gap: .45rem; } .player-rail.top { top: .75rem; } .player-stack { width: 168px; } .player-card { min-width: 0; max-width: 168px; padding: .55rem .65rem; } .player-avatar { width: 2.8rem; height: 2.8rem; } .player-name { font-size: .82rem; } .player-subtitle { font-size: .72rem; } .spirit-wrap { width: 68px; padding: .45rem .3rem; } .spirit-sprite { width: 2.4rem; height: 2.4rem; } .score-track { min-width: 94px; } .board-shell { left: 50%; top: 45%; height: min(300px, calc(100% - 15rem)); width: calc(100% - 1.2rem); } .bag { left: calc(50% - 4.4rem); width: calc(100% - 6.4rem); bottom: .25rem; height: 8rem; } .bag:not(.pause):hover { bottom: 1.25rem; } .action-dock { right: .9rem; top: 58%; } .action-panel { width: 190px; grid-template-columns: 1fr; } }
     </style>
-    <p th:id="${roomId}" th:text="'room: ' + ${roomId}" style="position: fixed; top: 0; left: 0; margin: 10px">></p>
 </head>
+<body data-stone-skin="default" data-board-skin="default">
+    <div class="room-shell">
+        <header class="topbar compact" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1200;">
+            <a class="brand-mark" href="/"><img th:src="@{/logo.png}" alt="Tellstones Logo"></a>
+            <div class="nav-cluster">
+                <a href="/rules" class="fantasy-btn ghost">Rulebook</a>
+                <a href="/" class="fantasy-btn ghost">Main Menu</a>
+                <button class="icon-btn" type="button" data-open-modal="room-settings-modal" aria-label="Settings">⚙</button>
+            </div>
+        </header>
+        <main class="battlefield">
+            <aside class="chat-panel">
+                <div class="chat-head">
+                    <span class="eyebrow">War Table</span>
+                    <h2>Chamber Chat</h2>
+                    <p class="text-muted" style="margin: .35rem 0 0;">Trade bluffs, warnings, and boasts without leaving the board.</p>
+                </div>
+                <div class="chat-history">
+                    <ul id="messages"></ul>
+                    <p class="chat-empty" id="chatEmpty">No messages yet. The chamber is listening.</p>
+                </div>
+                <div class="chat-form">
+                    <label>Message<input type="text" id="message" placeholder="Send a whisper across the table"></label>
+                    <div class="chat-actions"><button type="button" class="fantasy-btn primary" id="sendChat">Send</button></div>
+                </div>
+            </aside>
+            <section class="scene-frame room-stage">
+                <div class="room-id-badge" th:text="'Chamber ' + ${roomId}">Chamber</div>
+                <div class="playerbox"></div>
+                <div class="action-dock">
+                    <div class="action-panel">
+                        <button type="button" class="action-choice">Place</button>
+                        <button type="button" class="action-choice">Hide</button>
+                        <button type="button" class="action-choice">Swap</button>
+                        <button type="button" class="action-choice">Peek</button>
+                        <button type="button" class="action-choice">Challenge</button>
+                        <button type="button" class="action-choice">Boast</button>
+                    </div>
+                    <button type="button" class="action-trigger">Act</button>
+                </div>
+                <div class="board-shell">
+                    <div class="theline">
+                        <div class="side left"></div>
+                        <div class="side right"></div>
+                        <div class="slots">
+                            <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bag pause" id="bag"></div>
+            </section>
+        </main>
+    </div>
 
-<body>
-    <header class="topbar compact" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1200;">
-        <a class="brand-mark" href="/">
-            <img th:src="@{/logo.png}" alt="Tellstones Logo">
-        </a>
-        <div class="nav-cluster">
-            <a href="/rules" class="fantasy-btn ghost">Rulebook</a>
-            <a href="/play" class="fantasy-btn ghost">Room Hall</a>
-            <a href="/" class="fantasy-btn ghost">Main Menu</a>
-        </div>
-    </header>
-    <div class="playerbox"></div>
-    <div class="theline">
-        <div class="side left"></div>
-        <div class="side right"></div>
-
-        <div class="slots">
-            <div class="slot"></div>
-            <div class="slot"></div>
-            <div class="slot"></div>
-            <div class="slot"></div>
-            <div class="slot"></div>
-            <div class="slot"></div>
-            <div class="slot"></div>
+    <div id="room-settings-modal" class="modal-backdrop">
+        <div class="modal-panel panel room-settings-panel">
+            <button class="icon-btn close-link" type="button" data-close-modal aria-label="Close settings">✕</button>
+            <div class="eyebrow">Settings</div>
+            <h2 class="title-md">Battle Chamber</h2>
+            <div class="field-stack" style="margin-top: 1rem;">
+                <label class="field-label">
+                    <span>BGM Volume</span>
+                    <input data-bgm-volume type="range" min="0" max="1" step="0.05">
+                </label>
+            </div>
+            <div class="room-settings-actions">
+                <button type="button" class="fantasy-btn ghost" id="surrenderBtn">Surrender</button>
+            </div>
         </div>
     </div>
-    <button id="bagBtn" class="startbutton">
-        Click me to start the game
-    </button>
-    <div class="bag pause" id="bag"></div>
+
     <audio data-bgm data-bgm-reset="true" loop>
         <source th:src="@{/audio/bgm.mp3}" type="audio/mpeg">
     </audio>
@@ -247,169 +167,249 @@
         async function updatebaackendline() {
             const theline = document.querySelectorAll(".slot .stonevisual");
             const data = [];
-            for(let i = 0; i < theline.length; i++){
-                data.push({position: i, stoneid: theline[i].textContent})
+            for (let i = 0; i < theline.length; i++) {
+                data.push({
+                    position: i,
+                    stoneid: theline[i].dataset.stoneId || theline[i].textContent.trim()
+                });
             }
             try {
-				const res = await fetch("/tellstones/settinggame", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(data)
-				});
+                const res = await fetch("/tellstones/settinggame", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    await res.json();
+                } else {
+                    alert(await res.text());
+                }
+            } catch (err) {
+                alert("Network error");
+                console.error(err);
+            }
+        }
 
-				if (res.ok) {
-					const restone = await res.json();
-					alert(JSON.stringify(restone));
-				} else {
-					alert(await res.text());
-				}
-			} catch (err) {
-				alert("Network error");
-				console.error(err);
-			}
+        async function updatebaackendlinea(data) {
+            try {
+                const res = await fetch("/tellstones/welcomeplayer", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    await res.json();
+                }
+            } catch (err) {
+                console.error(err);
+            }
         }
     </script>
     <script>
-        async function updatebaackendlinea(data) {
-            try {
-				const res = await fetch("/tellstones/welcomeplayer", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(data)
-				});
-
-				if (res.ok) {
-					const restone = await res.json();
-				} else {
-				}
-			} catch (err) {
-				console.error(err);
-			}
-        }
-</script>
-
-<script>
-    let isSocketConnected = false;
-    const socket = io("http://localhost:9092", {
-        transports: ["websocket"]
-    });
-
-    socket.on("connect", () => {
-        inRoom();
-        console.log("CONNECTED");
-    });
-
-    socket.on("Youin", async () => {
-        await loadProduct();
-        spawnplayer();
-    });
-
-    socket.on("connect_error", (err) => {
-        console.log("ERROR:", err);
-    });
-
-    socket.on("message", (data) => {
-        const li = document.createElement("li");
-        li.innerText = data;
-        document.getElementById("messages").appendChild(li);
-    });
-
-    socket.on("gamestart", () => {
-        document.getElementById("bagBtn").style.display = "none";
-        bag.classList.remove("pause");
-
-        document.querySelectorAll(".stone").forEach(stone => {
-            stone.classList.remove("pause");
-            stone.draggable = true;
-        });
-    });
-
-    let data = [];
-
-    socket.on("roomJoined", (roomId) => {
-        console.log("Joined room:", roomId);
-        window.location.href = `/tellstones/room/${roomId}`;
-    });
-
-    function startRoom() {
-        const roomId = document.getElementById("roomId").value;
-        socket.emit("startRoom", roomId);
-        console.log("Started room:", roomId);
-    }
-
-    function inRoom() {
-        const roomId = productId;
-        socket.emit("inRoom", roomId);
-        console.log("In room:", roomId);
-    }
-
-    function sendMessage() {
-        const msg = document.getElementById("message").value;
-        socket.emit("message", msg);
-    }
-
-    function sendMessage() {
-        socket.emit('leaveRoom', productId);
-    }
-
-    socket.on("outthedoor", async () => {
-        await loadProduct();
-        spawnplayer();
-    });
-</script>
-    <script>
+        let isSocketConnected = false;
+        const socket = io("http://localhost:9092", { transports: ["websocket"] });
+        let data = [];
         let players = [];
+        let who = null;
         let productId = window.location.pathname.split("/")[window.location.pathname.split("/").length - 2];
+        const currentPlayerId = window.location.pathname.split("/").pop();
+
+        socket.on("connect", () => {
+            inRoom();
+            console.log("CONNECTED");
+        });
+
+        socket.on("Youin", async () => {
+            await loadProduct();
+            spawnplayer();
+        });
+
+        socket.on("connect_error", (err) => {
+            console.log("ERROR:", err);
+        });
+
+        socket.on("message", (data) => {
+            const history = document.getElementById("messages");
+            const empty = document.getElementById("chatEmpty");
+            if (!history) {
+                return;
+            }
+            const li = document.createElement("li");
+            const rawMessage = String(data);
+            const splitIndex = rawMessage.indexOf(": ");
+            if (splitIndex > 0) {
+                const author = document.createElement("span");
+                author.className = "chat-author";
+                author.innerText = rawMessage.slice(0, splitIndex);
+                const body = document.createElement("span");
+                body.innerText = rawMessage.slice(splitIndex + 2);
+                li.appendChild(author);
+                li.appendChild(body);
+            } else {
+                li.innerText = rawMessage;
+            }
+            history.appendChild(li);
+            history.scrollTop = history.scrollHeight;
+            if (empty) {
+                empty.style.display = "none";
+            }
+        });
+
+        let hasRequestedGameStart = false;
+
+        socket.on("gamestart", () => {
+            bag.classList.remove("pause");
+            document.querySelectorAll(".stone").forEach(stone => {
+                stone.classList.remove("pause");
+                stone.draggable = true;
+            });
+        });
+
+        socket.on("roomJoined", (roomId) => {
+            console.log("Joined room:", roomId);
+            window.location.href = `/tellstones/room/${roomId}`;
+        });
+
+        socket.on("outthedoor", async () => {
+            await loadProduct();
+            spawnplayer();
+        });
+
+        function startRoom() {
+            const roomId = document.getElementById("roomId").value;
+            socket.emit("startRoom", roomId);
+            console.log("Started room:", roomId);
+        }
+
+        function inRoom() {
+            const roomId = productId;
+            socket.emit("inRoom", roomId);
+            console.log("In room:", roomId);
+        }
+
+        function sendMessage() {
+            const input = document.getElementById("message");
+            if (!input) {
+                return;
+            }
+            const msg = input.value.trim();
+            if (!msg) {
+                return;
+            }
+            const selfPlayer = players.find(player => String(player.id) === String(currentPlayerId));
+            const speaker = selfPlayer && (selfPlayer.displayName || selfPlayer.username)
+                ? (selfPlayer.displayName || selfPlayer.username)
+                : "Player";
+            socket.emit("message", speaker + ": " + msg);
+            input.value = "";
+        }
+
+        function leaveRoom() {
+            socket.emit("leaveRoom", productId);
+        }
+
         async function loadProduct() {
             try {
                 const res = await fetch("/tellstones/getplayers/" + productId);
                 players = await res.json();
-
                 console.log(players);
- 
+                if (players.length >= 2 && !hasRequestedGameStart) {
+                    hasRequestedGameStart = true;
+                    socket.emit("startgame", productId);
+                }
             } catch (err) {
                 console.error("Error loading players:", err);
             }
         }
     </script>
     <script>
+        const stoneFaceMap = { 2: "sword", 3: "knight", 4: "shield", 5: "hammer", 6: "flag", 7: "crown", 8: "scale" };
+        const boardSkinMap = {
+            default: "/textu/360_F_166099507_4puS6NXaWOPugMfxcvkpVH4h8XwuhYXb.png",
+            stone: "/textu/360_F_931202313_YPl0fGR1iBUTm0RE3pi5oOI1tscZbdNm.jpg",
+            velvet: "/textu/sdv.png"
+        };
+
+        function getCurrentStoneSkin() {
+            return document.body.dataset.stoneSkin || "default";
+        }
+
+        function applyBoardSkin() {
+            const skin = document.body.dataset.boardSkin || "default";
+            const boardTexture = boardSkinMap[skin] || boardSkinMap.default;
+            document.documentElement.style.setProperty("--room-board-texture", `url('${boardTexture}')`);
+        }
+
+        function applyStoneFace(visual, stoneId) {
+            const skin = getCurrentStoneSkin();
+            const asset = stoneFaceMap[stoneId] || "sword";
+            visual.style.setProperty("--stone-face", `url('/textu/stones/${skin}/${asset}.png')`);
+            visual.dataset.stoneId = stoneId;
+        }
+
+        function renderPlayerCard(player, roleLabel, cardClass) {
+            const avatar = player && player.avatar ? player.avatar : "/logo.png";
+            const name = player && player.displayName ? player.displayName : (player && player.username ? player.username : roleLabel);
+            const subtitle = player && player.username ? "House " + player.username : "Awaiting challenger";
+            return `
+                <div class="spirit-wrap">
+                    <div class="spirit-sprite" aria-hidden="true"></div>
+                    <span class="spirit-label">Spirit</span>
+                </div>
+                <div class="player-stack">
+                    <div class="score-track">
+                        <span class="score-orb"></span>
+                        <span class="score-orb"></span>
+                        <span class="score-orb"></span>
+                    </div>
+                    <div class="player-card ${cardClass}">
+                        <div class="player-meta">
+                            <span class="eyebrow">${roleLabel}</span>
+                            <h3 class="player-name">${name}</h3>
+                            <p class="player-subtitle">${subtitle}</p>
+                        </div>
+                        <div class="player-avatar"><img src="${avatar}" alt="${name}"></div>
+                    </div>
+                </div>
+            `;
+        }
+
         async function spawnplayer() {
             const playerbox = document.querySelector(".playerbox");
-            playerbox.innerHTML = "";
-            players.forEach(player => {
-                const icon = document.createElement("div");
-
-                icon.className = "playericon";
-                
-                icon.id = player.id;
-                if(player.id.toString() === window.location.pathname.split("/").pop()){
-                    icon.innerHTML = `<div class="playericonvisual" style="background-color: red">${player.username}</div>`;
-                } else {
-                    icon.innerHTML = `<div class="playericonvisual">${player.username}</div>`;
-                }
-                
-
-                icon.draggable = false;
-
-                playerbox.appendChild(icon);
-            });
+            if (!playerbox) {
+                return;
+            }
+            const selfPlayer = players.find(player => String(player.id) === String(currentPlayerId)) || null;
+            const opponent = players.find(player => String(player.id) !== String(currentPlayerId)) || null;
+            playerbox.innerHTML = `
+                <div class="player-rail top">${renderPlayerCard(opponent, "Opponent", "opponent")}</div>
+                <div class="player-rail bottom">${renderPlayerCard(selfPlayer, "You", "player")}</div>
+            `;
         }
     </script>
     <script>
         const bag = document.getElementById("bag");
-        let who = null;
+
+        function createStoneMarkup(stoneId) {
+            const wrapper = document.createElement("div");
+            wrapper.className = "stone pause";
+            wrapper.draggable = true;
+            wrapper.id = stoneId;
+
+            const visual = document.createElement("div");
+            visual.className = "stonevisual";
+            const hiddenId = document.createElement("span");
+            hiddenId.className = "stone-id";
+            hiddenId.textContent = stoneId;
+            visual.appendChild(hiddenId);
+            applyStoneFace(visual, stoneId);
+
+            wrapper.appendChild(visual);
+            return wrapper;
+        }
 
         for (let i = 2; i <= 8; i++) {
-            const stone = document.createElement("div");
-            stone.className = "stone pause";
-            stone.draggable = true;
-            stone.id = i;
-
-            stone.innerHTML = `<div class="stonevisual">${i}</div>`;
-
-            stone.draggable = false;
-
-            bag.appendChild(stone);
+            bag.appendChild(createStoneMarkup(i));
         }
 
         const stones = document.querySelectorAll(".stone");
@@ -429,14 +429,12 @@
 
         function placeStone(id, side) {
             let index;
-
             const filled = [...slots].filter(s => s.children.length > 0);
 
             if (filled.length === 0) {
                 index = Math.floor(slots.length / 2);
             } else {
                 const mid = Math.floor(slots.length / 2);
-
                 if (side === "left") {
                     for (let i = mid; i >= 0; i--) {
                         if (slots[i].children.length === 0) {
@@ -445,7 +443,6 @@
                         }
                     }
                 }
-
                 if (side === "right") {
                     for (let i = mid; i < slots.length; i++) {
                         if (slots[i].children.length === 0) {
@@ -460,35 +457,77 @@
 
             const stone = document.getElementById(id);
             const visual = stone.querySelector(".stonevisual");
-
             slots[index].appendChild(visual);
-
             stone.remove();
             updatebaackendline();
         }
 
         left.addEventListener("drop", function(e) {
             e.preventDefault();
-
             const id = e.dataTransfer.getData("text");
-
             socket.emit("callstone", id, "left", who);
         });
 
         right.addEventListener("drop", function(e) {
             e.preventDefault();
-
             const id = e.dataTransfer.getData("text");
-
             socket.emit("callstone", id, "right", who);
         });
+
+        const skinObserver = new MutationObserver(() => {
+            applyBoardSkin();
+            document.querySelectorAll(".stonevisual").forEach((visual) => {
+                applyStoneFace(visual, Number(visual.dataset.stoneId));
+            });
+        });
+
+        applyBoardSkin();
+        skinObserver.observe(document.body, { attributes: true, attributeFilter: ["data-stone-skin", "data-board-skin"] });
     </script>
     <script>
-        document.getElementById("bagBtn").addEventListener("click", function() {
-            if(players.length >= 2){
-                socket.emit("startgame", productId);
+        const chatInput = document.getElementById("message");
+        const chatButton = document.getElementById("sendChat");
+        const actionDock = document.querySelector(".action-dock");
+        const actionTrigger = document.querySelector(".action-trigger");
+        const actionChoices = document.querySelectorAll(".action-choice");
+        const surrenderBtn = document.getElementById("surrenderBtn");
+
+        if (actionTrigger && actionDock) {
+            actionTrigger.addEventListener("click", function() {
+                actionDock.classList.toggle("is-open");
+            });
+        }
+
+        actionChoices.forEach(function(choice) {
+            choice.addEventListener("click", function() {
+                if (actionDock) {
+                    actionDock.classList.remove("is-open");
+                }
+            });
+        });
+
+        document.addEventListener("click", function(event) {
+            if (actionDock && !actionDock.contains(event.target)) {
+                actionDock.classList.remove("is-open");
             }
         });
+
+        if (surrenderBtn) {
+            surrenderBtn.addEventListener("click", function() {
+                leaveRoom();
+                window.location.href = "/";
+            });
+        }
+
+        if (chatInput && chatButton) {
+            chatButton.addEventListener("click", sendMessage);
+            chatInput.addEventListener("keydown", function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
     </script>
 </body>
 </html>
