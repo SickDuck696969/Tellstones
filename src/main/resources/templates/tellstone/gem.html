@@ -15,6 +15,7 @@
             <div class="nav-cluster">
                 <div class="gem-pill">💎 <span th:text="${num} + ' Gems'"></div>
                 <a href="#" class="icon-btn" title="Buy gems">+</a>
+                <a href="/rules" class="fantasy-btn ghost">Rulebook</a>
                 <a href="/" class="fantasy-btn ghost">Main Menu</a>
             </div>
         </header>
@@ -111,5 +112,9 @@
             .catch(err => console.error(err));
     }
     </script>
+    <audio data-bgm loop>
+        <source th:src="@{/audio/bgm.mp3}" type="audio/mpeg">
+    </audio>
+    <script th:src="@{/js/tellstone-ui.js}"></script>
 </body>
 </html>

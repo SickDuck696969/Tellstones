@@ -16,7 +16,7 @@
                 </div>
                 <div class="nav-cluster">
                     <span class="fantasy-chip" data-rule-page>Page 1</span>
-                    <a href="/" class="icon-btn" aria-label="Close rulebook">✕</a>
+                    <button type="button" class="icon-btn" aria-label="Close rulebook" onclick="window.history.length > 1 ? window.history.back() : window.location.href='/'">✕</button>
                 </div>
             </header>
 
@@ -32,11 +32,14 @@
                 <div class="menu-actions" style="margin-top: 1rem;">
                     <button type="button" class="fantasy-btn ghost" data-rule-prev>Previous Page</button>
                     <button type="button" class="fantasy-btn ghost" data-rule-next>Next Page</button>
-                    <a href="/" class="fantasy-btn primary">Close Rulebook</a>
+                    <button type="button" class="fantasy-btn primary" onclick="window.history.length > 1 ? window.history.back() : window.location.href='/'">Close Rulebook</button>
                 </div>
             </div>
         </div>
     </div>
+    <audio data-bgm loop>
+        <source th:src="@{/audio/bgm.mp3}" type="audio/mpeg">
+    </audio>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.4.456/pdf.min.js"></script>
     <script th:src="@{/js/tellstone-ui.js}"></script>
 </body>

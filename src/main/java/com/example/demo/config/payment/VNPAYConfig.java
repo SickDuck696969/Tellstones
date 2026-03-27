@@ -1,29 +1,33 @@
 package com.example.demo.config.payment;
-import com.example.demo.util.VNPayUtil;
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.Getter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
+
 import org.springframework.context.annotation.Configuration;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.example.demo.util.VNPayUtil;
+
 @Configuration
 public class VNPAYConfig {
-    @Getter
+    @SuppressWarnings("FieldMayBeFinal")
     private String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+    @SuppressWarnings("FieldMayBeFinal")
     private String vnp_ReturnUrl = "http://localhost:8080/tellstones/vn-pay-callback";
     private String vnp_TmnCode = "X1KO58QJ";
-    @Getter
     private String secretKey = "5UM0A2VISEHCKRT9Y6IM89SE6IJYBL0N";
     private String vnp_Version = "2.1.0";
     private String vnp_Command = "pay";
     private String orderType = "other";
+
+    public String getVnp_PayUrl() {
+        return vnp_PayUrl;
+    }
+
+    public String getSecretKey() {
+        return secretKey;
+    }
 
     public Map<String, String> getVNPayConfig() {
         Map<String, String> vnpParamsMap = new HashMap<>();

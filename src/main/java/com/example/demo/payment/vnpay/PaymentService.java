@@ -3,15 +3,18 @@ package com.example.demo.payment.vnpay;
 import com.example.demo.config.payment.VNPAYConfig;
 import com.example.demo.util.VNPayUtil;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 @Service
-@RequiredArgsConstructor
 public class PaymentService {
     private final VNPAYConfig vnPayConfig;
+
+    public PaymentService(VNPAYConfig vnPayConfig) {
+        this.vnPayConfig = vnPayConfig;
+    }
+
     public PaymentDTO.VNPayResponse createVnPayPayment(HttpServletRequest request) {
         long amount = Integer.parseInt(request.getParameter("amount")) * 100L;
         String bankCode = request.getParameter("bankCode");

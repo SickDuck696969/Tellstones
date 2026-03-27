@@ -10,8 +10,6 @@ import com.example.demo.model.Stone;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.var;
 
 import java.lang.reflect.Array;
 import java.net.Socket;
@@ -55,7 +53,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @Controller
 @RequestMapping("/tellstones")
-@RequiredArgsConstructor
 public class GameController {
 
     private final SocketIOService socketservice;
@@ -66,6 +63,16 @@ public class GameController {
 
     private Game game = new Game();
     private final AccountService accountService;
+
+    public GameController(SocketIOService socketservice, Client coreclient, PlayerService playerService,
+            Emailservice themailman, AccountService accountService) {
+        this.socketservice = socketservice;
+        this.coreclient = coreclient;
+        this.playerService = playerService;
+        this.themailman = themailman;
+        this.accountService = accountService;
+    }
+
     public int howmany = 0;
     public int forhow = 0;
     private List<String> skins = List.of(
@@ -135,9 +142,9 @@ public class GameController {
     @GetMapping("/room/{actualid}/{id}/{userid}")
     public String loadroom(@PathVariable String id, Model model) {
         model.addAttribute("roomId", id);
-        var clients = socketservice.getServer().getRoomOperations(id).getClients();
+        Collection<com.corundumstudio.socketio.SocketIOClient> clients = socketservice.getServer().getRoomOperations(id).getClients();
 
-        for (var c : clients) {
+        for (com.corundumstudio.socketio.SocketIOClient c : clients) {
             System.out.println("Player session: " + c.getSessionId());
             System.out.println(playerService.getPlayers());
         }
@@ -147,8 +154,8 @@ public class GameController {
     @GetMapping("/getplayers/{id}")
     public ResponseEntity<?> getPlayers(@PathVariable String id) {
         System.out.println(id);
-        var clients = socketservice.getServer().getRoomOperations(id).getClients();
-        var playersl = playerService.getPlayers();
+        Collection<com.corundumstudio.socketio.SocketIOClient> clients = socketservice.getServer().getRoomOperations(id).getClients();
+        List<Map<String, Account>> playersl = playerService.getPlayers();
         List<Account> players = new ArrayList<Account>();
 
         for (var c : clients) {
@@ -206,13 +213,13 @@ public class GameController {
 
     @PostMapping("/startgame/{id}")
     public String start(@PathVariable String id) {
-        var clients = socketservice.getServer().getRoomOperations(id).getClients();
-        var playersl = playerService.getPlayers();
+        Collection<com.corundumstudio.socketio.SocketIOClient> clients = socketservice.getServer().getRoomOperations(id).getClients();
+        List<Map<String, Account>> playersl = playerService.getPlayers();
         List<Account> players = new ArrayList<Account>();
 
-        for (var c : clients) {
+        for (com.corundumstudio.socketio.SocketIOClient c : clients) {
             System.out.println(" in room " + c.getSessionId().toString());
-            for (var cl : playersl){
+            for (Map<String, Account> cl : playersl){
                 if(cl.containsKey(c.getSessionId().toString()) && c.getAllRooms().contains(id)){
                     Account vc = cl.get(c.getSessionId().toString());
                     System.out.println("Player " + vc.getUsername() + " in room " + c.getAllRooms());

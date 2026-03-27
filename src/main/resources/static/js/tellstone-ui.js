@@ -28,19 +28,52 @@ document.addEventListener("DOMContentLoaded", () => {
     const bgm = document.querySelector("[data-bgm]");
     const volumeSlider = document.querySelector("[data-bgm-volume]");
     const storedVolume = localStorage.getItem("tellstones-bgm-volume");
+    const bgmTimeKey = "tellstones-bgm-time";
 
-    if (bgm && volumeSlider) {
+    if (bgm) {
         const initialVolume = storedVolume !== null ? Number(storedVolume) : 0.35;
+        const shouldResetTrack = bgm.dataset.bgmReset === "true";
         bgm.volume = initialVolume;
-        volumeSlider.value = initialVolume;
 
-        volumeSlider.addEventListener("input", () => {
-            bgm.volume = Number(volumeSlider.value);
-            localStorage.setItem("tellstones-bgm-volume", volumeSlider.value);
-        });
+        if (shouldResetTrack) {
+            sessionStorage.setItem(bgmTimeKey, "0");
+        } else {
+            const storedTime = sessionStorage.getItem(bgmTimeKey);
+            if (storedTime !== null) {
+                bgm.currentTime = Number(storedTime);
+            }
+        }
 
-        bgm.play().catch(() => {
-        });
+        if (volumeSlider) {
+            volumeSlider.value = initialVolume;
+            volumeSlider.addEventListener("input", () => {
+                bgm.volume = Number(volumeSlider.value);
+                localStorage.setItem("tellstones-bgm-volume", volumeSlider.value);
+            });
+        }
+
+        const tryPlayBgm = () => {
+            bgm.play().catch(() => {
+            });
+        };
+
+        tryPlayBgm();
+
+        const unlockBgm = () => {
+            tryPlayBgm();
+            document.removeEventListener("click", unlockBgm);
+            document.removeEventListener("keydown", unlockBgm);
+        };
+
+        const persistBgmTime = () => {
+            sessionStorage.setItem(bgmTimeKey, String(bgm.currentTime));
+        };
+
+        bgm.addEventListener("timeupdate", persistBgmTime);
+        window.addEventListener("beforeunload", persistBgmTime);
+
+        document.addEventListener("click", unlockBgm, { once: true });
+        document.addEventListener("keydown", unlockBgm, { once: true });
     }
 
     const roomIdLabel = document.querySelector("[data-room-id]");

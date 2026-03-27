@@ -16,7 +16,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**", "/logo.png", "/Rule.pdf", "/rules", "/rules/**").permitAll()
+                .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**", "/uploads/**", "/logo.png", "/Rule.pdf", "/rules", "/rules/**").permitAll()
                 .anyRequest().authenticated()
             )
             .csrf(csrf -> csrf
@@ -25,7 +25,7 @@ public class SecurityConfig {
             .formLogin(formLogin -> formLogin
                 .loginPage("/login")
                 .loginProcessingUrl("/login")
-                .defaultSuccessUrl("/tellstones/", true)
+                .defaultSuccessUrl("/", true)
                 .permitAll()
             )
             .logout(logout -> logout

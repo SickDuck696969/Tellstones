@@ -8,18 +8,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.example.demo.service.AccountService;
 import com.example.demo.model.Account;
 
-import lombok.RequiredArgsConstructor;
-
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.ui.Model;
 
 @Controller
 @RequestMapping("/shop")
-@RequiredArgsConstructor
 public class ShopController {
 
     private final AccountService accountService;
+
+    public ShopController(AccountService accountService) {
+        this.accountService = accountService;
+    }
 
     @GetMapping
     public String shopPage(@AuthenticationPrincipal UserDetails user, Model model) {

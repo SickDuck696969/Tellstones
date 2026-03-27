@@ -28,7 +28,10 @@ public class AccountService implements UserDetailsService {
     }
 
     public Account save(Account account) {
-        account.setPassword(passwordEncoder.encode(account.getPassword()));
+        String password = account.getPassword();
+        if (password != null && !isEncodedPassword(password)) {
+            account.setPassword(passwordEncoder.encode(password));
+        }
         return accountRepository.save(account);
     }
 
@@ -38,5 +41,11 @@ public class AccountService implements UserDetailsService {
 
     public Optional<Account> getAccountByUsername(String name) {
         return accountRepository.findByUsername(name);
+    }
+
+    private boolean isEncodedPassword(String password) {
+        return password.startsWith("$2a$")
+                || password.startsWith("$2b$")
+                || password.startsWith("$2y$");
     }
 }

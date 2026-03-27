@@ -3,7 +3,6 @@ package com.example.demo.controller;
 import com.example.demo.model.Product;
 import com.example.demo.service.AccountService;
 import com.example.demo.service.ProductService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,12 +25,16 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/moolah")
-@RequiredArgsConstructor
 public class paymentcontroller {
 
     private final PaymentService paymentService;
     private final AccountService accountService;
     public int howmany = 0;
+
+    public paymentcontroller(PaymentService paymentService, AccountService accountService) {
+        this.paymentService = paymentService;
+        this.accountService = accountService;
+    }
 
     @GetMapping("/vnpay")
     public PaymentDTO.VNPayResponse createPayment(HttpServletRequest request) {
