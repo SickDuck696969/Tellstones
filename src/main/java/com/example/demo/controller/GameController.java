@@ -82,7 +82,7 @@ public class GameController {
         "neon",
         "primitive"
     );
-    int skinpointer = 0;
+    int skinpointer = 2;
     private Map<String, String> skinlinks = new HashMap<>(
             Map.of(
                 "Sword", "/textu/stones/%s/sword.png".formatted(skins.get(skinpointer)),
@@ -113,8 +113,9 @@ public class GameController {
 
     private int phase = 0;
 
-    @GetMapping("/")
-    public String backtologin() {
+    @GetMapping("/{actualid}/{id}/{userid}")
+    public String backtologin(@PathVariable String id, Model model) {
+        model.addAttribute("roomId", id);
         try {
             if(coreclient.socket == null){
                 coreclient.init();
@@ -196,15 +197,12 @@ public class GameController {
     }
 
     @PostMapping("/welcomeplayer")
-    public ResponseEntity<?> welcomePlayer(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> welcomePlayer(@AuthenticationPrincipal UserDetails user) {
         Map<String, Account> player = new HashMap<>();
         Random random = new Random();
         long id = random.nextLong();
-        Account tempAccount = new Account();
-        System.out.println((String) body.get("username"));
-        tempAccount.setId(id);
-        tempAccount.setUsername((String) body.get("username"));
-        player.put((String) body.get("username"), tempAccount);
+        Account tempAccount = accountService.getAccountByUsername(user.getUsername()).get();
+        player.put(tempAccount.getUsername(), tempAccount);
         playerService.addPlayer(player);
 
         System.out.println("welcome" + playerService.getPlayers());

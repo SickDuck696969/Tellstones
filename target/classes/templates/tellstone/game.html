@@ -44,11 +44,11 @@
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
                             <div>
                                 <div class="eyebrow" style="margin-bottom: 0.25rem;">Room ID</div>
-                                <div class="title-md" id="currentRoomId" style="font-size: 1.55rem;">Awaiting Sigil</div>
+                                <div class="title-md" th:id="${roomId}" th:text="${roomId}" style="font-size: 1.55rem;"></div>
                             </div>
                             <div class="menu-actions">
                                 <button type="button" class="icon-btn" id="copyRoomBtn" aria-label="Copy room id" title="Copy room id">⧉</button>
-                                <button type="button" class="fantasy-btn primary" id="startRoomBtn">Start Game</button>
+                                <button type="button" class="fantasy-btn primary" id="startRoomBtn" onclick="Startgame()">Start Game</button>
                             </div>
                         </div>
                     </div>
@@ -140,7 +140,7 @@
     const socket = io("http://192.168.100.171:9092", {
         transports: ["websocket"],
         query: {
-            userId: document.getElementById("guestname").value
+            userId: window.location.pathname.split("/")[window.location.pathname.split("/").length - 1]
         }
     });
 
@@ -153,9 +153,10 @@
         const startRoomBtn = document.getElementById("startRoomBtn");
         const joinRoomBtn = document.getElementById("joinRoomBtn");
 
-        let data = [];
-        let joined = null;
-        let currentRoomId = "";
+        const roomid = window.location.pathname.split("/")[window.location.pathname.split("/").length - 2];
+        const userid = window.location.pathname.split("/")[window.location.pathname.split("/").length - 3];
+        const user = window.location.pathname.split("/")[window.location.pathname.split("/").length - 1];
+
         let createMode = false;
 
     socket.on("message", (data) => {
@@ -211,13 +212,6 @@
         }
 
         socket.on("connect", () => {
-            currentRoomId = generateRoomId();
-            if (currentRoomIdLabel) {
-                currentRoomIdLabel.textContent = currentRoomId;
-            }
-            if (roomStatusLabel) {
-                roomStatusLabel.textContent = "Your private chamber sigil is ready. Copy it or start the room.";
-            }
             console.log("CONNECTED");
         });
 
@@ -227,19 +221,6 @@
 
         socket.on("message", (data) => {
             console.log(data);
-        });
-
-        socket.on("sessionID", async (sessionID) => {
-            data = {
-                username: "Player",
-                session: sessionID
-            };
-
-            await updatebaackendline(data);
-
-            if (joined != null) {
-                window.location.href = `/tellstones/room/${restone.id}/${joined}/${document.getElementById("guestname").value}`;
-            }
         });
 
         socket.on("roomJoined", async (roomId) => {
@@ -276,13 +257,8 @@
             });
         }
 
-        if (startRoomBtn) {
-            startRoomBtn.addEventListener("click", () => {
-                createMode = true;
-                joined = null;
-                socket.emit("startRoom", currentRoomId);
-                console.log("Started room:", currentRoomId);
-            });
+        function Startgame() {
+            window.location.href = `/tellstones/room/${userid}/${roomid}/${user}`;
         }
 
         if (joinRoomBtn) {

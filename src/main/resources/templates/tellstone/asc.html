@@ -1,0 +1,366 @@
+<script>
+        async function updatebaackendline() {
+            const theline = document.querySelectorAll(".slot .stonevisual");
+            const data = [];
+            for (let i = 0; i < theline.length; i++) {
+                data.push({
+                    position: i,
+                    stoneid: theline[i].dataset.stoneId || theline[i].textContent.trim()
+                });
+            }
+            try {
+                const res = await fetch("/tellstones/settinggame", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    await res.json();
+                } else {
+                    alert(await res.text());
+                }
+            } catch (err) {
+                alert("Network error");
+                console.error(err);
+            }
+        }
+
+        async function updatebaackendlinea(data) {
+            try {
+                const res = await fetch("/tellstones/welcomeplayer", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    await res.json();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    </script>
+    <script>
+        let isSocketConnected = false;
+        const socket = io("http://localhost:9092", { transports: ["websocket"] });
+        let data = [];
+        let players = [];
+        let who = null;
+        let productId = window.location.pathname.split("/")[window.location.pathname.split("/").length - 2];
+        const currentPlayerId = window.location.pathname.split("/").pop();
+
+        socket.on("connect", () => {
+            inRoom();
+            console.log("CONNECTED");
+        });
+
+        socket.on("Youin", async () => {
+            await loadProduct();
+            spawnplayer();
+        });
+
+        socket.on("connect_error", (err) => {
+            console.log("ERROR:", err);
+        });
+
+        socket.on("message", (data) => {
+            const history = document.getElementById("messages");
+            const empty = document.getElementById("chatEmpty");
+            if (!history) {
+                return;
+            }
+            const li = document.createElement("li");
+            const rawMessage = String(data);
+            const splitIndex = rawMessage.indexOf(": ");
+            if (splitIndex > 0) {
+                const author = document.createElement("span");
+                author.className = "chat-author";
+                author.innerText = rawMessage.slice(0, splitIndex);
+                const body = document.createElement("span");
+                body.innerText = rawMessage.slice(splitIndex + 2);
+                li.appendChild(author);
+                li.appendChild(body);
+            } else {
+                li.innerText = rawMessage;
+            }
+            history.appendChild(li);
+            history.scrollTop = history.scrollHeight;
+            if (empty) {
+                empty.style.display = "none";
+            }
+        });
+
+        let hasRequestedGameStart = false;
+
+        socket.on("gamestart", () => {
+            bag.classList.remove("pause");
+            document.querySelectorAll(".stone").forEach(stone => {
+                stone.classList.remove("pause");
+                stone.draggable = true;
+            });
+        });
+
+        socket.on("roomJoined", (roomId) => {
+            console.log("Joined room:", roomId);
+            window.location.href = `/tellstones/room/${roomId}`;
+        });
+
+        socket.on("outthedoor", async () => {
+            await loadProduct();
+            spawnplayer();
+        });
+
+        function startRoom() {
+            const roomId = document.getElementById("roomId").value;
+            socket.emit("startRoom", roomId);
+            console.log("Started room:", roomId);
+        }
+
+        function inRoom() {
+            const roomId = productId;
+            socket.emit("inRoom", roomId);
+            console.log("In room:", roomId);
+        }
+
+        function sendMessage() {
+            const input = document.getElementById("message");
+            if (!input) {
+                return;
+            }
+            const msg = input.value.trim();
+            if (!msg) {
+                return;
+            }
+            const selfPlayer = players.find(player => String(player.id) === String(currentPlayerId));
+            const speaker = selfPlayer && (selfPlayer.displayName || selfPlayer.username)
+                ? (selfPlayer.displayName || selfPlayer.username)
+                : "Player";
+            socket.emit("message", speaker + ": " + msg);
+            input.value = "";
+        }
+
+        function leaveRoom() {
+            socket.emit("leaveRoom", productId);
+        }
+
+        async function loadProduct() {
+            try {
+                const res = await fetch("/tellstones/getplayers/" + productId);
+                players = await res.json();
+                console.log(players);
+                if (players.length >= 2 && !hasRequestedGameStart) {
+                    hasRequestedGameStart = true;
+                    socket.emit("startgame", productId);
+                }
+            } catch (err) {
+                console.error("Error loading players:", err);
+            }
+        }
+    </script>
+    <script>
+        const stoneFaceMap = { 2: "sword", 3: "knight", 4: "shield", 5: "hammer", 6: "flag", 7: "crown", 8: "scale" };
+        const boardSkinMap = {
+            default: "/textu/360_F_166099507_4puS6NXaWOPugMfxcvkpVH4h8XwuhYXb.png",
+            stone: "/textu/360_F_931202313_YPl0fGR1iBUTm0RE3pi5oOI1tscZbdNm.jpg",
+            velvet: "/textu/sdv.png"
+        };
+
+        function getCurrentStoneSkin() {
+            return document.body.dataset.stoneSkin || "default";
+        }
+
+        function applyBoardSkin() {
+            const skin = document.body.dataset.boardSkin || "default";
+            const boardTexture = boardSkinMap[skin] || boardSkinMap.default;
+            document.documentElement.style.setProperty("--room-board-texture", `url('${boardTexture}')`);
+        }
+
+        function applyStoneFace(visual, stoneId) {
+            const skin = getCurrentStoneSkin();
+            const asset = stoneFaceMap[stoneId] || "sword";
+            visual.style.setProperty("--stone-face", `url('/textu/stones/${skin}/${asset}.png')`);
+            visual.dataset.stoneId = stoneId;
+        }
+
+        function renderPlayerCard(player, roleLabel, cardClass) {
+            const avatar = player && player.avatar ? player.avatar : "/logo.png";
+            const name = player && player.displayName ? player.displayName : (player && player.username ? player.username : roleLabel);
+            const subtitle = player && player.username ? "House " + player.username : "Awaiting challenger";
+            return `
+                <div class="spirit-wrap">
+                    <div class="spirit-sprite" aria-hidden="true"></div>
+                    <span class="spirit-label">Spirit</span>
+                </div>
+                <div class="player-stack">
+                    <div class="score-track">
+                        <span class="score-orb"></span>
+                        <span class="score-orb"></span>
+                        <span class="score-orb"></span>
+                    </div>
+                    <div class="player-card ${cardClass}">
+                        <div class="player-meta">
+                            <span class="eyebrow">${roleLabel}</span>
+                            <h3 class="player-name">${name}</h3>
+                            <p class="player-subtitle">${subtitle}</p>
+                        </div>
+                        <div class="player-avatar"><img src="${avatar}" alt="${name}"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function spawnplayer() {
+            const playerbox = document.querySelector(".playerbox");
+            if (!playerbox) {
+                return;
+            }
+            const selfPlayer = players.find(player => String(player.id) === String(currentPlayerId)) || null;
+            const opponent = players.find(player => String(player.id) !== String(currentPlayerId)) || null;
+            playerbox.innerHTML = `
+                <div class="player-rail top">${renderPlayerCard(opponent, "Opponent", "opponent")}</div>
+                <div class="player-rail bottom">${renderPlayerCard(selfPlayer, "You", "player")}</div>
+            `;
+        }
+    </script>
+    <script>
+        const bag = document.getElementById("bag");
+
+        function createStoneMarkup(stoneId) {
+            const wrapper = document.createElement("div");
+            wrapper.className = "stone pause";
+            wrapper.draggable = true;
+            wrapper.id = stoneId;
+
+            const visual = document.createElement("div");
+            visual.className = "stonevisual";
+            const hiddenId = document.createElement("span");
+            hiddenId.className = "stone-id";
+            hiddenId.textContent = stoneId;
+            visual.appendChild(hiddenId);
+            applyStoneFace(visual, stoneId);
+
+            wrapper.appendChild(visual);
+            return wrapper;
+        }
+
+        for (let i = 2; i <= 8; i++) {
+            bag.appendChild(createStoneMarkup(i));
+        }
+
+        const stones = document.querySelectorAll(".stone");
+        stones.forEach(stone => {
+            stone.addEventListener("dragstart", function(e) {
+                e.dataTransfer.setData("text", stone.id);
+            });
+        });
+
+        const left = document.querySelector(".left");
+        const right = document.querySelector(".right");
+        const slots = document.querySelectorAll(".slot");
+
+        [left, right].forEach(side => {
+            side.addEventListener("dragover", e => e.preventDefault());
+        });
+
+        function placeStone(id, side) {
+            let index;
+            const filled = [...slots].filter(s => s.children.length > 0);
+
+            if (filled.length === 0) {
+                index = Math.floor(slots.length / 2);
+            } else {
+                const mid = Math.floor(slots.length / 2);
+                if (side === "left") {
+                    for (let i = mid; i >= 0; i--) {
+                        if (slots[i].children.length === 0) {
+                            index = i;
+                            break;
+                        }
+                    }
+                }
+                if (side === "right") {
+                    for (let i = mid; i < slots.length; i++) {
+                        if (slots[i].children.length === 0) {
+                            index = i;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (index === undefined) return;
+
+            const stone = document.getElementById(id);
+            const visual = stone.querySelector(".stonevisual");
+            slots[index].appendChild(visual);
+            stone.remove();
+            updatebaackendline();
+        }
+
+        left.addEventListener("drop", function(e) {
+            e.preventDefault();
+            const id = e.dataTransfer.getData("text");
+            socket.emit("callstone", id, "left", who);
+        });
+
+        right.addEventListener("drop", function(e) {
+            e.preventDefault();
+            const id = e.dataTransfer.getData("text");
+            socket.emit("callstone", id, "right", who);
+        });
+
+        const skinObserver = new MutationObserver(() => {
+            applyBoardSkin();
+            document.querySelectorAll(".stonevisual").forEach((visual) => {
+                applyStoneFace(visual, Number(visual.dataset.stoneId));
+            });
+        });
+
+        applyBoardSkin();
+        skinObserver.observe(document.body, { attributes: true, attributeFilter: ["data-stone-skin", "data-board-skin"] });
+    </script>
+    <script>
+        const chatInput = document.getElementById("message");
+        const chatButton = document.getElementById("sendChat");
+        const actionDock = document.querySelector(".action-dock");
+        const actionTrigger = document.querySelector(".action-trigger");
+        const actionChoices = document.querySelectorAll(".action-choice");
+        const surrenderBtn = document.getElementById("surrenderBtn");
+
+        if (actionTrigger && actionDock) {
+            actionTrigger.addEventListener("click", function() {
+                actionDock.classList.toggle("is-open");
+            });
+        }
+
+        actionChoices.forEach(function(choice) {
+            choice.addEventListener("click", function() {
+                if (actionDock) {
+                    actionDock.classList.remove("is-open");
+                }
+            });
+        });
+
+        document.addEventListener("click", function(event) {
+            if (actionDock && !actionDock.contains(event.target)) {
+                actionDock.classList.remove("is-open");
+            }
+        });
+
+        if (surrenderBtn) {
+            surrenderBtn.addEventListener("click", function() {
+                leaveRoom();
+                window.location.href = "/";
+            });
+        }
+
+        if (chatInput && chatButton) {
+            chatButton.addEventListener("click", sendMessage);
+            chatInput.addEventListener("keydown", function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+    </script>
