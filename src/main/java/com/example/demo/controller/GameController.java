@@ -254,7 +254,9 @@ public class GameController {
         Map<String, Account> player = new HashMap<>();
         Account tempAccount = accountService.getAccountByUsername(user.getUsername()).get();
         player.put(tempAccount.getUsername(), tempAccount);
-        playerService.addPlayer(player);
+        if(!playerService.getPlayers().contains(player)){
+            playerService.addPlayer(player);
+        }
         return ResponseEntity.ok(tempAccount);
     }
 

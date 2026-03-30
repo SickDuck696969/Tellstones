@@ -523,6 +523,7 @@
             stone.remove();
 
             updatebaackendline();
+            document.getElementById("eventDisplay").innerText = "Your turn";
             if(firstturn){
                 changingturns(opponent);
                 return;
@@ -557,7 +558,9 @@
 
         if (actionTrigger && actionDock) {
             actionTrigger.addEventListener("click", function() {
-                actionDock.classList.toggle("is-open");
+                if(game.currentPlayerIndex.id === selfPlayer.id){
+                    actionDock.classList.toggle("is-open");
+                }
             });
         }
 
@@ -664,7 +667,14 @@
     </script>
     <script>
         //onner
-        let firstturn = true;
+        let placeon = false;
+        let hideon = false;
+        let swapon = false;
+        let peekon = false;
+        let challengeon = false;
+        let boaston = false;
+        let firstturn = false;
+
         stones = document.querySelectorAll(".stone");
         socket.on("yougofirst", async () => {
             await changingturns(selfPlayer);
@@ -685,13 +695,51 @@
             });
         });
 
-        socket.on("turnupdate", (data) => {
-            console.log(data);
+        socket.on("turnupdate", async (data) => {
+            data = {
+                turn: data.turn,
+                roomId: data.roomId
+            }
+            try {
+				const res = await fetch("/tellstones/setturn", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data)
+				});
+
+				if (res.ok) {
+					const restone = await res.json();
+                    game = restone;
+				} else {
+                    alert(await res.text());
+				}
+			} catch (err) {
+				console.error(err);
+			}
             if(data.turn === String(selfPlayer.id)){
-                document.getElementById("eventDisplay").innerText = "Your turn";
                 if(firstturn){
                     document.getElementById("eventDisplay").innerText = "Place the starting stone";
                     firstturn = false;
+                } else if (placeon) {
+                    document.getElementById("eventDisplay").innerText = "Place";
+                    placeon = false;
+                } else if (hideon) {
+                    document.getElementById("eventDisplay").innerText = "Hide";
+                    hideon = false;
+                } else if (swapon) {
+                    document.getElementById("eventDisplay").innerText = "Swap";
+                    swapon = false;
+                } else if (peekon) {
+                    document.getElementById("eventDisplay").innerText = "Peek";
+                    peekon = false;
+                } else if (challengeon) {
+                    document.getElementById("eventDisplay").innerText = "Challenge";
+                    challengeon = false;
+                } else if (boaston) {
+                    document.getElementById("eventDisplay").innerText = "Boast";
+                    boaston = false;
+                } else {
+                    document.getElementById("eventDisplay").innerText = "Your turn";
                 }
             }
             else {
@@ -701,6 +749,7 @@
 
         socket.on("place", (data) => {
             console.log(data);
+            placeon = true;
             let stones = document.querySelectorAll(".stone")
             stones.forEach(stone => {
                 if(stone.id === data.stone){
@@ -748,6 +797,8 @@
         let hiding = false;
         socket.on("hide", (data) => {
             console.log(data);
+            hideon = true;
+            document.getElementById("eventDisplay").innerText = "Hide";
             hiding = true;
             let stonevisuals = document.querySelectorAll(".slot")
             stonevisuals.forEach(stone => {
@@ -760,6 +811,7 @@
                                 stone.children[0].classList.remove("chosen");
                                 stone.children[0].classList.add("hiden");
                                 hiding = false;
+                                document.getElementById("eventDisplay").innerText = "Your turn";
                                 updatebaackendline();
                             }
                         });
