@@ -10,6 +10,7 @@ import com.example.demo.model.Stone;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import lombok.Data;
 
 import java.lang.reflect.Array;
 import java.net.Socket;
@@ -43,6 +44,7 @@ import java.util.HashMap;
 import tools.jackson.databind.JsonNode;
 
 import com.example.demo.socketio.*;
+import com.mysql.cj.x.protobuf.MysqlxDatatypes.Object;
 
 import java.util.Collection;
 
@@ -50,6 +52,10 @@ import java.util.Random;
 
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+
+import tools.jackson.databind.ObjectMapper;
+
+import com.example.demo.service.GameService;
 
 @Controller
 @RequestMapping("/tellstones")
@@ -59,18 +65,19 @@ public class GameController {
     private final Client coreclient;
     List<Map<String, String>> playerlistlist = new ArrayList<Map<String, String>>();
     private final PlayerService playerService;
+    private final GameService gameService;
     private final Emailservice themailman;
 
-    private Game game = new Game();
     private final AccountService accountService;
 
     public GameController(SocketIOService socketservice, Client coreclient, PlayerService playerService,
-            Emailservice themailman, AccountService accountService) {
-        this.socketservice = socketservice;
-        this.coreclient = coreclient;
-        this.playerService = playerService;
-        this.themailman = themailman;
-        this.accountService = accountService;
+            Emailservice themailman, AccountService accountService, GameService gameService) {
+            this.socketservice = socketservice;
+            this.coreclient = coreclient;
+            this.playerService = playerService;
+            this.themailman = themailman;
+            this.accountService = accountService;
+            this.gameService = gameService;
     }
 
     public int howmany = 0;
@@ -113,8 +120,38 @@ public class GameController {
 
     private int phase = 0;
 
+    @Data
+    public static class StartGameRequest {
+        private String roomId;
+        private Account me;
+        private Account opponent;
+    }
+
+    @PostMapping("/StartGame")
+    public ResponseEntity<?> startGame(@RequestBody StartGameRequest request) {
+        Game game = null;
+        List<Game> games = gameService.getGames();
+        for (Game g : games) {
+            if (g.getRoomCode().equals(request.getRoomId())) {
+                game = g;
+            }
+        }
+        if(game == null){
+            game = new Game();
+            game.setRoomCode(request.getRoomId());
+            game.setMe(request.getMe());
+            game.setOpponent(request.getOpponent());
+            gameService.addGame(game);
+        }
+        return ResponseEntity.ok(game);
+    }
+
     @GetMapping("/{actualid}/{id}/{userid}")
     public String backtologin(@PathVariable String id, Model model) {
+        
+        if(socketservice.getServer().getRoomOperations(id).getClients().isEmpty()){
+            return "redirect:/";
+        }
         model.addAttribute("roomId", id);
         try {
             if(coreclient.socket == null){
@@ -154,14 +191,14 @@ public class GameController {
 
     @GetMapping("/getplayers/{id}")
     public ResponseEntity<?> getPlayers(@PathVariable String id) {
-        System.out.println(id);
+        System.out.println("in room" + id);
         Collection<com.corundumstudio.socketio.SocketIOClient> clients = socketservice.getServer().getRoomOperations(id).getClients();
         List<Map<String, Account>> playersl = playerService.getPlayers();
         List<Account> players = new ArrayList<Account>();
 
         for (var c : clients) {
             String pp = java.net.URLDecoder.decode(c.getHandshakeData().getSingleUrlParam("userId"), StandardCharsets.UTF_8);
-            System.out.println(pp);
+            System.out.println("getme" + pp);
             for (var cl : playersl){
                 if(cl.containsKey(pp) && c.getAllRooms().contains(id)){
                     System.out.println("player " + pp + " in room " + id );
@@ -190,44 +227,35 @@ public class GameController {
                 int stoneId = Integer.parseInt(stone.get("stoneid"));
                 if(stoneId == bagstone.getId()){
                     theline[Integer.parseInt(stone.get("position"))] = bagstone;
+                    System.out.println("Value from: " + stone.get("turnup"));
+                    bagstone.setFaceup(stone.get("turnup").equals("true"));
                 }
             });
         });
         return ResponseEntity.ok(theline);
     }
 
+    @PostMapping("/setturn")
+    public ResponseEntity<?> setturn(@RequestBody Map<String, String> body) {
+        Game game = gameService.getGame(body.get("roomId"));
+        Account opponent = game.getOpponent();
+        Account selfPlayer = game.getMe();
+        if(selfPlayer.getId().toString().equals(body.get("turn"))){
+            game.setCurrentPlayerIndex(selfPlayer);
+        }
+        else{
+            game.setCurrentPlayerIndex(opponent);
+        }
+        return ResponseEntity.ok(game);
+    }
+
     @PostMapping("/welcomeplayer")
     public ResponseEntity<?> welcomePlayer(@AuthenticationPrincipal UserDetails user) {
         Map<String, Account> player = new HashMap<>();
-        Random random = new Random();
-        long id = random.nextLong();
         Account tempAccount = accountService.getAccountByUsername(user.getUsername()).get();
         player.put(tempAccount.getUsername(), tempAccount);
         playerService.addPlayer(player);
-
-        System.out.println("welcome" + playerService.getPlayers());
         return ResponseEntity.ok(tempAccount);
-    }
-
-    @PostMapping("/startgame/{id}")
-    public String start(@PathVariable String id) {
-        Collection<com.corundumstudio.socketio.SocketIOClient> clients = socketservice.getServer().getRoomOperations(id).getClients();
-        List<Map<String, Account>> playersl = playerService.getPlayers();
-        List<Account> players = new ArrayList<Account>();
-
-        for (com.corundumstudio.socketio.SocketIOClient c : clients) {
-            System.out.println(" in room " + c.getSessionId().toString());
-            for (Map<String, Account> cl : playersl){
-                if(cl.containsKey(c.getSessionId().toString()) && c.getAllRooms().contains(id)){
-                    Account vc = cl.get(c.getSessionId().toString());
-                    System.out.println("Player " + vc.getUsername() + " in room " + c.getAllRooms());
-                    players.add(vc);
-                }
-            }
-        }
-        game.setPlayers(players);
-        phase = 0;
-        return phases.get(phase);
     }
 
     @PostMapping("/keeptabs")

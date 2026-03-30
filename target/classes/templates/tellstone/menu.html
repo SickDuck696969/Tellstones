@@ -133,6 +133,7 @@
 
 				if (res.ok) {
 					restone = await res.json();
+                    console.log(restone);
 				} else {
 				}
 			} catch (err) {
@@ -142,7 +143,7 @@
 </script>
 
 <script>
-    const socket = io("http://192.168.100.171:9092", {
+    const socket = io("http://192.168.100.207:9092", {
         transports: ["websocket"],
         query: {
             userId: restone.username
@@ -150,6 +151,7 @@
     });
 
     socket.on("connect", () => {
+        socket.emit("massleave");
         console.log("CONNECTED");
     });
 
@@ -163,13 +165,22 @@
         document.getElementById("messages").appendChild(li);
     });
 
+
     let data = [];
     let joined = null;
 
     socket.on("sessionID", async (sessionID) => {
-        console.log("Joined room:", sessionID);
         await updatebaackendline(data);
+        console.log("joining room " + joined);
+        socket.emit("inRoom", joined);
+    });
+
+    
+
+    socket.on("Youin", async () => {
         if(joined != null){
+            console.log("You are in a room " + joined);
+            console.log(`tellstones/${restone.id}/${joined}/${restone.username}`);
             window.location.href = `tellstones/${restone.id}/${joined}/${restone.username}`;
         }
     });

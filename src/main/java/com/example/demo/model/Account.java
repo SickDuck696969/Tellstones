@@ -37,17 +37,17 @@ public class Account implements UserDetails {
     @ElementCollection
     private List<String> matchHistory;
 
-    private boolean isAccountNonExpired = true;
-    private boolean isAccountNonLocked = true;
-    private boolean isCredentialsNonExpired = true;
-    private boolean isEnabled = true;
+    private Boolean isAccountNonExpired = true;
+    private Boolean isAccountNonLocked = true;
+    private Boolean isCredentialsNonExpired = true;
+    private Boolean isEnabled = true;
 
     public Account() {
     }
 
     public Account(Long id, String username, String password, String email, String avatar, String displayName,
-            Integer credit, List<String> matchHistory, boolean isAccountNonExpired, boolean isAccountNonLocked,
-            boolean isCredentialsNonExpired, boolean isEnabled) {
+            Integer credit, List<String> matchHistory, Boolean isAccountNonExpired, Boolean isAccountNonLocked,
+            Boolean isCredentialsNonExpired, Boolean isEnabled) {
         this.id = id;
         this.username = username;
         this.password = password;

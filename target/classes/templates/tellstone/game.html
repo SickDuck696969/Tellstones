@@ -84,7 +84,7 @@
                     </label>
 
                     <div class="menu-actions">
-                        <button type="button" class="fantasy-btn primary" id="joinRoomBtn">Join Room</button>
+                        <button type="button" class="fantasy-btn primary" id="joinRoomBtn" onclick="moveroom()">Join Room</button>
                     </div>
                 </section>
             </div>
@@ -114,33 +114,49 @@
         const token = document.querySelector('meta[name="_csrf"]').content;
         const header = document.querySelector('meta[name="_csrf_header"]').content;
         let restone = [];
-
-        async function updatebaackendline(data) {
+        async function updatebaackendline() {
             try {
-                const res = await fetch("/tellstones/welcomeplayer", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        [header]: token
-                    },
-                    credentials: "include",
-                    body: JSON.stringify(data)
-                });
+				const res = await fetch("/tellstones/welcomeplayer", {
+				method: "POST",
+				headers: {
+                    'Content-Type': 'application/json',
+                    [header]: token,
+                },
+                credentials: "include",
+				});
 
-                if (res.ok) {
-                    restone = await res.json();
+				if (res.ok) {
+					restone = await res.json();
+                    console.log(restone);
+				} else {
+				}
+                } catch (err) {
+                    console.error(err);
                 }
+            }
+    </script>
+
+    <script>
+        let players = [];
+        let productId = window.location.pathname.split("/")[window.location.pathname.split("/").length - 2];
+        async function loadProduct() {
+            try {
+                const res = await fetch("/tellstones/getplayers/" + productId);
+                players = await res.json();
+
+                console.log(players);
+ 
             } catch (err) {
-                console.error(err);
+                console.error("Error loading players:", err);
             }
         }
     </script>
 
 <script>
-    const socket = io("http://192.168.100.171:9092", {
+    const socket = io("http://192.168.100.207:9092", {
         transports: ["websocket"],
         query: {
-            userId: window.location.pathname.split("/")[window.location.pathname.split("/").length - 1]
+            userId: window.location.pathname.split("/").pop()
         }
     });
 
@@ -213,6 +229,7 @@
 
         socket.on("connect", () => {
             console.log("CONNECTED");
+            inRoom();
         });
 
         socket.on("connect_error", (err) => {
@@ -242,11 +259,11 @@
 
         if (copyRoomBtn) {
             copyRoomBtn.addEventListener("click", async () => {
-                if (!currentRoomId) {
+                if (!roomId) {
                     return;
                 }
                 try {
-                    await navigator.clipboard.writeText(currentRoomId);
+                    await navigator.clipboard.writeText(roomid);
                     copyRoomBtn.textContent = "✓";
                     setTimeout(() => {
                         copyRoomBtn.textContent = "⧉";
@@ -257,9 +274,47 @@
             });
         }
 
-        function Startgame() {
-            window.location.href = `/tellstones/room/${userid}/${roomid}/${user}`;
+        function inRoom() {
+            const roomId = productId;
+            socket.emit("inRoom", roomId);
+            console.log("In room:", roomId);
         }
+
+        socket.on("Youin", async () => {
+            loadProduct();
+        });
+
+        let joined = null;
+
+        socket.on("sessionID", async (sessionID) => {
+            console.log("Joined room:", sessionID);
+            if(joined != null){
+                window.location.href = `/tellstones/${userid}/${joined}/${user}`;
+            }
+        });
+
+        function moveroom() {
+            socket.emit("moveRoom", currentRoomId);
+        }
+
+        socket.on("roomJoined", (roomId) => {
+            console.log("Joined room:", roomId);
+            joined = roomId;
+        });
+
+
+        
+        socket.on("goto", (session) => {
+            socket.emit("startRoom", document.getElementById("roomId").value);
+        });
+
+        function Startgame() {
+            socket.emit("startgame", roomid);
+        }
+
+        socket.on("gamestart", () => {
+            window.location.href = `/tellstones/room/${userid}/${roomid}/${user}`;
+        });
 
         if (joinRoomBtn) {
             joinRoomBtn.addEventListener("click", () => {
@@ -274,6 +329,7 @@
             });
         }
     </script>
+
 
     <audio data-bgm loop>
         <source th:src="@{/audio/bgm.mp3}" type="audio/mpeg">

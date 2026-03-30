@@ -43,6 +43,27 @@
         .score-orb.lit { background: radial-gradient(circle at 35% 35%, rgba(255,249,220,.95), rgba(223,193,125,.92) 58%, rgba(185,147,79,.7) 100%); box-shadow: 0 0 10px rgba(223,193,125,.45); }
         .player-card { display: flex; align-items: center; gap: .75rem; min-width: 240px; max-width: 290px; padding: .65rem .8rem; border-radius: 1.2rem; border: 1px solid rgba(223,193,125,.14); background: linear-gradient(180deg, rgba(64,44,31,.78), rgba(20,15,12,.9)); box-shadow: 0 18px 34px rgba(0,0,0,.26); pointer-events: auto; }
         .player-card.opponent { background: linear-gradient(180deg, rgba(44,31,31,.76), rgba(17,13,11,.92)); }
+        .player-card.active {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            min-width: 240px;
+            max-width: 290px;
+            padding: .65rem .8rem;
+            border-radius: 1.2rem;
+            background: linear-gradient(
+                180deg,
+                rgba(120, 85, 40, 0.95),
+                rgba(60, 40, 20, 0.95)
+            );
+            filter: brightness(1.3) saturate(1.2);
+            border: 1px solid rgba(255, 215, 0, 0.6);
+            box-shadow:
+                0 0 8px rgba(223,193,125,0.4),
+                0 0 18px rgba(223,193,125,0.3),
+                0 18px 34px rgba(0,0,0,.26);
+            pointer-events: auto;
+        }
         .player-avatar { width: 3.3rem; height: 3.3rem; border-radius: 50%; overflow: hidden; border: 2px solid rgba(223,193,125,.4); background: rgba(255,255,255,.06); flex: 0 0 auto; }
         .player-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .player-name { margin: 0; font-family: "Cinzel", serif; font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -59,26 +80,46 @@
         .side { position: absolute; top: 0; height: 100%; width: 50%; z-index: 2; }
         .left { left: 0; }
         .right { right: 0; }
-        .slots { position: relative; z-index: 3; display: flex; gap: clamp(.35rem, 1vw, .8rem); width: min(860px, calc(100% - 5rem)); align-items: center; justify-content: center; }
-        .slot { width: clamp(72px, 8vw, 106px); height: clamp(72px, 8vw, 106px); position: relative; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px dashed rgba(234,223,202,.46); background: radial-gradient(circle at center, rgba(255,255,255,.12), transparent 62%), rgba(11,9,8,.36); box-shadow: inset 0 0 24px rgba(0,0,0,.25); pointer-events: none; }
-        .slot::before { content: ""; position: absolute; inset: .45rem; border-radius: 50%; border: 1px solid rgba(223,193,125,.1); }
+        .slots { position: relative; z-index: 3; display: flex; gap: clamp(.35rem, 1vw, .8rem); width: min(860px, calc(100% - 5rem)); align-items: center; justify-content: center; pointer-events:none;}
+        .slot { width: clamp(72px, 8vw, 106px); height: clamp(72px, 8vw, 106px); position: relative; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px dashed rgba(234,223,202,.46); background: radial-gradient(circle at center, rgba(255,255,255,.12), transparent 62%), rgba(11,9,8,.36); box-shadow: inset 0 0 24px rgba(0,0,0,.25); pointer-events:none;}
+        .slot::before { content: ""; position: absolute; inset: .45rem; border-radius: 50%; border: 1px solid rgba(223,193,125,.1); pointer-events:none;}
         .bag { display: flex; width: min(820px, calc(100% - 20rem)); align-items: flex-end; justify-content: center; gap: .28rem; position: absolute; left: calc(50% - 10.5rem); transform: translateX(-50%); bottom: -1.1rem; height: 9.5rem; transition: gap .28s ease, bottom .28s ease; z-index: 30; }
         .bag:not(.pause):hover { bottom: .9rem; gap: .72rem; }
         .bag::before { content: ""; position: absolute; left: 50%; bottom: 3rem; transform: translateX(-50%); width: min(900px, 100%); height: 6rem; border-radius: 999px; filter: blur(8px); pointer-events: none; }
         .bag.pause, .stone.pause { user-select: none; }
         .stone { display: flex; width: clamp(88px, 8vw, 116px); height: clamp(88px, 8vw, 116px); align-items: center; justify-content: center; position: relative; cursor: grab; }
         .stone:not(.pause):hover .stonevisual { transform: translateY(-.7rem) scale(1.07); box-shadow: 0 24px 30px rgba(0,0,0,.24), 0 0 24px rgba(223,193,125,.18); }
-        .stonevisual { position: absolute; width: clamp(80px, 7.2vw, 104px); height: clamp(80px, 7.2vw, 104px); border-radius: 50%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 36% 28%, rgba(255,255,255,.18), transparent 24%), radial-gradient(circle at center, rgba(255,255,255,.06), transparent 58%), rgba(31,23,18,.94); border: 2px solid rgba(223,193,125,.36); box-shadow: inset 0 0 24px rgba(255,255,255,.06), 0 14px 24px rgba(0,0,0,.28); transition: transform .22s ease, box-shadow .24s ease; overflow: hidden; }
+        .stonevisual { position: absolute; width: clamp(80px, 7.2vw, 104px); height: clamp(80px, 7.2vw, 104px); border-radius: 50%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 36% 28%, rgba(255,255,255,.18), transparent 24%), radial-gradient(circle at center, rgba(255,255,255,.06), transparent 58%), rgba(31,23,18,.94); border: 2px solid rgba(223,193,125,.36); box-shadow: inset 0 0 24px rgba(255,255,255,.06), 0 14px 24px rgba(0,0,0,.28); transition: transform .22s ease, box-shadow .24s ease; overflow: hidden; user-select: none;}
         .stonevisual::before { content: ""; position: absolute; inset: .55rem; border-radius: 50%; background-image: var(--stone-face); background-position: center; background-repeat: no-repeat; background-size: contain; }
         .stonevisual::after { content: ""; position: absolute; inset: .25rem; border-radius: 50%; border: 1px solid rgba(223,193,125,.16); }
+        .stonevisual.hiden img{
+            display: none;
+        }
+        .stonevisual.chosen {
+            background:
+                radial-gradient(circle at 36% 28%, rgba(255, 235, 170, 0.6), transparent 25%),
+                radial-gradient(circle at center, rgba(255, 215, 120, 0.25), transparent 60%),
+                rgba(120, 85, 20, 0.95);
+
+            border: 2px solid rgba(255, 215, 120, 0.8);
+
+            box-shadow:
+                inset 0 0 28px rgba(255, 230, 150, 0.35),
+                0 0 18px rgba(255, 215, 120, 0.6),
+                0 0 36px rgba(255, 200, 80, 0.45),
+                0 14px 24px rgba(0, 0, 0, 0.35);
+            pointer-events: inherit;
+        }
         .stone-id { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-        .action-dock { position: absolute; right: 2.1rem; top: 51%; transform: translateY(-50%); z-index: 25; display: flex; align-items: center; justify-content: center; pointer-events: auto; width: 4.3rem; height: 4.3rem; }
-        .action-trigger { display: inline-flex; align-items: center; justify-content: center; width: 4.3rem; height: 4.3rem; border-radius: 1.35rem; border: 1px solid rgba(223,193,125,.18); background: linear-gradient(180deg, rgba(79,55,40,.86), rgba(24,18,15,.94)); color: #eadfca; font-family: "Cinzel", serif; font-size: .82rem; letter-spacing: .08em; text-transform: uppercase; box-shadow: 0 18px 28px rgba(0,0,0,.24); }
-        .action-panel { position: absolute; right: calc(100% + .65rem); top: 50%; transform: translateY(-50%) translateX(1rem) scale(.96); transform-origin: right center; display: grid; grid-template-columns: repeat(2, minmax(110px, 1fr)); gap: .55rem; width: 250px; padding: .8rem; border-radius: 1.2rem; border: 1px solid rgba(223,193,125,.16); background: linear-gradient(180deg, rgba(22,17,14,.96), rgba(12,10,8,.96)); box-shadow: 0 18px 32px rgba(0,0,0,.28); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s ease, transform .22s ease, visibility 0s linear .22s; }
+        .action-dock { position: absolute; right: 2.1rem; top: 51%; transform: translateY(-50%); z-index: 25; display: flex; align-items: center; justify-content: center; width: 4.3rem; height: 4.3rem;}
+        .action-trigger { transition: border-radius 1s ease; display: inline-flex; align-items: center; justify-content: center; width: 4.3rem; height: 4.3rem; border-radius: 1.35rem; border: 1px solid rgba(223,193,125,.18); background: linear-gradient(180deg, rgba(79,55,40,.86), rgba(24,18,15,.94)); color: #eadfca; font-family: "Cinzel", serif; font-size: .82rem; letter-spacing: .08em; text-transform: uppercase; box-shadow: 0 18px 28px rgba(0,0,0,.24); cursor: pointer;}
+        .action-trigger:hover {border-radius: 50%;}
+        .action-panel { position: absolute; right: calc(100% + .65rem); top: 50%; transform: translateY(-50%) translateX(1rem) scale(.96); transform-origin: right center; display: grid; grid-template-columns: repeat(2, minmax(110px, 1fr)); gap: .55rem; width: 250px; padding: .8rem; border-radius: 1.2rem; border: 1px solid rgba(223,193,125,.16); background: linear-gradient(180deg, rgba(22,17,14,.96), rgba(12,10,8,.96)); box-shadow: 0 18px 32px rgba(0,0,0,.28); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s ease, transform .22s ease, visibility 0s linear .22s;}
         .action-dock.is-open .action-panel { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(-50%) translateX(0) scale(1); transition: opacity .2s ease, transform .22s ease, visibility 0s linear 0s; }
         .action-dock.is-open .action-trigger { opacity: 0; pointer-events: none; transform: scale(.92); }
         .action-trigger { transition: opacity .16s ease, transform .18s ease, box-shadow .18s ease; }
-        .action-choice { display: inline-flex; align-items: center; justify-content: center; min-height: 2.7rem; padding: .55rem .8rem; border-radius: .95rem; border: 1px solid rgba(223,193,125,.14); background: rgba(255,255,255,.04); color: #eadfca; font-family: "Cinzel", serif; font-size: .68rem; letter-spacing: .07em; text-transform: uppercase; text-align: center; }
+        .action-choice { transition: border 0.2s ease, background 0.2s ease, color 0.2s ease;display: inline-flex; align-items: center; justify-content: center; min-height: 2.7rem; padding: .55rem .8rem; border-radius: .95rem; border: 1px solid rgba(223,193,125,.14); background: rgba(255,255,255,.04); color: #eadfca; font-family: "Cinzel", serif; font-size: .68rem; letter-spacing: .07em; text-transform: uppercase; text-align: center; cursor: pointer;}
+        .action-choice:hover {border: 1px solid rgba(255, 179, 0, 0.719); background: rgba(255, 255, 255, 0.845); color: #a56b00;}
         .room-settings-panel { width: min(460px, 100%); }
         .room-settings-actions { display: flex; gap: .7rem; flex-wrap: wrap; margin-top: 1.1rem; }
         .chat-author { display: block; margin-bottom: .2rem; font-family: "Cinzel", serif; font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; color: #c8b89a; }
@@ -116,11 +157,12 @@
             </aside>
             <section class="scene-frame room-stage">
                 <div class="room-id-badge" th:text="'Chamber ' + ${roomId}">Chamber</div>
+                <p style="position: absolute; left: 20px; top: -30px; font-size: 70px;" id="eventDisplay">event</p>
                 <div class="playerbox"></div>
                 <div class="action-dock">
                     <div class="action-panel">
-                        <button type="button" class="action-choice">Place</button>
-                        <button type="button" class="action-choice">Hide</button>
+                        <button type="button" class="action-choice" onclick="Place()">Place</button>
+                        <button type="button" class="action-choice" onclick="Hide()">Hide</button>
                         <button type="button" class="action-choice">Swap</button>
                         <button type="button" class="action-choice">Peek</button>
                         <button type="button" class="action-choice">Challenge</button>
@@ -165,11 +207,13 @@
     <script th:src="@{/js/tellstone-ui.js}"></script>
     <script>
         async function updatebaackendline() {
-            const theline = document.querySelectorAll(".slot .stonevisual");
+            const theline = document.querySelectorAll(".slot");
             const data = [];
             for(let i = 0; i < theline.length; i++){
-                data.push({position: i, stoneid: theline[i].textContent})
+                if(theline[i].id === "") continue;
+                data.push({position: i, stoneid: theline[i].id, turnup: theline[i].children[0].classList.contains("hiden") ? false : true});
             }
+            console.log(data);
             try {
 				const res = await fetch("/tellstones/settinggame", {
 				method: "POST",
@@ -179,7 +223,8 @@
 
 				if (res.ok) {
 					const restone = await res.json();
-					alert(JSON.stringify(restone));
+                    console.log(restone);
+					socket.emit("lineupdate", {roomId: productId, line: restone});
 				} else {
 					alert(await res.text());
 				}
@@ -224,7 +269,7 @@
                         <span class="score-orb"></span>
                         <span class="score-orb"></span>
                     </div>
-                    <div class="player-card ${cardClass}">
+                    <div class="player-card">
                         <div class="player-meta">
                             <span class="eyebrow">${roleLabel}</span>
                             <h3 class="player-name">${name}</h3>
@@ -239,7 +284,7 @@
 
 <script>
     let isSocketConnected = false;
-    const socket = io("http://192.168.100.171:9092", {
+    const socket = io("http://192.168.100.207:9092", {
         transports: ["websocket"],
         query: {
             userId: window.location.pathname.split("/").pop()
@@ -346,28 +391,56 @@
         }
     </script>
     <script>
+        let selfPlayer = null;
+        let opponent = null;
         async function spawnplayer() {
             const playerbox = document.querySelector(".playerbox");
             playerbox.innerHTML = "";
-            const selfPlayer = players.find(player => String(player.id) === String(currentPlayerId)) || null;
-            const opponent = players.find(player => String(player.id) !== String(currentPlayerId)) || null;
-            players.forEach(player => {
-                const icon = document.createElement("div");
-
-                icon.className = "playericon";
-                
-                icon.id = player.id;
-                if(player.id.toString() === window.location.pathname.split("/")[window.location.pathname.split("/").length - 3]){
-                    icon.innerHTML = `<div class="playericonvisual" style="background-color: red">${player.username}</div>`;
-                } else {
-                    icon.innerHTML = `<div class="playericonvisual">${player.username}</div>`;
+            for (const player of players) {
+                if(player.id.toString() !== window.location.pathname.split("/")[window.location.pathname.split("/").length - 3]){
+                    opponent = player;
+                    if(selfPlayer != null){
+                        break;
+                    }
                 }
-                
 
-                icon.draggable = false;
+                if(player.id.toString() === window.location.pathname.split("/")[window.location.pathname.split("/").length - 3]){
+                    selfPlayer = player;
+                    if(opponent != null){
+                        break;
+                    }
+                }
+            };
+            playerbox.innerHTML = `
+                <div class="player-rail top">${renderPlayerCard(opponent, "Opponent", "opponent")}</div>
+                <div class="player-rail bottom">${renderPlayerCard(selfPlayer, "You", "player")}</div>
+            `;
+            startgame();
+        }
+    </script>
+    <script>
+        async function startgame(){
+            data = {
+                me: selfPlayer,
+                opponent: opponent,
+                roomId: productId
+            }
+            try {
+				const res = await fetch("/tellstones/StartGame", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data)
+				});
 
-                playerbox.appendChild(icon);
-            });
+				if (res.ok) {
+					const restone = await res.json();
+                    console.log(restone);
+                    socket.emit("whogofirst", productId);
+				} else {
+				}
+			} catch (err) {
+				console.error(err);
+			}
         }
     </script>
     <script>
@@ -376,7 +449,7 @@
         for (let i = 2; i <= 8; i++) {
             const stone = document.createElement("div");
             stone.className = "stone";
-            stone.draggable = true;
+            stone.draggable = false;
             stone.id = i;
 
             stone.innerHTML = `<div class="stonevisual"></div>`;
@@ -384,7 +457,7 @@
             bag.appendChild(stone);
         }
 
-        const stones = document.querySelectorAll(".stone");
+        let stones = document.querySelectorAll(".stone");
         stones.forEach(stone => {
             stone.addEventListener("dragstart", function(e) {
                 e.dataTransfer.setData("text", stone.id);
@@ -396,11 +469,19 @@
         const slots = document.querySelectorAll(".slot");
 
         [left, right].forEach(side => {
-            side.addEventListener("dragover", e => e.preventDefault());
+            side.addEventListener("dragover", e => {
+                e.preventDefault();
+            });
         });
 
         function placeStone(id, side) {
             let index;
+            stones.forEach(s => {
+                if(s.children.length > 0) {
+                    s.children[0].classList.remove("chosen");
+                }
+                s.draggable = false;
+            });
 
             const filled = [...slots].filter(s => s.children.length > 0);
 
@@ -432,11 +513,22 @@
 
             const stone = document.getElementById(id);
             const visual = stone.querySelector(".stonevisual");
+            visual.classList.remove("chosen");
 
+            slots[index].id = id;
             slots[index].appendChild(visual);
+            slots[index].style.pointerEvents = "auto";
+            slots[index].style.cursor = "pointer";
 
             stone.remove();
+
             updatebaackendline();
+            if(firstturn){
+                changingturns(opponent);
+                return;
+            } else{
+                return;
+            }
         }
 
         left.addEventListener("drop", function(e) {
@@ -444,7 +536,7 @@
 
             const id = e.dataTransfer.getData("text");
 
-            socket.emit("callstone", id, "left", who);
+            placeStone(id, "left");
         });
 
         right.addEventListener("drop", function(e) {
@@ -452,8 +544,255 @@
 
             const id = e.dataTransfer.getData("text");
 
-            socket.emit("callstone", id, "right", who);
+            placeStone(id, "right");
         });
+    </script>
+    <script>
+        const chatInput = document.getElementById("message");
+        const chatButton = document.getElementById("sendChat");
+        const actionDock = document.querySelector(".action-dock");
+        const actionTrigger = document.querySelector(".action-trigger");
+        const actionChoices = document.querySelectorAll(".action-choice");
+        const surrenderBtn = document.getElementById("surrenderBtn");
+
+        if (actionTrigger && actionDock) {
+            actionTrigger.addEventListener("click", function() {
+                actionDock.classList.toggle("is-open");
+            });
+        }
+
+        actionChoices.forEach(function(choice) {
+            choice.addEventListener("click", function() {
+                if (actionDock) {
+                    actionDock.classList.remove("is-open");
+                }
+            });
+        });
+
+        document.addEventListener("click", function(event) {
+            if (actionDock && !actionDock.contains(event.target)) {
+                actionDock.classList.remove("is-open");
+            }
+        });
+
+        function leaveRoom(){
+            socket.emit("leaveRoom", productId);
+        }
+
+        if (surrenderBtn) {
+            surrenderBtn.addEventListener("click", async function() {
+                await leaveRoom();
+                window.location.href = "/";
+            });
+        }
+
+        if (chatInput && chatButton) {
+            chatButton.addEventListener("click", sendMessage);
+            chatInput.addEventListener("keydown", function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+    </script>
+    <script>
+        //emitter
+        let placeenabled = false;
+        let hideenabled = false;
+        let swapenabled = false;
+        let peekenabled = false;
+        let challengeenabled = false;
+        let boastenabled = false;
+        
+        stones = document.querySelectorAll(".stone");
+            stones.forEach(stone => {
+                stone.addEventListener("click", function(e) {
+                    if(placeenabled){
+                        console.log("sent");
+                        socket.emit("place", {
+                            room: window.location.pathname.split("/")[window.location.pathname.split("/").length - 2],
+                            to: opponent.username,
+                            stone: stone.id,
+                            where: "left"
+                        });
+                        placeenabled = false;
+                        stones.forEach(s => {
+                            s.children[0].classList.remove("chosen");
+                        });
+                        changingturns(opponent);
+                    }
+                });
+            });
+        function Place(){
+            placeenabled = true;
+            stones = document.querySelectorAll(".stone");
+            stones.forEach(stone => {
+                stone.children[0].classList.add("chosen");
+            });
+        }
+
+        stones = document.querySelectorAll(".slot");
+            stones.forEach(stone => {
+                stone.addEventListener("click", function(e) {
+                    if(hideenabled){
+                        console.log("sent");
+                        socket.emit("hide", {
+                            room: window.location.pathname.split("/")[window.location.pathname.split("/").length - 2],
+                            to: opponent.username,
+                            stone: stone.id,
+                            where: "left"
+                        });
+                        hideenabled = false;
+                        stones.forEach(s => {
+                            if(s.children.length > 0){
+                                s.children[0].classList.remove("chosen");
+                            }
+                        });
+                        changingturns(opponent);
+                    }
+                });
+            });
+        function Hide(){
+            hideenabled = true;
+            stones = document.querySelectorAll(".slot");
+            stones.forEach(stone => {
+                if(stone.children.length === 0) return;
+                stone.children[0].classList.add("chosen");
+            });
+        }
+    </script>
+    <script>
+        //onner
+        let firstturn = true;
+        stones = document.querySelectorAll(".stone");
+        socket.on("yougofirst", async () => {
+            await changingturns(selfPlayer);
+            stones.forEach(stone => {
+                stone.children[0].classList.add("chosen");
+                stone.draggable = true;
+            });
+            firstturn = true;
+        });
+
+        socket.on("younotgofirst", async () => {
+            await changingturns(opponent);
+            stones.forEach(stone => {
+                if(stone.children[0].classList.contains("chosen")){
+                    stone.children[0].classList.remove("chosen");
+                }
+                stone.draggable = false;
+            });
+        });
+
+        socket.on("turnupdate", (data) => {
+            console.log(data);
+            if(data.turn === String(selfPlayer.id)){
+                document.getElementById("eventDisplay").innerText = "Your turn";
+                if(firstturn){
+                    document.getElementById("eventDisplay").innerText = "Place the starting stone";
+                    firstturn = false;
+                }
+            }
+            else {
+                document.getElementById("eventDisplay").innerText = "Opponent's turn";
+            }
+        });
+
+        socket.on("place", (data) => {
+            console.log(data);
+            let stones = document.querySelectorAll(".stone")
+            stones.forEach(stone => {
+                if(stone.id === data.stone){
+                    stone.children[0].classList.add("chosen");
+                    stone.draggable = true;
+                }
+            });
+        });
+
+        socket.on("updateline", (data) => {
+            console.log(data);
+            theline = document.querySelectorAll(".slot");
+            data.line.forEach(element => {
+                if(element != null) {
+                    theline[data.line.indexOf(element)].id = element.id;
+                    if(element.faceup){
+                        if(theline[data.line.indexOf(element)].children.length > 0){
+                            theline[data.line.indexOf(element)].children[0].classList.remove("hiden");
+                        }
+                    }
+                    else {
+                        if(theline[data.line.indexOf(element)].children.length > 0){
+                            theline[data.line.indexOf(element)].children[0].classList.add("hiden");
+                        }
+                    }
+                    document.querySelectorAll(".bag .stone").forEach(stone => {
+                        if(stone.id === element.id.toString()){
+                            console.log("found");
+                            const visual = stone.querySelector(".stonevisual");
+                            console.log(visual);
+                            theline[data.line.indexOf(element)].appendChild(visual);
+                            theline[data.line.indexOf(element)].style.pointerEvents = "auto";
+                            theline[data.line.indexOf(element)].style.cursor = "pointer";
+                            stone.remove();
+                        }
+                    });
+                }
+                else {
+                    theline[data.line.indexOf(element)].id = "";
+                    theline[data.line.indexOf(element)].style.pointerEvents = "none";
+                    theline[data.line.indexOf(element)].style.cursor = "default";
+                }
+            });
+        });
+        let hiding = false;
+        socket.on("hide", (data) => {
+            console.log(data);
+            hiding = true;
+            let stonevisuals = document.querySelectorAll(".slot")
+            stonevisuals.forEach(stone => {
+                if(stone.id === data.stone){
+                    
+                        console.log(stone);
+                        stone.children[0].classList.add("chosen");
+                        stone.addEventListener("click", function(e) {
+                            if(hiding){
+                                stone.children[0].classList.remove("chosen");
+                                stone.children[0].classList.add("hiden");
+                                hiding = false;
+                                updatebaackendline();
+                            }
+                        });
+                }
+            });
+        });
+    </script>
+    <script>
+        let game = null;
+        async function changingturns(whogo){
+            data = {
+                turn: whogo.id,
+                roomId: productId
+            }
+            try {
+				const res = await fetch("/tellstones/setturn", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data)
+				});
+
+				if (res.ok) {
+					const restone = await res.json();
+                    game = restone;
+                    console.log(game);
+                    socket.emit("turnupdate", {roomId: productId, turn: whogo.id});
+				} else {
+                    alert(await res.text());
+				}
+			} catch (err) {
+				console.error(err);
+			}
+        }
     </script>
 </body>
 </html>
