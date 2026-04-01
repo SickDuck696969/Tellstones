@@ -288,4 +288,24 @@ public class GameController {
             return "redirect:/shop/gem";
         }
     }
+
+    @GetMapping("/payos-callbacksuccess")
+    public String payOSCallbackHandler(HttpServletRequest request, @AuthenticationPrincipal UserDetails user) {
+        Account s = accountService.getAccountByUsername(user.getUsername()).get();
+            s.setCredit(s.getCredit() + howmany);
+            accountService.save(s);
+            String mail = "You just bought %d gems for %d ₫ in Tellstones the digital"
+            .formatted(howmany, forhow);
+            themailman.sendHtmlEmail(
+                s.getEmail(),
+                "Diamond Cheque",
+                mail
+            );
+        return "redirect:/shop";
+    }
+
+    @GetMapping("/payos-callbackfail")
+    public String payOSfailCallbackHandler(HttpServletRequest request, @AuthenticationPrincipal UserDetails user) {
+        return "redirect:/tellstone/shop";
+    }
 }

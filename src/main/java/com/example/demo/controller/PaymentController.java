@@ -15,6 +15,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 import com.example.demo.payment.vnpay.PaymentService;
 import com.example.demo.response.ResponseObject;
+import com.example.demo.payment.payos.PaymentOSDTO;
+import com.example.demo.payment.payos.PaymentOSService;
 
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,11 +31,13 @@ public class paymentcontroller {
 
     private final PaymentService paymentService;
     private final AccountService accountService;
+    private final PaymentOSService payOSService;
     public int howmany = 0;
 
-    public paymentcontroller(PaymentService paymentService, AccountService accountService) {
+    public paymentcontroller(PaymentOSService payOSService, PaymentService paymentService, AccountService accountService) {
         this.paymentService = paymentService;
         this.accountService = accountService;
+        this.payOSService = payOSService;
     }
 
     @GetMapping("/vnpay")
@@ -59,6 +63,42 @@ public class paymentcontroller {
             return "redirect:/tellstone/shop";
         } else {
             return "redirect:/tellstone/shop";
+        }
+    }
+
+    @GetMapping("/payos-callbacksuccess")
+    public String payOSCallbackHandler(HttpServletRequest request, @AuthenticationPrincipal UserDetails user) {
+        Account s = accountService.getAccountByUsername(user.getUsername()).get();
+        s.setCredit(s.getCredit() + howmany);
+        accountService.save(s);
+        return "redirect:/tellstone/shop";
+    }
+
+    @GetMapping("/payos-callbackfail")
+    public String payOSfailCallbackHandler(HttpServletRequest request, @AuthenticationPrincipal UserDetails user) {
+        return "redirect:/tellstone/shop";
+    }
+
+    @PostMapping("/payos")
+    public ResponseEntity<?> createPayment(@AuthenticationPrincipal UserDetails user) {
+        Account account = accountService.getAccountByUsername(user.getUsername()).orElseThrow(() -> new RuntimeException("User not found"));
+        PaymentOSDTO request = new PaymentOSDTO(
+            System.currentTimeMillis(), 
+            50000, 
+            "Test payment", 
+            "http://localhost:8080/payos-callbacksuccess", 
+            "http://localhost:8080/payos-callbackfail", 
+            account.getUsername(), account.getEmail(), 
+            "1234567890", 
+            new ArrayList<>(), 
+            null
+        );
+
+        try {
+            String checkoutUrl = payOSService.createPaymentLink(request);
+            return ResponseEntity.ok(Map.of("checkoutUrl", checkoutUrl));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
         }
     }
 }
