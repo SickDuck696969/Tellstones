@@ -43,6 +43,27 @@
         .score-orb.lit { background: radial-gradient(circle at 35% 35%, rgba(255,249,220,.95), rgba(223,193,125,.92) 58%, rgba(185,147,79,.7) 100%); box-shadow: 0 0 10px rgba(223,193,125,.45); }
         .player-card { display: flex; align-items: center; gap: .75rem; min-width: 240px; max-width: 290px; padding: .65rem .8rem; border-radius: 1.2rem; border: 1px solid rgba(223,193,125,.14); background: linear-gradient(180deg, rgba(64,44,31,.78), rgba(20,15,12,.9)); box-shadow: 0 18px 34px rgba(0,0,0,.26); pointer-events: auto; }
         .player-card.opponent { background: linear-gradient(180deg, rgba(44,31,31,.76), rgba(17,13,11,.92)); }
+        .player-card.active {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            min-width: 240px;
+            max-width: 290px;
+            padding: .65rem .8rem;
+            border-radius: 1.2rem;
+            background: linear-gradient(
+                180deg,
+                rgba(120, 85, 40, 0.95),
+                rgba(60, 40, 20, 0.95)
+            );
+            filter: brightness(1.3) saturate(1.2);
+            border: 1px solid rgba(255, 215, 0, 0.6);
+            box-shadow:
+                0 0 8px rgba(223,193,125,0.4),
+                0 0 18px rgba(223,193,125,0.3),
+                0 18px 34px rgba(0,0,0,.26);
+            pointer-events: auto;
+        }
         .player-avatar { width: 3.3rem; height: 3.3rem; border-radius: 50%; overflow: hidden; border: 2px solid rgba(223,193,125,.4); background: rgba(255,255,255,.06); flex: 0 0 auto; }
         .player-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .player-name { margin: 0; font-family: "Cinzel", serif; font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -59,26 +80,46 @@
         .side { position: absolute; top: 0; height: 100%; width: 50%; z-index: 2; }
         .left { left: 0; }
         .right { right: 0; }
-        .slots { position: relative; z-index: 3; display: flex; gap: clamp(.35rem, 1vw, .8rem); width: min(860px, calc(100% - 5rem)); align-items: center; justify-content: center; }
-        .slot { width: clamp(72px, 8vw, 106px); height: clamp(72px, 8vw, 106px); position: relative; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px dashed rgba(234,223,202,.46); background: radial-gradient(circle at center, rgba(255,255,255,.12), transparent 62%), rgba(11,9,8,.36); box-shadow: inset 0 0 24px rgba(0,0,0,.25); pointer-events: none; }
-        .slot::before { content: ""; position: absolute; inset: .45rem; border-radius: 50%; border: 1px solid rgba(223,193,125,.1); }
+        .slots { position: relative; z-index: 3; display: flex; gap: clamp(.35rem, 1vw, .8rem); width: min(860px, calc(100% - 5rem)); align-items: center; justify-content: center; pointer-events:none;}
+        .slot { width: clamp(72px, 8vw, 106px); height: clamp(72px, 8vw, 106px); position: relative; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px dashed rgba(234,223,202,.46); background: radial-gradient(circle at center, rgba(255,255,255,.12), transparent 62%), rgba(11,9,8,.36); box-shadow: inset 0 0 24px rgba(0,0,0,.25); pointer-events:none;}
+        .slot::before { content: ""; position: absolute; inset: .45rem; border-radius: 50%; border: 1px solid rgba(223,193,125,.1); pointer-events:none;}
         .bag { display: flex; width: min(820px, calc(100% - 20rem)); align-items: flex-end; justify-content: center; gap: .28rem; position: absolute; left: calc(50% - 10.5rem); transform: translateX(-50%); bottom: -1.1rem; height: 9.5rem; transition: gap .28s ease, bottom .28s ease; z-index: 30; }
         .bag:not(.pause):hover { bottom: .9rem; gap: .72rem; }
-        .bag::before { content: ""; position: absolute; left: 50%; bottom: 3rem; transform: translateX(-50%); width: min(900px, 100%); height: 6rem; border-radius: 999px; background: radial-gradient(circle at center, rgba(223,193,125,.16), rgba(8,7,6,.1) 64%, transparent 74%); filter: blur(8px); pointer-events: none; }
+        .bag::before { content: ""; position: absolute; left: 50%; bottom: 3rem; transform: translateX(-50%); width: min(900px, 100%); height: 6rem; border-radius: 999px; filter: blur(8px); pointer-events: none; }
         .bag.pause, .stone.pause { user-select: none; }
         .stone { display: flex; width: clamp(88px, 8vw, 116px); height: clamp(88px, 8vw, 116px); align-items: center; justify-content: center; position: relative; cursor: grab; }
         .stone:not(.pause):hover .stonevisual { transform: translateY(-.7rem) scale(1.07); box-shadow: 0 24px 30px rgba(0,0,0,.24), 0 0 24px rgba(223,193,125,.18); }
-        .stonevisual { position: absolute; width: clamp(80px, 7.2vw, 104px); height: clamp(80px, 7.2vw, 104px); border-radius: 50%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 36% 28%, rgba(255,255,255,.18), transparent 24%), radial-gradient(circle at center, rgba(255,255,255,.06), transparent 58%), rgba(31,23,18,.94); border: 2px solid rgba(223,193,125,.36); box-shadow: inset 0 0 24px rgba(255,255,255,.06), 0 14px 24px rgba(0,0,0,.28); transition: transform .22s ease, box-shadow .24s ease; overflow: hidden; }
+        .stonevisual { position: absolute; width: clamp(80px, 7.2vw, 104px); height: clamp(80px, 7.2vw, 104px); border-radius: 50%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 36% 28%, rgba(255,255,255,.18), transparent 24%), radial-gradient(circle at center, rgba(255,255,255,.06), transparent 58%), rgba(31,23,18,.94); border: 2px solid rgba(223,193,125,.36); box-shadow: inset 0 0 24px rgba(255,255,255,.06), 0 14px 24px rgba(0,0,0,.28); transition: transform .22s ease, box-shadow .24s ease; overflow: hidden; user-select: none;}
         .stonevisual::before { content: ""; position: absolute; inset: .55rem; border-radius: 50%; background-image: var(--stone-face); background-position: center; background-repeat: no-repeat; background-size: contain; }
         .stonevisual::after { content: ""; position: absolute; inset: .25rem; border-radius: 50%; border: 1px solid rgba(223,193,125,.16); }
+        .stonevisual.hiden img{
+            display: none;
+        }
+        .stonevisual.chosen {
+            background:
+                radial-gradient(circle at 36% 28%, rgba(255, 235, 170, 0.6), transparent 25%),
+                radial-gradient(circle at center, rgba(255, 215, 120, 0.25), transparent 60%),
+                rgba(120, 85, 20, 0.95);
+
+            border: 2px solid rgba(255, 215, 120, 0.8);
+
+            box-shadow:
+                inset 0 0 28px rgba(255, 230, 150, 0.35),
+                0 0 18px rgba(255, 215, 120, 0.6),
+                0 0 36px rgba(255, 200, 80, 0.45),
+                0 14px 24px rgba(0, 0, 0, 0.35);
+            pointer-events: inherit;
+        }
         .stone-id { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-        .action-dock { position: absolute; right: 2.1rem; top: 51%; transform: translateY(-50%); z-index: 25; display: flex; align-items: center; justify-content: center; pointer-events: auto; width: 4.3rem; height: 4.3rem; }
-        .action-trigger { display: inline-flex; align-items: center; justify-content: center; width: 4.3rem; height: 4.3rem; border-radius: 1.35rem; border: 1px solid rgba(223,193,125,.18); background: linear-gradient(180deg, rgba(79,55,40,.86), rgba(24,18,15,.94)); color: #eadfca; font-family: "Cinzel", serif; font-size: .82rem; letter-spacing: .08em; text-transform: uppercase; box-shadow: 0 18px 28px rgba(0,0,0,.24); }
-        .action-panel { position: absolute; right: calc(100% + .65rem); top: 50%; transform: translateY(-50%) translateX(1rem) scale(.96); transform-origin: right center; display: grid; grid-template-columns: repeat(2, minmax(110px, 1fr)); gap: .55rem; width: 250px; padding: .8rem; border-radius: 1.2rem; border: 1px solid rgba(223,193,125,.16); background: linear-gradient(180deg, rgba(22,17,14,.96), rgba(12,10,8,.96)); box-shadow: 0 18px 32px rgba(0,0,0,.28); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s ease, transform .22s ease, visibility 0s linear .22s; }
+        .action-dock { position: absolute; right: 2.1rem; top: 51%; transform: translateY(-50%); z-index: 25; display: flex; align-items: center; justify-content: center; width: 4.3rem; height: 4.3rem;}
+        .action-trigger { transition: border-radius 1s ease; display: inline-flex; align-items: center; justify-content: center; width: 4.3rem; height: 4.3rem; border-radius: 1.35rem; border: 1px solid rgba(223,193,125,.18); background: linear-gradient(180deg, rgba(79,55,40,.86), rgba(24,18,15,.94)); color: #eadfca; font-family: "Cinzel", serif; font-size: .82rem; letter-spacing: .08em; text-transform: uppercase; box-shadow: 0 18px 28px rgba(0,0,0,.24); cursor: pointer;}
+        .action-trigger:hover {border-radius: 50%;}
+        .action-panel { position: absolute; right: calc(100% + .65rem); top: 50%; transform: translateY(-50%) translateX(1rem) scale(.96); transform-origin: right center; display: grid; grid-template-columns: repeat(2, minmax(110px, 1fr)); gap: .55rem; width: 250px; padding: .8rem; border-radius: 1.2rem; border: 1px solid rgba(223,193,125,.16); background: linear-gradient(180deg, rgba(22,17,14,.96), rgba(12,10,8,.96)); box-shadow: 0 18px 32px rgba(0,0,0,.28); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s ease, transform .22s ease, visibility 0s linear .22s;}
         .action-dock.is-open .action-panel { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(-50%) translateX(0) scale(1); transition: opacity .2s ease, transform .22s ease, visibility 0s linear 0s; }
         .action-dock.is-open .action-trigger { opacity: 0; pointer-events: none; transform: scale(.92); }
         .action-trigger { transition: opacity .16s ease, transform .18s ease, box-shadow .18s ease; }
-        .action-choice { display: inline-flex; align-items: center; justify-content: center; min-height: 2.7rem; padding: .55rem .8rem; border-radius: .95rem; border: 1px solid rgba(223,193,125,.14); background: rgba(255,255,255,.04); color: #eadfca; font-family: "Cinzel", serif; font-size: .68rem; letter-spacing: .07em; text-transform: uppercase; text-align: center; }
+        .action-choice { transition: border 0.2s ease, background 0.2s ease, color 0.2s ease;display: inline-flex; align-items: center; justify-content: center; min-height: 2.7rem; padding: .55rem .8rem; border-radius: .95rem; border: 1px solid rgba(223,193,125,.14); background: rgba(255,255,255,.04); color: #eadfca; font-family: "Cinzel", serif; font-size: .68rem; letter-spacing: .07em; text-transform: uppercase; text-align: center; cursor: pointer;}
+        .action-choice:hover {border: 1px solid rgba(255, 179, 0, 0.719); background: rgba(255, 255, 255, 0.845); color: #a56b00;}
         .room-settings-panel { width: min(460px, 100%); }
         .room-settings-actions { display: flex; gap: .7rem; flex-wrap: wrap; margin-top: 1.1rem; }
         .chat-author { display: block; margin-bottom: .2rem; font-family: "Cinzel", serif; font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; color: #c8b89a; }
@@ -116,11 +157,12 @@
             </aside>
             <section class="scene-frame room-stage">
                 <div class="room-id-badge" th:text="'Chamber ' + ${roomId}">Chamber</div>
+                <p style="position: absolute; left: 20px; top: -30px; font-size: 70px;" id="eventDisplay">event</p>
                 <div class="playerbox"></div>
                 <div class="action-dock">
                     <div class="action-panel">
-                        <button type="button" class="action-choice">Place</button>
-                        <button type="button" class="action-choice">Hide</button>
+                        <button type="button" class="action-choice" onclick="Place()">Place</button>
+                        <button type="button" class="action-choice" onclick="Hide()">Hide</button>
                         <button type="button" class="action-choice">Swap</button>
                         <button type="button" class="action-choice">Peek</button>
                         <button type="button" class="action-choice">Challenge</button>
@@ -137,7 +179,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="bag pause" id="bag"></div>
+                <div class="bag" id="bag"></div>
             </section>
         </main>
     </div>
@@ -165,190 +207,55 @@
     <script th:src="@{/js/tellstone-ui.js}"></script>
     <script>
         async function updatebaackendline() {
-            const theline = document.querySelectorAll(".slot .stonevisual");
+            const theline = document.querySelectorAll(".slot");
             const data = [];
-            for (let i = 0; i < theline.length; i++) {
-                data.push({
-                    position: i,
-                    stoneid: theline[i].dataset.stoneId || theline[i].textContent.trim()
-                });
+            for(let i = 0; i < theline.length; i++){
+                if(theline[i].id === "") continue;
+                data.push({position: i, stoneid: theline[i].id, turnup: theline[i].children[0].classList.contains("hiden") ? false : true});
             }
+            console.log(data);
             try {
-                const res = await fetch("/tellstones/settinggame", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(data)
-                });
-                if (res.ok) {
-                    await res.json();
-                } else {
-                    alert(await res.text());
-                }
-            } catch (err) {
-                alert("Network error");
-                console.error(err);
-            }
-        }
+				const res = await fetch("/tellstones/settinggame", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data)
+				});
 
+				if (res.ok) {
+					const restone = await res.json();
+                    console.log(restone);
+					socket.emit("lineupdate", {roomId: productId, line: restone});
+				} else {
+					alert(await res.text());
+				}
+			} catch (err) {
+				alert("Network error");
+				console.error(err);
+			}
+        }
+    </script>
+    <script>
         async function updatebaackendlinea(data) {
             try {
-                const res = await fetch("/tellstones/welcomeplayer", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(data)
-                });
-                if (res.ok) {
-                    await res.json();
-                }
-            } catch (err) {
-                console.error(err);
-            }
+				const res = await fetch("/tellstones/welcomeplayer", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data)
+				});
+
+				if (res.ok) {
+					const restone = await res.json();
+				} else {
+				}
+			} catch (err) {
+				console.error(err);
+			}
         }
-    </script>
-    <script>
-        let isSocketConnected = false;
-        const socket = io("http://localhost:9092", { transports: ["websocket"] });
-        let data = [];
-        let players = [];
-        let who = null;
-        let productId = window.location.pathname.split("/")[window.location.pathname.split("/").length - 2];
-        const currentPlayerId = window.location.pathname.split("/").pop();
+</script>
 
-        socket.on("connect", () => {
-            inRoom();
-            console.log("CONNECTED");
-        });
-
-        socket.on("Youin", async () => {
-            await loadProduct();
-            spawnplayer();
-        });
-
-        socket.on("connect_error", (err) => {
-            console.log("ERROR:", err);
-        });
-
-        socket.on("message", (data) => {
-            const history = document.getElementById("messages");
-            const empty = document.getElementById("chatEmpty");
-            if (!history) {
-                return;
-            }
-            const li = document.createElement("li");
-            const rawMessage = String(data);
-            const splitIndex = rawMessage.indexOf(": ");
-            if (splitIndex > 0) {
-                const author = document.createElement("span");
-                author.className = "chat-author";
-                author.innerText = rawMessage.slice(0, splitIndex);
-                const body = document.createElement("span");
-                body.innerText = rawMessage.slice(splitIndex + 2);
-                li.appendChild(author);
-                li.appendChild(body);
-            } else {
-                li.innerText = rawMessage;
-            }
-            history.appendChild(li);
-            history.scrollTop = history.scrollHeight;
-            if (empty) {
-                empty.style.display = "none";
-            }
-        });
-
-        let hasRequestedGameStart = false;
-
-        socket.on("gamestart", () => {
-            bag.classList.remove("pause");
-            document.querySelectorAll(".stone").forEach(stone => {
-                stone.classList.remove("pause");
-                stone.draggable = true;
-            });
-        });
-
-        socket.on("roomJoined", (roomId) => {
-            console.log("Joined room:", roomId);
-            window.location.href = `/tellstones/room/${roomId}`;
-        });
-
-        socket.on("outthedoor", async () => {
-            await loadProduct();
-            spawnplayer();
-        });
-
-        function startRoom() {
-            const roomId = document.getElementById("roomId").value;
-            socket.emit("startRoom", roomId);
-            console.log("Started room:", roomId);
-        }
-
-        function inRoom() {
-            const roomId = productId;
-            socket.emit("inRoom", roomId);
-            console.log("In room:", roomId);
-        }
-
-        function sendMessage() {
-            const input = document.getElementById("message");
-            if (!input) {
-                return;
-            }
-            const msg = input.value.trim();
-            if (!msg) {
-                return;
-            }
-            const selfPlayer = players.find(player => String(player.id) === String(currentPlayerId));
-            const speaker = selfPlayer && (selfPlayer.displayName || selfPlayer.username)
-                ? (selfPlayer.displayName || selfPlayer.username)
-                : "Player";
-            socket.emit("message", speaker + ": " + msg);
-            input.value = "";
-        }
-
-        function leaveRoom() {
-            socket.emit("leaveRoom", productId);
-        }
-
-        async function loadProduct() {
-            try {
-                const res = await fetch("/tellstones/getplayers/" + productId);
-                players = await res.json();
-                console.log(players);
-                if (players.length >= 2 && !hasRequestedGameStart) {
-                    hasRequestedGameStart = true;
-                    socket.emit("startgame", productId);
-                }
-            } catch (err) {
-                console.error("Error loading players:", err);
-            }
-        }
-    </script>
-    <script>
-        const stoneFaceMap = { 2: "sword", 3: "knight", 4: "shield", 5: "hammer", 6: "flag", 7: "crown", 8: "scale" };
-        const boardSkinMap = {
-            default: "/textu/360_F_166099507_4puS6NXaWOPugMfxcvkpVH4h8XwuhYXb.png",
-            stone: "/textu/360_F_931202313_YPl0fGR1iBUTm0RE3pi5oOI1tscZbdNm.jpg",
-            velvet: "/textu/sdv.png"
-        };
-
-        function getCurrentStoneSkin() {
-            return document.body.dataset.stoneSkin || "default";
-        }
-
-        function applyBoardSkin() {
-            const skin = document.body.dataset.boardSkin || "default";
-            const boardTexture = boardSkinMap[skin] || boardSkinMap.default;
-            document.documentElement.style.setProperty("--room-board-texture", `url('${boardTexture}')`);
-        }
-
-        function applyStoneFace(visual, stoneId) {
-            const skin = getCurrentStoneSkin();
-            const asset = stoneFaceMap[stoneId] || "sword";
-            visual.style.setProperty("--stone-face", `url('/textu/stones/${skin}/${asset}.png')`);
-            visual.dataset.stoneId = stoneId;
-        }
-
-        function renderPlayerCard(player, roleLabel, cardClass) {
-            const avatar = player && player.avatar ? player.avatar : "/logo.png";
+<script>
+    function renderPlayerCard(player, roleLabel, cardClass) {
+            const avatar = player.image_string ? player.image_string : "/logo.png";
             const name = player && player.displayName ? player.displayName : (player && player.username ? player.username : roleLabel);
             const subtitle = player && player.username ? "House " + player.username : "Awaiting challenger";
             return `
@@ -362,7 +269,7 @@
                         <span class="score-orb"></span>
                         <span class="score-orb"></span>
                     </div>
-                    <div class="player-card ${cardClass}">
+                    <div class="player-card">
                         <div class="player-meta">
                             <span class="eyebrow">${roleLabel}</span>
                             <h3 class="player-name">${name}</h3>
@@ -373,46 +280,184 @@
                 </div>
             `;
         }
+</script>
 
+<script>
+    let isSocketConnected = false;
+    const socket = io("http://192.168.100.207:9092", {
+        transports: ["websocket"],
+        query: {
+            userId: window.location.pathname.split("/").pop()
+        }
+    });
+
+    socket.on("connect", () => {
+        inRoom();
+        console.log("CONNECTED");
+    });
+
+    socket.on("Youin", async () => {
+        massspawnplayer();
+    });
+
+    socket.on("connect_error", (err) => {
+        console.log("ERROR:", err);
+    });
+
+    socket.on("message", (data) => {
+        const li = document.createElement("li");
+        li.innerText = data;
+        document.getElementById("messages").appendChild(li);
+    });
+
+    socket.on("gamestart", () => {
+        document.getElementById("bagBtn").style.display = "none";
+        bag.classList.remove("pause");
+
+        document.querySelectorAll(".stone").forEach(stone => {
+            stone.classList.remove("pause");
+            stone.draggable = true;
+        });
+    });
+
+    let data = [];
+
+    function startRoom() {
+        const roomId = document.getElementById("roomId").value;
+        socket.emit("startRoom", roomId);
+        console.log("Started room:", roomId);
+    }
+
+    function inRoom() {
+        const roomId = productId;
+        socket.emit("inRoom", roomId);
+        console.log("In room:", roomId);
+    }
+
+    function sendMessage() {
+        const msg = document.getElementById("message").value;
+        socket.emit("message", msg);
+    }
+
+    function sendMessage() {
+        socket.emit('leaveRoom', productId);
+    }
+
+    socket.on("outthedoor", () => {
+        massspawnplayer();
+    });
+
+    function massspawnplayer() {
+        socket.emit('massspawn', productId);
+    }
+
+    socket.on("massspawnapprove", async () => {
+        await loadProduct();
+        spawnplayer();
+        loadskin();
+    })
+</script>
+    <script>
+        let players = [];
+        let productId = window.location.pathname.split("/")[window.location.pathname.split("/").length - 2];
+        async function loadProduct() {
+            try {
+                const res = await fetch("/tellstones/getplayers/" + productId);
+                players = await res.json();
+
+                console.log(players);
+ 
+            } catch (err) {
+                console.error("Error loading players:", err);
+            }
+        }
+    </script>
+    <script>
+        let skin = [];
+        async function loadskin() {
+            try {
+                const res = await fetch("/tellstones/getskin/" + window.location.pathname.split("/")[window.location.pathname.split("/").length - 3]);
+                skin = await res.json();
+
+                console.log(skin)
+                let skinningstones = Array.from(document.querySelectorAll(".stonevisual"));
+                skinningstones.forEach(stone => {
+                    stone.innerHTML = `<img src=${Object.values(skin)[skinningstones.findIndex(s => s === stone)]} style="width: 80%; height: auto;">`;
+                })
+
+            } catch (err) {
+                console.error("Error loading players:", err);
+            }
+        }
+    </script>
+    <script>
+        let selfPlayer = null;
+        let opponent = null;
         async function spawnplayer() {
             const playerbox = document.querySelector(".playerbox");
-            if (!playerbox) {
-                return;
-            }
-            const selfPlayer = players.find(player => String(player.id) === String(currentPlayerId)) || null;
-            const opponent = players.find(player => String(player.id) !== String(currentPlayerId)) || null;
+            playerbox.innerHTML = "";
+            for (const player of players) {
+                if(player.id.toString() !== window.location.pathname.split("/")[window.location.pathname.split("/").length - 3]){
+                    opponent = player;
+                    if(selfPlayer != null){
+                        break;
+                    }
+                }
+
+                if(player.id.toString() === window.location.pathname.split("/")[window.location.pathname.split("/").length - 3]){
+                    selfPlayer = player;
+                    if(opponent != null){
+                        break;
+                    }
+                }
+            };
             playerbox.innerHTML = `
                 <div class="player-rail top">${renderPlayerCard(opponent, "Opponent", "opponent")}</div>
                 <div class="player-rail bottom">${renderPlayerCard(selfPlayer, "You", "player")}</div>
             `;
+            startgame();
+        }
+    </script>
+    <script>
+        async function startgame(){
+            data = {
+                me: selfPlayer,
+                opponent: opponent,
+                roomId: productId
+            }
+            try {
+				const res = await fetch("/tellstones/StartGame", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data)
+				});
+
+				if (res.ok) {
+					const restone = await res.json();
+                    console.log(restone);
+                    socket.emit("whogofirst", productId);
+				} else {
+				}
+			} catch (err) {
+				console.error(err);
+			}
         }
     </script>
     <script>
         const bag = document.getElementById("bag");
-
-        function createStoneMarkup(stoneId) {
-            const wrapper = document.createElement("div");
-            wrapper.className = "stone pause";
-            wrapper.draggable = true;
-            wrapper.id = stoneId;
-
-            const visual = document.createElement("div");
-            visual.className = "stonevisual";
-            const hiddenId = document.createElement("span");
-            hiddenId.className = "stone-id";
-            hiddenId.textContent = stoneId;
-            visual.appendChild(hiddenId);
-            applyStoneFace(visual, stoneId);
-
-            wrapper.appendChild(visual);
-            return wrapper;
-        }
-
+        let who = null;
         for (let i = 2; i <= 8; i++) {
-            bag.appendChild(createStoneMarkup(i));
+            const stone = document.createElement("div");
+            stone.className = "stone";
+            stone.draggable = false;
+            stone.id = i;
+
+            stone.innerHTML = `<div class="stonevisual"></div>`;
+
+            bag.appendChild(stone);
         }
 
-        const stones = document.querySelectorAll(".stone");
+        let stones = document.querySelectorAll(".stone");
         stones.forEach(stone => {
             stone.addEventListener("dragstart", function(e) {
                 e.dataTransfer.setData("text", stone.id);
@@ -424,17 +469,27 @@
         const slots = document.querySelectorAll(".slot");
 
         [left, right].forEach(side => {
-            side.addEventListener("dragover", e => e.preventDefault());
+            side.addEventListener("dragover", e => {
+                e.preventDefault();
+            });
         });
 
         function placeStone(id, side) {
             let index;
+            stones.forEach(s => {
+                if(s.children.length > 0) {
+                    s.children[0].classList.remove("chosen");
+                }
+                s.draggable = false;
+            });
+
             const filled = [...slots].filter(s => s.children.length > 0);
 
             if (filled.length === 0) {
                 index = Math.floor(slots.length / 2);
             } else {
                 const mid = Math.floor(slots.length / 2);
+
                 if (side === "left") {
                     for (let i = mid; i >= 0; i--) {
                         if (slots[i].children.length === 0) {
@@ -443,6 +498,7 @@
                         }
                     }
                 }
+
                 if (side === "right") {
                     for (let i = mid; i < slots.length; i++) {
                         if (slots[i].children.length === 0) {
@@ -457,32 +513,40 @@
 
             const stone = document.getElementById(id);
             const visual = stone.querySelector(".stonevisual");
+            visual.classList.remove("chosen");
+
+            slots[index].id = id;
             slots[index].appendChild(visual);
+            slots[index].style.pointerEvents = "auto";
+            slots[index].style.cursor = "pointer";
+
             stone.remove();
+
             updatebaackendline();
+            document.getElementById("eventDisplay").innerText = "Your turn";
+            if(firstturn){
+                changingturns(opponent);
+                return;
+            } else{
+                return;
+            }
         }
 
         left.addEventListener("drop", function(e) {
             e.preventDefault();
+
             const id = e.dataTransfer.getData("text");
-            socket.emit("callstone", id, "left", who);
+
+            placeStone(id, "left");
         });
 
         right.addEventListener("drop", function(e) {
             e.preventDefault();
+
             const id = e.dataTransfer.getData("text");
-            socket.emit("callstone", id, "right", who);
-        });
 
-        const skinObserver = new MutationObserver(() => {
-            applyBoardSkin();
-            document.querySelectorAll(".stonevisual").forEach((visual) => {
-                applyStoneFace(visual, Number(visual.dataset.stoneId));
-            });
+            placeStone(id, "right");
         });
-
-        applyBoardSkin();
-        skinObserver.observe(document.body, { attributes: true, attributeFilter: ["data-stone-skin", "data-board-skin"] });
     </script>
     <script>
         const chatInput = document.getElementById("message");
@@ -494,7 +558,9 @@
 
         if (actionTrigger && actionDock) {
             actionTrigger.addEventListener("click", function() {
-                actionDock.classList.toggle("is-open");
+                if(game.currentPlayerIndex.id === selfPlayer.id){
+                    actionDock.classList.toggle("is-open");
+                }
             });
         }
 
@@ -512,9 +578,13 @@
             }
         });
 
+        function leaveRoom(){
+            socket.emit("leaveRoom", productId);
+        }
+
         if (surrenderBtn) {
-            surrenderBtn.addEventListener("click", function() {
-                leaveRoom();
+            surrenderBtn.addEventListener("click", async function() {
+                await leaveRoom();
                 window.location.href = "/";
             });
         }
@@ -529,5 +599,253 @@
             });
         }
     </script>
+    <script>
+        //emitter
+        let placeenabled = false;
+        let hideenabled = false;
+        let swapenabled = false;
+        let peekenabled = false;
+        let challengeenabled = false;
+        let boastenabled = false;
+        
+        stones = document.querySelectorAll(".stone");
+            stones.forEach(stone => {
+                stone.addEventListener("click", function(e) {
+                    if(placeenabled){
+                        console.log("sent");
+                        socket.emit("place", {
+                            room: window.location.pathname.split("/")[window.location.pathname.split("/").length - 2],
+                            to: opponent.username,
+                            stone: stone.id,
+                            where: "left"
+                        });
+                        placeenabled = false;
+                        stones.forEach(s => {
+                            s.children[0].classList.remove("chosen");
+                        });
+                        changingturns(opponent);
+                    }
+                });
+            });
+        function Place(){
+            placeenabled = true;
+            stones = document.querySelectorAll(".stone");
+            stones.forEach(stone => {
+                stone.children[0].classList.add("chosen");
+            });
+        }
+
+        stones = document.querySelectorAll(".slot");
+            stones.forEach(stone => {
+                stone.addEventListener("click", function(e) {
+                    if(hideenabled){
+                        console.log("sent");
+                        socket.emit("hide", {
+                            room: window.location.pathname.split("/")[window.location.pathname.split("/").length - 2],
+                            to: opponent.username,
+                            stone: stone.id,
+                            where: "left"
+                        });
+                        hideenabled = false;
+                        stones.forEach(s => {
+                            if(s.children.length > 0){
+                                s.children[0].classList.remove("chosen");
+                            }
+                        });
+                        changingturns(opponent);
+                    }
+                });
+            });
+        function Hide(){
+            hideenabled = true;
+            stones = document.querySelectorAll(".slot");
+            stones.forEach(stone => {
+                if(stone.children.length === 0) return;
+                stone.children[0].classList.add("chosen");
+            });
+        }
+    </script>
+    <script>
+        //onner
+        let placeon = false;
+        let hideon = false;
+        let swapon = false;
+        let peekon = false;
+        let challengeon = false;
+        let boaston = false;
+        let firstturn = false;
+
+        stones = document.querySelectorAll(".stone");
+        socket.on("yougofirst", async () => {
+            await changingturns(selfPlayer);
+            stones.forEach(stone => {
+                stone.children[0].classList.add("chosen");
+                stone.draggable = true;
+            });
+            firstturn = true;
+        });
+
+        socket.on("younotgofirst", async () => {
+            await changingturns(opponent);
+            stones.forEach(stone => {
+                if(stone.children[0].classList.contains("chosen")){
+                    stone.children[0].classList.remove("chosen");
+                }
+                stone.draggable = false;
+            });
+        });
+
+        socket.on("turnupdate", async (data) => {
+            data = {
+                turn: data.turn,
+                roomId: data.roomId
+            }
+            try {
+				const res = await fetch("/tellstones/setturn", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data)
+				});
+
+				if (res.ok) {
+					const restone = await res.json();
+                    game = restone;
+				} else {
+                    alert(await res.text());
+				}
+			} catch (err) {
+				console.error(err);
+			}
+            if(data.turn === String(selfPlayer.id)){
+                if(firstturn){
+                    document.getElementById("eventDisplay").innerText = "Place the starting stone";
+                    firstturn = false;
+                } else if (placeon) {
+                    document.getElementById("eventDisplay").innerText = "Place";
+                    placeon = false;
+                } else if (hideon) {
+                    document.getElementById("eventDisplay").innerText = "Hide";
+                    hideon = false;
+                } else if (swapon) {
+                    document.getElementById("eventDisplay").innerText = "Swap";
+                    swapon = false;
+                } else if (peekon) {
+                    document.getElementById("eventDisplay").innerText = "Peek";
+                    peekon = false;
+                } else if (challengeon) {
+                    document.getElementById("eventDisplay").innerText = "Challenge";
+                    challengeon = false;
+                } else if (boaston) {
+                    document.getElementById("eventDisplay").innerText = "Boast";
+                    boaston = false;
+                } else {
+                    document.getElementById("eventDisplay").innerText = "Your turn";
+                }
+            }
+            else {
+                document.getElementById("eventDisplay").innerText = "Opponent's turn";
+            }
+        });
+
+        socket.on("place", (data) => {
+            console.log(data);
+            placeon = true;
+            let stones = document.querySelectorAll(".stone")
+            stones.forEach(stone => {
+                if(stone.id === data.stone){
+                    stone.children[0].classList.add("chosen");
+                    stone.draggable = true;
+                }
+            });
+        });
+
+        socket.on("updateline", (data) => {
+            console.log(data);
+            theline = document.querySelectorAll(".slot");
+            data.line.forEach(element => {
+                if(element != null) {
+                    theline[data.line.indexOf(element)].id = element.id;
+                    if(element.faceup){
+                        if(theline[data.line.indexOf(element)].children.length > 0){
+                            theline[data.line.indexOf(element)].children[0].classList.remove("hiden");
+                        }
+                    }
+                    else {
+                        if(theline[data.line.indexOf(element)].children.length > 0){
+                            theline[data.line.indexOf(element)].children[0].classList.add("hiden");
+                        }
+                    }
+                    document.querySelectorAll(".bag .stone").forEach(stone => {
+                        if(stone.id === element.id.toString()){
+                            console.log("found");
+                            const visual = stone.querySelector(".stonevisual");
+                            console.log(visual);
+                            theline[data.line.indexOf(element)].appendChild(visual);
+                            theline[data.line.indexOf(element)].style.pointerEvents = "auto";
+                            theline[data.line.indexOf(element)].style.cursor = "pointer";
+                            stone.remove();
+                        }
+                    });
+                }
+                else {
+                    theline[data.line.indexOf(element)].id = "";
+                    theline[data.line.indexOf(element)].style.pointerEvents = "none";
+                    theline[data.line.indexOf(element)].style.cursor = "default";
+                }
+            });
+        });
+        let hiding = false;
+        socket.on("hide", (data) => {
+            console.log(data);
+            hideon = true;
+            document.getElementById("eventDisplay").innerText = "Hide";
+            hiding = true;
+            let stonevisuals = document.querySelectorAll(".slot")
+            stonevisuals.forEach(stone => {
+                if(stone.id === data.stone){
+                    
+                        console.log(stone);
+                        stone.children[0].classList.add("chosen");
+                        stone.addEventListener("click", function(e) {
+                            if(hiding){
+                                stone.children[0].classList.remove("chosen");
+                                stone.children[0].classList.add("hiden");
+                                hiding = false;
+                                document.getElementById("eventDisplay").innerText = "Your turn";
+                                updatebaackendline();
+                            }
+                        });
+                }
+            });
+        });
+    </script>
+    <script>
+        let game = null;
+        async function changingturns(whogo){
+            data = {
+                turn: whogo.id,
+                roomId: productId
+            }
+            try {
+				const res = await fetch("/tellstones/setturn", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data)
+				});
+
+				if (res.ok) {
+					const restone = await res.json();
+                    game = restone;
+                    console.log(game);
+                    socket.emit("turnupdate", {roomId: productId, turn: whogo.id});
+				} else {
+                    alert(await res.text());
+				}
+			} catch (err) {
+				console.error(err);
+			}
+        }
+    </script>
 </body>
+</html>
 </html>

@@ -41,6 +41,15 @@
                             </p>
                         </div>
 
+                    <div class="choice-card" style="display: grid; gap: 0.8rem;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+                            <div>
+                                <div class="eyebrow" style="margin-bottom: 0.25rem;">Room ID</div>
+                                <div class="title-md" th:id="${roomId}" th:text="${roomId}" style="font-size: 1.55rem;"></div>
+                            </div>
+                            <div class="menu-actions">
+                                <button type="button" class="icon-btn" id="copyRoomBtn" aria-label="Copy room id" title="Copy room id">⧉</button>
+                                <button type="button" class="fantasy-btn primary" id="startRoomBtn" onclick="Startgame()">Start Game</button>
                         <div class="choice-card" style="display: grid; gap: 1rem;">
                             <p class="text-muted" style="margin: 0;">
                                 This button is currently a placeholder so you can verify the flow before wiring real room creation.
@@ -105,7 +114,7 @@
                     </label>
 
                     <div class="menu-actions">
-                        <button type="button" class="fantasy-btn primary" id="joinRoomBtn">Join Room</button>
+                        <button type="button" class="fantasy-btn primary" id="joinRoomBtn" onclick="moveroom()">Join Room</button>
                     </div>
                 </section>
             </div>
@@ -135,33 +144,49 @@
         const token = document.querySelector('meta[name="_csrf"]').content;
         const header = document.querySelector('meta[name="_csrf_header"]').content;
         let restone = [];
-
-        async function updatebaackendline(data) {
+        async function updatebaackendline() {
             try {
-                const res = await fetch("/tellstones/welcomeplayer", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        [header]: token
-                    },
-                    credentials: "include",
-                    body: JSON.stringify(data)
-                });
+				const res = await fetch("/tellstones/welcomeplayer", {
+				method: "POST",
+				headers: {
+                    'Content-Type': 'application/json',
+                    [header]: token,
+                },
+                credentials: "include",
+				});
 
-                if (res.ok) {
-                    restone = await res.json();
+				if (res.ok) {
+					restone = await res.json();
+                    console.log(restone);
+				} else {
+				}
+                } catch (err) {
+                    console.error(err);
                 }
+            }
+    </script>
+
+    <script>
+        let players = [];
+        let productId = window.location.pathname.split("/")[window.location.pathname.split("/").length - 2];
+        async function loadProduct() {
+            try {
+                const res = await fetch("/tellstones/getplayers/" + productId);
+                players = await res.json();
+
+                console.log(players);
+ 
             } catch (err) {
-                console.error(err);
+                console.error("Error loading players:", err);
             }
         }
     </script>
 
 <script>
-    const socket = io("http://192.168.100.171:9092", {
+    const socket = io("http://192.168.100.207:9092", {
         transports: ["websocket"],
         query: {
-            userId: document.getElementById("guestname").value
+            userId: window.location.pathname.split("/").pop()
         }
     });
 
@@ -178,9 +203,10 @@
         const startRoomBtn = document.getElementById("startRoomBtn");
         const joinRoomBtn = document.getElementById("joinRoomBtn");
 
-        let data = [];
-        let joined = null;
-        let currentRoomId = "";
+        const roomid = window.location.pathname.split("/")[window.location.pathname.split("/").length - 2];
+        const userid = window.location.pathname.split("/")[window.location.pathname.split("/").length - 3];
+        const user = window.location.pathname.split("/")[window.location.pathname.split("/").length - 1];
+
         let createMode = false;
 
     socket.on("message", (data) => {
@@ -237,6 +263,7 @@
 
         socket.on("connect", () => {
             console.log("CONNECTED");
+            inRoom();
         });
 
         socket.on("connect_error", (err) => {
@@ -245,19 +272,6 @@
 
         socket.on("message", (data) => {
             console.log(data);
-        });
-
-        socket.on("sessionID", async (sessionID) => {
-            data = {
-                username: "Player",
-                session: sessionID
-            };
-
-            await updatebaackendline(data);
-
-            if (joined != null) {
-                window.location.href = `/tellstones/room/${restone.id}/${joined}/${document.getElementById("guestname").value}`;
-            }
         });
 
         socket.on("roomJoined", async (roomId) => {
@@ -317,11 +331,11 @@
 
         if (copyRoomBtn) {
             copyRoomBtn.addEventListener("click", async () => {
-                if (!currentRoomId) {
+                if (!roomId) {
                     return;
                 }
                 try {
-                    await navigator.clipboard.writeText(currentRoomId);
+                    await navigator.clipboard.writeText(roomid);
                     copyRoomBtn.textContent = "✓";
                     setTimeout(() => {
                         copyRoomBtn.textContent = "⧉";
@@ -332,14 +346,47 @@
             });
         }
 
-        if (startRoomBtn) {
-            startRoomBtn.addEventListener("click", () => {
-                createMode = true;
-                joined = null;
-                socket.emit("startRoom", currentRoomId);
-                console.log("Started room:", currentRoomId);
-            });
+        function inRoom() {
+            const roomId = productId;
+            socket.emit("inRoom", roomId);
+            console.log("In room:", roomId);
         }
+
+        socket.on("Youin", async () => {
+            loadProduct();
+        });
+
+        let joined = null;
+
+        socket.on("sessionID", async (sessionID) => {
+            console.log("Joined room:", sessionID);
+            if(joined != null){
+                window.location.href = `/tellstones/${userid}/${joined}/${user}`;
+            }
+        });
+
+        function moveroom() {
+            socket.emit("moveRoom", currentRoomId);
+        }
+
+        socket.on("roomJoined", (roomId) => {
+            console.log("Joined room:", roomId);
+            joined = roomId;
+        });
+
+
+        
+        socket.on("goto", (session) => {
+            socket.emit("startRoom", document.getElementById("roomId").value);
+        });
+
+        function Startgame() {
+            socket.emit("startgame", roomid);
+        }
+
+        socket.on("gamestart", () => {
+            window.location.href = `/tellstones/room/${userid}/${roomid}/${user}`;
+        });
 
         if (joinRoomBtn) {
             joinRoomBtn.addEventListener("click", () => {
@@ -354,6 +401,7 @@
             });
         }
     </script>
+
 
     <audio data-bgm loop>
         <source th:src="@{/audio/bgm.mp3}" type="audio/mpeg">

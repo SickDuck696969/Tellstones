@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
     <title>Tellstones: King's Gambit</title>
     <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.4.0/socket.io.js"></script>
 </head>
 <body>
     <div class="page-shell">
@@ -34,7 +37,7 @@
                         Enter a carved-stone court of hidden intent, royal gambits, and fast multiplayer duels.
                     </p>
                     <div class="menu-actions">
-                        <a th:href="${loggedIn ? '/tellstones/' : '/login'}" class="fantasy-btn primary">Enter The Chamber</a>
+                        <button onclick="startRoom()" class="fantasy-btn primary">Enter The Chamber</button>
                         <a href="/rules" class="fantasy-btn ghost">Study The Rulebook</a>
                     </div>
                     <ul class="feature-list">
@@ -113,4 +116,86 @@
     </audio>
     <script th:src="@{/js/tellstone-ui.js}"></script>
 </body>
+<script>
+        const token = document.querySelector('meta[name="_csrf"]').content;
+        const header = document.querySelector('meta[name="_csrf_header"]').content;
+        let restone = [];
+        async function updatebaackendline() {
+            try {
+				const res = await fetch("/tellstones/welcomeplayer", {
+				method: "POST",
+				headers: {
+                    'Content-Type': 'application/json',
+                    [header]: token,
+                },
+                credentials: "include",
+				});
+
+				if (res.ok) {
+					restone = await res.json();
+                    console.log(restone);
+				} else {
+				}
+			} catch (err) {
+				console.error(err);
+			}
+        }
+</script>
+
+<script>
+    const socket = io("http://192.168.100.207:9092", {
+        transports: ["websocket"],
+        query: {
+            userId: restone.username
+        }
+    });
+
+    socket.on("connect", () => {
+        socket.emit("massleave");
+        console.log("CONNECTED");
+    });
+
+    socket.on("connect_error", (err) => {
+        console.log("ERROR:", err);
+    });
+
+    socket.on("message", (data) => {
+        const li = document.createElement("li");
+        li.innerText = data;
+        document.getElementById("messages").appendChild(li);
+    });
+
+
+    let data = [];
+    let joined = null;
+
+    socket.on("sessionID", async (sessionID) => {
+        await updatebaackendline(data);
+        console.log("joining room " + joined);
+        socket.emit("inRoom", joined);
+    });
+
+    
+
+    socket.on("Youin", async () => {
+        if(joined != null){
+            console.log("You are in a room " + joined);
+            console.log(`tellstones/${restone.id}/${joined}/${restone.username}`);
+            window.location.href = `tellstones/${restone.id}/${joined}/${restone.username}`;
+        }
+    });
+
+    socket.on("roomJoined", (roomId) => {
+        console.log("Joined room:", roomId);
+        joined = roomId;
+    });
+
+
+    function startRoom() {
+        const roomId = Math.random().toString(36).slice(2, 8).toUpperCase();
+        socket.emit("startRoom", roomId);
+        console.log("Started room:", roomId);
+    }
+</script>
+
 </html>
