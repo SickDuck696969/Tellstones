@@ -1,13 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="_csrf" th:content="${_csrf.token}" />
-    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
-    <title>Tellstones: King's Gambit</title>
-    <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.4.0/socket.io.js"></script>
+    <title>Tellstones Menu Preview</title>
+    <link rel="stylesheet" href="../css/tellstone-fantasy.css">
     <style>
         .preview-stone-cluster {
             position: relative;
@@ -115,18 +112,17 @@
 <body>
     <div class="page-shell">
         <header class="topbar">
-            <a class="brand-mark" href="/">
-                <img th:src="@{/logo.png}" alt="Tellstones Logo">
+            <a class="brand-mark" href="./menu-preview.html">
+                <img src="../../logo.png" alt="Tellstones Logo">
             </a>
             <div class="nav-cluster">
-                <div th:if="${loggedIn}" class="action-row">
-                    <a href="/account" class="fantasy-chip" title="Account">
-                        <img class="avatar-badge" th:src="${avatarUrl}" alt="Avatar">
+                <div class="action-row">
+                    <a href="./menu-preview.html" class="fantasy-chip" title="Account Preview">
+                        <img class="avatar-badge" src="../../logo.png" alt="Avatar">
                     </a>
-                    <a href="/shop" class="fantasy-btn">Shop</a>
+                    <a href="./menu-preview.html" class="fantasy-btn">Shop</a>
                 </div>
-                <a th:if="${!loggedIn}" href="/login" class="fantasy-btn ghost">Account</a>
-                <a href="/rules" class="fantasy-btn ghost">Rulebook</a>
+                <a href="./menu-preview.html" class="fantasy-btn ghost">Rulebook</a>
                 <button class="icon-btn" type="button" data-open-modal="settings-modal" aria-label="Settings">⚙</button>
             </div>
         </header>
@@ -140,8 +136,8 @@
                         Enter a carved-stone court of hidden intent, royal gambits, and fast multiplayer duels.
                     </p>
                     <div class="menu-actions">
-                        <button type="button" onclick="startRoom()" class="fantasy-btn primary">Enter The Chamber</button>
-                        <a href="/rules" class="fantasy-btn ghost">Study The Rulebook</a>
+                        <button type="button" class="fantasy-btn primary" id="preview-enter-btn">Enter The Chamber</button>
+                        <a href="./menu-preview.html" class="fantasy-btn ghost">Study The Rulebook</a>
                     </div>
                     <ul class="feature-list">
                         <li>
@@ -225,33 +221,24 @@
                         <p class="text-muted">Preview atmospheric companions and ceremonial effects without leaving the main hall.</p>
                     </div>
                 </div>
-                <form th:if="${loggedIn}" action="/logout" method="post" style="margin-top: 1.25rem;">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                    <button type="submit" class="fantasy-btn ghost">Logout</button>
-                </form>
+                <button type="button" class="fantasy-btn ghost" style="margin-top: 1.25rem;">Logout</button>
             </div>
         </div>
     </div>
 
     <audio data-bgm loop>
-        <source th:src="@{/audio/bgm.mp3}" type="audio/mpeg">
+        <source src="../audio/bgm.mp3" type="audio/mpeg">
     </audio>
-    <script th:src="@{/js/tellstone-ui.js}"></script>
-
+    <script src="../js/tellstone-ui.js"></script>
     <script>
-        const token = document.querySelector('meta[name="_csrf"]')?.content;
-        const header = document.querySelector('meta[name="_csrf_header"]')?.content;
-        let restone = {};
-        let joined = null;
-
         const previewStones = [
-            "/textu/stones/default/crown.png",
-            "/textu/stones/default/flag.png",
-            "/textu/stones/default/hammer.png",
-            "/textu/stones/default/knight.png",
-            "/textu/stones/default/scale.png",
-            "/textu/stones/default/shield.png",
-            "/textu/stones/default/sword.png"
+            "../textu/stones/default/crown.png",
+            "../textu/stones/default/flag.png",
+            "../textu/stones/default/hammer.png",
+            "../textu/stones/default/knight.png",
+            "../textu/stones/default/scale.png",
+            "../textu/stones/default/shield.png",
+            "../textu/stones/default/sword.png"
         ];
 
         function pickRandomStone(excluded = []) {
@@ -283,67 +270,11 @@
             farRight.src = farRightStone;
         }
 
-        async function updatebaackendline() {
-            if (!token || !header) {
-                return;
-            }
-
-            try {
-                const res = await fetch("/tellstones/welcomeplayer", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        [header]: token
-                    },
-                    credentials: "include"
-                });
-
-                if (res.ok) {
-                    restone = await res.json();
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        const socket = io("http://192.168.100.207:9092", {
-            transports: ["websocket"],
-            query: {
-                userId: restone.username
-            }
-        });
-
-        socket.on("connect", () => {
-            socket.emit("massleave");
-        });
-
-        socket.on("connect_error", (err) => {
-            console.log("ERROR:", err);
-        });
-
-        socket.on("sessionID", async () => {
-            await updatebaackendline();
-            if (joined != null) {
-                socket.emit("inRoom", joined);
-            }
-        });
-
-        socket.on("Youin", async () => {
-            if (joined != null && restone?.id != null && restone?.username) {
-                window.location.href = `tellstones/${restone.id}/${joined}/${restone.username}`;
-            }
-        });
-
-        socket.on("roomJoined", (roomId) => {
-            joined = roomId;
-        });
-
-        function startRoom() {
-            const roomId = Math.random().toString(36).slice(2, 8).toUpperCase();
-            socket.emit("startRoom", roomId);
-        }
-
         populatePreviewStones();
+
+        document.getElementById("preview-enter-btn")?.addEventListener("click", () => {
+            alert("Preview only. This button is here so you can inspect the menu UI without backend.");
+        });
     </script>
 </body>
 </html>
