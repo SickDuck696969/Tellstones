@@ -25,6 +25,16 @@ public class LoginController {
         return "tellstone/signup";
     }
 
+    @GetMapping("/forgot-password")
+    public String forgotPassword() {
+        return "tellstone/forgot-password";
+    }
+
+    @GetMapping("/reset-password")
+    public String resetPassword() {
+        return "tellstone/reset-password";
+    }
+
     @PostMapping("/signup")
     public String signup(Account account) {
         accountService.save(account);

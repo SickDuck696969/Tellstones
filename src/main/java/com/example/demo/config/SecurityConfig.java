@@ -16,7 +16,22 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**", "/uploads/**", "/logo.png", "/Rule.pdf", "/rules", "/rules/**").permitAll()
+                .requestMatchers(
+                    "/",
+                    "/login",
+                    "/signup",
+                    "/css/**",
+                    "/js/**",
+                    "/images/**",
+                    "/textu/**",
+                    "/audio/**",
+                    "/preview/**",
+                    "/uploads/**",
+                    "/logo.png",
+                    "/Rule.pdf",
+                    "/rules",
+                    "/rules/**"
+                ).permitAll()
                 .anyRequest().authenticated()
             )
             .csrf(csrf -> csrf
