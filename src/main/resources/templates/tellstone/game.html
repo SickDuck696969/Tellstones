@@ -32,13 +32,14 @@
 
             <div class="dashboard-grid" style="margin-top: 1.25rem; display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 1.5rem;">
                 <section class="card panel" style="display: grid; gap: 1rem;">
-                    <div>
-                        <div class="eyebrow">Current Chamber</div>
-                        <h2 class="title-md">Active room</h2>
-                        <p class="text-muted" data-room-status style="margin: 0.45rem 0 0;">
-                            Create a chamber, copy its sigil, then start once your rivals arrive.
-                        </p>
-                    </div>
+                    <div id="createRoomCollapsed" style="display: grid; gap: 1rem;">
+                        <div>
+                            <div class="eyebrow">Current Chamber</div>
+                            <h2 class="title-md">Open a new room</h2>
+                            <p class="text-muted" data-room-status style="margin: 0.45rem 0 0;">
+                                Create a chamber first, then its sigil and player list will appear here.
+                            </p>
+                        </div>
 
                     <div class="choice-card" style="display: grid; gap: 0.8rem;">
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
@@ -49,23 +50,52 @@
                             <div class="menu-actions">
                                 <button type="button" class="icon-btn" id="copyRoomBtn" aria-label="Copy room id" title="Copy room id">⧉</button>
                                 <button type="button" class="fantasy-btn primary" id="startRoomBtn" onclick="Startgame()">Start Game</button>
+                        <div class="choice-card" style="display: grid; gap: 1rem;">
+                            <p class="text-muted" style="margin: 0;">
+                                This button is currently a placeholder so you can verify the flow before wiring real room creation.
+                            </p>
+                            <div class="menu-actions">
+                                <button type="button" class="fantasy-btn primary" id="createRoomBtn">Create Room</button>
                             </div>
                         </div>
                     </div>
 
-                    <div class="choice-card">
-                        <div class="section-head" style="margin-bottom: 0.65rem;">
-                            <div>
-                                <div class="eyebrow">Player List</div>
-                                <h3 class="title-md" style="font-size: 1.2rem;">Inside the chamber</h3>
+                    <div id="createRoomExpanded" style="display: none; gap: 1rem;">
+                        <div>
+                            <div class="eyebrow">Current Chamber</div>
+                            <h2 class="title-md">Active room</h2>
+                            <p class="text-muted" data-room-info style="margin: 0.45rem 0 0;">
+                                Placeholder chamber opened. Copy its sigil, then start once your rivals arrive.
+                            </p>
+                        </div>
+
+                        <div class="choice-card" style="display: grid; gap: 0.8rem;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+                                <div>
+                                    <div class="eyebrow" style="margin-bottom: 0.25rem;">Room ID</div>
+                                    <div class="title-md" id="currentRoomId" style="font-size: 1.55rem;">Awaiting Sigil</div>
+                                </div>
+                                <div class="menu-actions">
+                                    <button type="button" class="icon-btn" id="copyRoomBtn" aria-label="Copy room id" title="Copy room id">⧉</button>
+                                    <button type="button" class="fantasy-btn primary" id="startRoomBtn">Start Game</button>
+                                </div>
                             </div>
                         </div>
-                        <ul id="roomPlayerList" class="feature-list" style="margin-top: 0;">
-                            <li>
-                                <span class="rune">I</span>
-                                <div><strong>No challengers yet</strong><br>The chamber roster will appear here once players join.</div>
-                            </li>
-                        </ul>
+
+                        <div class="choice-card">
+                            <div class="section-head" style="margin-bottom: 0.65rem;">
+                                <div>
+                                    <div class="eyebrow">Player List</div>
+                                    <h3 class="title-md" style="font-size: 1.2rem;">Inside the chamber</h3>
+                                </div>
+                            </div>
+                            <ul id="roomPlayerList" class="feature-list" style="margin-top: 0;">
+                                <li>
+                                    <span class="rune">I</span>
+                                    <div><strong>No challengers yet</strong><br>The chamber roster will appear here once players join.</div>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </section>
 
@@ -160,8 +190,12 @@
         }
     });
 
+        const createRoomCollapsed = document.getElementById("createRoomCollapsed");
+        const createRoomExpanded = document.getElementById("createRoomExpanded");
+        const createRoomBtn = document.getElementById("createRoomBtn");
         const currentRoomIdLabel = document.getElementById("currentRoomId");
         const roomStatusLabel = document.querySelector("[data-room-status]");
+        const roomInfoLabel = document.querySelector("[data-room-info]");
         const roomBanner = document.querySelector("[data-room-banner]");
         const roomInput = document.getElementById("roomId");
         const roomPlayerList = document.getElementById("roomPlayerList");
@@ -254,8 +288,46 @@
                     : "You are joining an existing chamber.";
             }
 
+            if (roomInfoLabel) {
+                roomInfoLabel.textContent = createMode
+                    ? "Your chamber is open. Share the sigil, then start once everyone is seated."
+                    : "You have stepped into an existing chamber.";
+            }
+
             await loadPlayers(roomId);
         });
+
+        if (createRoomBtn) {
+            createRoomBtn.addEventListener("click", () => {
+                currentRoomId = generateRoomId();
+
+                if (createRoomCollapsed) {
+                    createRoomCollapsed.style.display = "none";
+                }
+
+                if (createRoomExpanded) {
+                    createRoomExpanded.style.display = "grid";
+                }
+
+                if (currentRoomIdLabel) {
+                    currentRoomIdLabel.textContent = currentRoomId;
+                }
+
+                if (roomStatusLabel) {
+                    roomStatusLabel.textContent = "Placeholder chamber prepared. Start Game will create it when you are ready.";
+                }
+
+                if (roomInfoLabel) {
+                    roomInfoLabel.textContent = "This is only a placeholder preview for now. The actual room will be created when you continue the flow.";
+                }
+
+                if (roomBanner) {
+                    roomBanner.textContent = "A placeholder chamber has been prepared so you can test the create-room button.";
+                }
+
+                renderPlayerList([]);
+            });
+        }
 
         if (copyRoomBtn) {
             copyRoomBtn.addEventListener("click", async () => {

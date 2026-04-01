@@ -8,6 +8,109 @@
     <title>Tellstones: King's Gambit</title>
     <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.4.0/socket.io.js"></script>
+    <style>
+        .preview-stone-cluster {
+            position: relative;
+            width: 19rem;
+            height: 7.2rem;
+            margin-inline: auto;
+        }
+
+        .preview-stone-medallion {
+            position: relative;
+            overflow: hidden;
+            display: grid;
+            place-items: center;
+            background:
+                radial-gradient(circle at 30% 28%, rgba(255, 247, 220, 0.38), transparent 26%),
+                radial-gradient(circle at 50% 50%, rgba(120, 82, 38, 0.78), rgba(52, 32, 16, 0.94));
+            transition: box-shadow 220ms ease, border-color 220ms ease;
+        }
+
+        .preview-stone-cluster .preview-stone-medallion {
+            position: absolute;
+            top: 50%;
+        }
+
+        .preview-stone-cluster .preview-stone-medallion.center {
+            left: 50%;
+            width: 6rem;
+            height: 6rem;
+            z-index: 3;
+            transform: translate(-50%, -50%);
+        }
+
+        .preview-stone-cluster .preview-stone-medallion.left,
+        .preview-stone-cluster .preview-stone-medallion.right {
+            width: 4.65rem;
+            height: 4.65rem;
+            z-index: 2;
+            opacity: 0.92;
+        }
+
+        .preview-stone-cluster .preview-stone-medallion.far-left,
+        .preview-stone-cluster .preview-stone-medallion.far-right {
+            width: 3.75rem;
+            height: 3.75rem;
+            z-index: 1;
+            opacity: 0.78;
+        }
+
+        .preview-stone-cluster .preview-stone-medallion.far-left {
+            left: 0.35rem;
+            transform: translateY(-50%);
+        }
+
+        .preview-stone-cluster .preview-stone-medallion.left {
+            left: 3.35rem;
+            transform: translateY(-50%);
+        }
+
+        .preview-stone-cluster .preview-stone-medallion.right {
+            right: 3.35rem;
+            transform: translateY(-50%);
+        }
+
+        .preview-stone-cluster .preview-stone-medallion.far-right {
+            right: 0.35rem;
+            transform: translateY(-50%);
+        }
+
+        .preview-stone-medallion::after {
+            content: "";
+            position: absolute;
+            inset: 14%;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 220, 150, 0.16);
+            pointer-events: none;
+        }
+
+        .preview-stone-face {
+            width: 62%;
+            height: 62%;
+            object-fit: contain;
+            filter: drop-shadow(0 0.8rem 1rem rgba(0, 0, 0, 0.38));
+            transform-origin: center center;
+            will-change: transform;
+            pointer-events: none;
+        }
+
+        .preview-stone-medallion:hover {
+            box-shadow: 0 0 0 1px rgba(211, 170, 104, 0.52), 0 1.1rem 2rem rgba(0, 0, 0, 0.28);
+            border-color: rgba(211, 170, 104, 0.58);
+        }
+
+        .preview-stone-medallion:hover .preview-stone-face {
+            animation: preview-stone-spin 900ms cubic-bezier(0.2, 0.72, 0.22, 1);
+        }
+
+        @keyframes preview-stone-spin {
+            0% { transform: scale(1) rotate(0deg); }
+            22% { transform: scale(1.2) rotate(0deg); }
+            78% { transform: scale(1.2) rotate(360deg); }
+            100% { transform: scale(1) rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
     <div class="page-shell">
@@ -37,7 +140,7 @@
                         Enter a carved-stone court of hidden intent, royal gambits, and fast multiplayer duels.
                     </p>
                     <div class="menu-actions">
-                        <button onclick="startRoom()" class="fantasy-btn primary">Enter The Chamber</button>
+                        <button type="button" onclick="startRoom()" class="fantasy-btn primary">Enter The Chamber</button>
                         <a href="/rules" class="fantasy-btn ghost">Study The Rulebook</a>
                     </div>
                     <ul class="feature-list">
@@ -64,7 +167,25 @@
                             Every reveal pushes the match toward victory or ruin.
                         </p>
                     </div>
-                    <div class="play-medallion" aria-hidden="true"></div>
+
+                    <div class="preview-stone-cluster" aria-hidden="true">
+                        <div class="play-medallion preview-stone-medallion far-left">
+                            <img class="preview-stone-face" id="previewStoneFaceFarLeft" alt="Random Tellstones stone">
+                        </div>
+                        <div class="play-medallion preview-stone-medallion left">
+                            <img class="preview-stone-face" id="previewStoneFaceLeft" alt="Random Tellstones stone">
+                        </div>
+                        <div class="play-medallion preview-stone-medallion center">
+                            <img class="preview-stone-face" id="previewStoneFace" alt="Random Tellstones stone">
+                        </div>
+                        <div class="play-medallion preview-stone-medallion right">
+                            <img class="preview-stone-face" id="previewStoneFaceRight" alt="Random Tellstones stone">
+                        </div>
+                        <div class="play-medallion preview-stone-medallion far-right">
+                            <img class="preview-stone-face" id="previewStoneFaceFarRight" alt="Random Tellstones stone">
+                        </div>
+                    </div>
+
                     <div class="mini-stats">
                         <div class="stat">
                             <span class="stat-label">Mode</span>
@@ -111,16 +232,62 @@
             </div>
         </div>
     </div>
+
     <audio data-bgm loop>
         <source th:src="@{/audio/bgm.mp3}" type="audio/mpeg">
     </audio>
     <script th:src="@{/js/tellstone-ui.js}"></script>
-</body>
-<script>
-        const token = document.querySelector('meta[name="_csrf"]').content;
-        const header = document.querySelector('meta[name="_csrf_header"]').content;
-        let restone = [];
+
+    <script>
+        const token = document.querySelector('meta[name="_csrf"]')?.content;
+        const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+        let restone = {};
+        let joined = null;
+
+        const previewStones = [
+            "/textu/stones/default/crown.png",
+            "/textu/stones/default/flag.png",
+            "/textu/stones/default/hammer.png",
+            "/textu/stones/default/knight.png",
+            "/textu/stones/default/scale.png",
+            "/textu/stones/default/shield.png",
+            "/textu/stones/default/sword.png"
+        ];
+
+        function pickRandomStone(excluded = []) {
+            const available = previewStones.filter((stone) => !excluded.includes(stone));
+            return available[Math.floor(Math.random() * available.length)];
+        }
+
+        function populatePreviewStones() {
+            const center = document.getElementById("previewStoneFace");
+            const farLeft = document.getElementById("previewStoneFaceFarLeft");
+            const left = document.getElementById("previewStoneFaceLeft");
+            const right = document.getElementById("previewStoneFaceRight");
+            const farRight = document.getElementById("previewStoneFaceFarRight");
+
+            if (!center || !farLeft || !left || !right || !farRight) {
+                return;
+            }
+
+            const centerStone = pickRandomStone();
+            const leftStone = pickRandomStone([centerStone]);
+            const rightStone = pickRandomStone([centerStone, leftStone]);
+            const farLeftStone = pickRandomStone([centerStone, leftStone, rightStone]);
+            const farRightStone = pickRandomStone([centerStone, leftStone, rightStone, farLeftStone]);
+
+            center.src = centerStone;
+            farLeft.src = farLeftStone;
+            left.src = leftStone;
+            right.src = rightStone;
+            farRight.src = farRightStone;
+        }
+
         async function updatebaackendline() {
+            if (!token || !header) {
+                return;
+            }
+
             try {
 				const res = await fetch("/tellstones/welcomeplayer", {
 				method: "POST",
@@ -198,4 +365,33 @@
     }
 </script>
 
+        socket.on("connect_error", (err) => {
+            console.log("ERROR:", err);
+        });
+
+        socket.on("sessionID", async () => {
+            await updatebaackendline();
+            if (joined != null) {
+                socket.emit("inRoom", joined);
+            }
+        });
+
+        socket.on("Youin", async () => {
+            if (joined != null && restone?.id != null && restone?.username) {
+                window.location.href = `tellstones/${restone.id}/${joined}/${restone.username}`;
+            }
+        });
+
+        socket.on("roomJoined", (roomId) => {
+            joined = roomId;
+        });
+
+        function startRoom() {
+            const roomId = Math.random().toString(36).slice(2, 8).toUpperCase();
+            socket.emit("startRoom", roomId);
+        }
+
+        populatePreviewStones();
+    </script>
+</body>
 </html>
