@@ -40,7 +40,7 @@ public class Account implements UserDetails {
     private Boolean isAccountNonExpired = true;
     private Boolean isAccountNonLocked = true;
     private Boolean isCredentialsNonExpired = true;
-    private Boolean isEnabled = true;
+    private Boolean isEnabled = false;
 
     public Account() {
     }

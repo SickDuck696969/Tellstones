@@ -49,6 +49,15 @@ public class AccountService implements UserDetailsService {
         return accountRepository.findByemail(email);
     }
 
+    public Account enableAccount(Long id) {
+        Account account = accountRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        account.setIsEnabled(true);
+
+        return accountRepository.save(account);
+    }
+
     private boolean isEncodedPassword(String password) {
         return password.startsWith("$2a$")
                 || password.startsWith("$2b$")
