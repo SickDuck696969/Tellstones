@@ -140,7 +140,8 @@
                         Enter a carved-stone court of hidden intent, royal gambits, and fast multiplayer duels.
                     </p>
                     <div class="menu-actions">
-                        <button type="button" onclick="startRoom()" class="fantasy-btn primary">Enter The Chamber</button>
+                        <a th:if="${loggedIn}" href="/tellstones/queue" class="fantasy-btn primary">Enter The Chamber</a>
+                        <a th:if="${!loggedIn}" href="/login" class="fantasy-btn primary">Enter The Chamber</a>
                         <a href="/rules" class="fantasy-btn ghost">Study The Rulebook</a>
                     </div>
                     <ul class="feature-list">
@@ -320,28 +321,6 @@
         socket.on("connect_error", (err) => {
             console.log("ERROR:", err);
         });
-
-        socket.on("sessionID", async () => {
-            await updatebaackendline();
-            if (joined != null) {
-                socket.emit("inRoom", joined);
-            }
-        });
-
-        socket.on("Youin", async () => {
-            if (joined != null && restone?.id != null && restone?.username) {
-                window.location.href = `tellstones/${restone.id}/${joined}/${restone.username}`;
-            }
-        });
-
-        socket.on("roomJoined", (roomId) => {
-            joined = roomId;
-        });
-
-        function startRoom() {
-            const roomId = Math.random().toString(36).slice(2, 8).toUpperCase();
-            socket.emit("startRoom", roomId);
-        }
 
         populatePreviewStones();
     </script>

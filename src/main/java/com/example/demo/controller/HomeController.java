@@ -18,14 +18,20 @@ public class HomeController {
             && !(authentication instanceof AnonymousAuthenticationToken);
 
         String avatarUrl = "/logo.png";
+        Long accountId = null;
+        String accountUsername = null;
         if (loggedIn && authentication.getPrincipal() instanceof Account account) {
             if (account.getAvatar() != null && !account.getAvatar().isBlank()) {
                 avatarUrl = account.getAvatar();
             }
+            accountId = account.getId();
+            accountUsername = account.getUsername();
         }
 
         model.addAttribute("loggedIn", loggedIn);
         model.addAttribute("avatarUrl", avatarUrl);
+        model.addAttribute("accountId", accountId);
+        model.addAttribute("accountUsername", accountUsername);
         return "tellstone/menu";
     }
 

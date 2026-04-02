@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Set;
 
 import tools.jackson.databind.JsonNode;
 
@@ -159,7 +160,7 @@ public class GameController {
     @GetMapping("/{actualid}/{id}/{userid}")
     public String backtologin(@PathVariable String id, Model model, @AuthenticationPrincipal UserDetails user) {
         Account s = accountService.getAccountByUsername(user.getUsername()).get();
-        if(socketservice.getServer().getRoomOperations(id).getClients().isEmpty()){
+        if(!"QUEUE".equals(id) && socketservice.getServer().getRoomOperations(id).getClients().isEmpty()){
             return "redirect:/";
         }
         model.addAttribute("roomId", id);
@@ -170,6 +171,22 @@ public class GameController {
             }
         }
         catch (Exception e){
+            System.out.println(e);
+        }
+        return "tellstone/game";
+    }
+
+    @GetMapping("/queue")
+    public String queueLobby(@AuthenticationPrincipal UserDetails user, Model model) {
+        Account s = accountService.getAccountByUsername(user.getUsername()).get();
+        model.addAttribute("roomId", "QUEUE");
+        model.addAttribute("stoneskins", stoneskinservice.findByBelong(s));
+        try {
+            if (coreclient.socket == null) {
+                coreclient.init();
+            }
+        }
+        catch (Exception e) {
             System.out.println(e);
         }
         return "tellstone/game";
@@ -309,6 +326,14 @@ public class GameController {
         public  long id;
     }
 
+    public static class ExchangeSkinRequest {
+        public String skin;
+    }
+
+    public static class SurrenderRequest {
+        public String roomId;
+    }
+
     @PostMapping("/buy")
         public ResponseEntity<?> buy(@RequestBody BuyRequest request, @AuthenticationPrincipal UserDetails user) {
         int price = request.price;
@@ -327,6 +352,160 @@ public class GameController {
         else{
             return ResponseEntity.ok("Get more gems");
         }
+    }
+
+    @PostMapping("/exchange-skin")
+    public ResponseEntity<?> exchangeSkin(@RequestBody ExchangeSkinRequest request, @AuthenticationPrincipal UserDetails user) {
+        if (request == null || request.skin == null) {
+            return ResponseEntity.badRequest().body("Invalid skin");
+        }
+
+        Map<String, Long> skinIdByCode = Map.of(
+                "black", 1L,
+                "golden", 2L,
+                "neon", 3L,
+                "primitive", 4L
+        );
+        Map<String, String> skinNameByCode = Map.of(
+                "black", "Black Skin",
+                "golden", "Golden Skin",
+                "neon", "Neon Skin",
+                "primitive", "Primitive Skin"
+        );
+
+        String skinCode = request.skin.toLowerCase();
+        if (!skinIdByCode.containsKey(skinCode)) {
+            return ResponseEntity.badRequest().body("Unknown skin");
+        }
+
+        Account account = accountService.getAccountByUsername(user.getUsername()).get();
+        Set<Long> ownedSkinIds = stoneskinservice.findByBelong(account).stream()
+                .map(stoneskin::getId)
+                .collect(java.util.stream.Collectors.toSet());
+        long skinId = skinIdByCode.get(skinCode);
+
+        Map<String, java.lang.Object> response = new HashMap<>();
+        response.put("fragmentCount", account.getFragment() == null ? 0 : account.getFragment());
+        response.put("ownedSkinIds", ownedSkinIds);
+
+        if (ownedSkinIds.contains(skinId)) {
+            response.put("message", "Already unlocked");
+            return ResponseEntity.ok(response);
+        }
+
+        if (account.getFragment() == null || account.getFragment() < 10) {
+            response.put("message", "Not enough fragments");
+            return ResponseEntity.ok(response);
+        }
+
+        account.setFragment(account.getFragment() - 10);
+        accountService.save(account);
+
+        stoneskin unlockedSkin = new stoneskin();
+        unlockedSkin.setId(skinId);
+        unlockedSkin.setName(skinNameByCode.get(skinCode));
+        unlockedSkin.setBelong(account);
+        stoneskinservice.save(unlockedSkin);
+
+        response.put("message", "Exchange successful");
+        response.put("fragmentCount", account.getFragment());
+        response.put("ownedSkinIds", stoneskinservice.findByBelong(account).stream()
+                .map(stoneskin::getId)
+                .toList());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/surrender")
+    public ResponseEntity<?> surrender(@RequestBody SurrenderRequest request, @AuthenticationPrincipal UserDetails user) {
+        if (request == null || request.roomId == null || request.roomId.isBlank()) {
+            return ResponseEntity.badRequest().body("Room not found");
+        }
+
+        Game game = gameService.getGame(request.roomId);
+        if (game == null) {
+            return ResponseEntity.badRequest().body("Game not found");
+        }
+
+        Account surrenderingPlayer = accountService.getAccountByUsername(user.getUsername()).get();
+        Account winner = game.getMe().getUsername().equals(surrenderingPlayer.getUsername()) ? game.getOpponent() : game.getMe();
+        Account loser = surrenderingPlayer;
+
+        GameService.MatchResult existingResult = gameService.getMatchResult(request.roomId);
+        if (existingResult == null) {
+            existingResult = createMatchResult(request.roomId, winner, loser, "Victory By Surrender");
+            gameService.saveMatchResult(request.roomId, existingResult);
+        }
+
+        Map<String, String> payload = Map.of(
+                "winnerUsername", existingResult.getWinnerUsername(),
+                "loserUsername", existingResult.getLoserUsername(),
+                "winnerRedirect", "/tellstones/result/" + request.roomId
+        );
+
+        Collection<com.corundumstudio.socketio.SocketIOClient> clients = socketservice.getServer().getRoomOperations(request.roomId).getClients();
+        for (com.corundumstudio.socketio.SocketIOClient client : clients) {
+            String connectedUser = java.net.URLDecoder.decode(client.getHandshakeData().getSingleUrlParam("userId"), StandardCharsets.UTF_8);
+            if (connectedUser.equals(existingResult.getWinnerUsername())) {
+                client.sendEvent("matchResult", payload);
+            }
+        }
+
+        return ResponseEntity.ok(Map.of("redirectUrl", "/", "winnerRedirect", "/tellstones/result/" + request.roomId));
+    }
+
+    @GetMapping("/result/{roomId}")
+    public String resultPage(@PathVariable String roomId, @AuthenticationPrincipal UserDetails user, Model model) {
+        GameService.MatchResult result = gameService.getMatchResult(roomId);
+        if (result == null || !result.getWinnerUsername().equals(user.getUsername())) {
+            return "redirect:/";
+        }
+
+        Account account = accountService.getAccountByUsername(user.getUsername()).get();
+        model.addAttribute("winnerName", result.getWinnerUsername());
+        model.addAttribute("resultReason", result.getResultReason());
+        model.addAttribute("rewardType", result.getRewardType());
+        model.addAttribute("rewardAmount", result.getRewardAmount());
+        model.addAttribute("currentGemBalance", account.getCredit());
+        model.addAttribute("currentFragmentBalance", account.getFragment() == null ? 0 : account.getFragment());
+        return "tellstone/result";
+    }
+
+    private GameService.MatchResult createMatchResult(String roomId, Account winner, Account loser, String resultReason) {
+        Random random = new Random();
+        boolean grantFragment = random.nextBoolean();
+        int rewardAmount = grantFragment ? 1 : (random.nextInt(141) + 60);
+
+        winner.setMatchHistory(appendMatchHistory(winner.getMatchHistory(),
+                "Win vs %s by surrender".formatted(loser.getUsername())));
+        loser.setMatchHistory(appendMatchHistory(loser.getMatchHistory(),
+                "Lose vs %s by surrender".formatted(winner.getUsername())));
+
+        if (grantFragment) {
+            winner.setFragment((winner.getFragment() == null ? 0 : winner.getFragment()) + rewardAmount);
+        } else {
+            winner.setCredit((winner.getCredit() == null ? 0 : winner.getCredit()) + rewardAmount);
+        }
+
+        accountService.save(winner);
+        accountService.save(loser);
+
+        GameService.MatchResult result = new GameService.MatchResult();
+        result.setRoomCode(roomId);
+        result.setWinnerId(winner.getId());
+        result.setWinnerUsername(winner.getUsername());
+        result.setLoserUsername(loser.getUsername());
+        result.setResultReason(resultReason);
+        result.setRewardType(grantFragment ? "fragment" : "gems");
+        result.setRewardAmount(rewardAmount);
+        result.setUpdatedGemTotal(winner.getCredit() == null ? 0 : winner.getCredit());
+        result.setUpdatedFragmentTotal(winner.getFragment() == null ? 0 : winner.getFragment());
+        return result;
+    }
+
+    private List<String> appendMatchHistory(List<String> history, String entry) {
+        List<String> updatedHistory = history == null ? new ArrayList<>() : new ArrayList<>(history);
+        updatedHistory.add(0, entry);
+        return updatedHistory;
     }
 
     @GetMapping("/vn-pay-callback")

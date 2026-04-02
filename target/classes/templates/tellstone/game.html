@@ -52,10 +52,10 @@
                                 <button type="button" class="fantasy-btn primary" id="startRoomBtn" onclick="Startgame()">Start Game</button>
                         <div class="choice-card" style="display: grid; gap: 1rem;">
                             <p class="text-muted" style="margin: 0;">
-                                This button is currently a placeholder so you can verify the flow before wiring real room creation.
+                                Enter the queue and the chamber will open as soon as another challenger is found.
                             </p>
                             <div class="menu-actions">
-                                <button type="button" class="fantasy-btn primary" id="createRoomBtn">Create Room</button>
+                                <button type="button" class="fantasy-btn primary" id="createRoomBtn">Quick Match</button>
                             </div>
                         </div>
                     </div>
@@ -65,7 +65,7 @@
                             <div class="eyebrow">Current Chamber</div>
                             <h2 class="title-md">Active room</h2>
                             <p class="text-muted" data-room-info style="margin: 0.45rem 0 0;">
-                                Placeholder chamber opened. Copy its sigil, then start once your rivals arrive.
+                                Matchmaking is searching for an opponent. You will enter the duel as soon as the queue pairs you.
                             </p>
                         </div>
 
@@ -73,11 +73,11 @@
                             <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
                                 <div>
                                     <div class="eyebrow" style="margin-bottom: 0.25rem;">Room ID</div>
-                                    <div class="title-md" id="currentRoomId" style="font-size: 1.55rem;">Awaiting Sigil</div>
+                                    <div class="title-md" id="currentRoomId" style="font-size: 1.55rem;">Searching...</div>
                                 </div>
                                 <div class="menu-actions">
                                     <button type="button" class="icon-btn" id="copyRoomBtn" aria-label="Copy room id" title="Copy room id">⧉</button>
-                                    <button type="button" class="fantasy-btn primary" id="startRoomBtn">Start Game</button>
+                                    <button type="button" class="fantasy-btn primary" id="startRoomBtn">Awaiting Match</button>
                                 </div>
                             </div>
                         </div>
@@ -315,7 +315,7 @@
 
         if (createRoomBtn) {
             createRoomBtn.addEventListener("click", () => {
-                currentRoomId = generateRoomId();
+                createMode = true;
 
                 if (createRoomCollapsed) {
                     createRoomCollapsed.style.display = "none";
@@ -326,22 +326,23 @@
                 }
 
                 if (currentRoomIdLabel) {
-                    currentRoomIdLabel.textContent = currentRoomId;
+                    currentRoomIdLabel.textContent = "Searching...";
                 }
 
                 if (roomStatusLabel) {
-                    roomStatusLabel.textContent = "Placeholder chamber prepared. Start Game will create it when you are ready.";
+                    roomStatusLabel.textContent = "Searching the queue for another challenger.";
                 }
 
                 if (roomInfoLabel) {
-                    roomInfoLabel.textContent = "This is only a placeholder preview for now. The actual room will be created when you continue the flow.";
+                    roomInfoLabel.textContent = "Matchmaking is active. The duel chamber will open automatically once another player joins.";
                 }
 
                 if (roomBanner) {
-                    roomBanner.textContent = "A placeholder chamber has been prepared so you can test the create-room button.";
+                    roomBanner.textContent = "Searching for a worthy opponent...";
                 }
 
                 renderPlayerList([]);
+                socket.emit("quickmatch", user);
             });
         }
 
@@ -381,8 +382,23 @@
             }
         });
 
+        socket.on("quickmatchwaiting", () => {
+            if (roomBanner) {
+                roomBanner.textContent = "Searching for a worthy opponent...";
+            }
+        });
+
+        socket.on("quickmatched", (roomId) => {
+            joined = roomId;
+            window.location.href = `/tellstones/room/${userid}/${roomId}/${user}`;
+        });
+
         function moveroom() {
-            socket.emit("moveRoom", currentRoomId);
+            const targetRoom = roomInput.value.trim().toUpperCase();
+            if (!targetRoom) {
+                return;
+            }
+            socket.emit("moveRoom", targetRoom);
         }
 
         socket.on("roomJoined", (roomId) => {

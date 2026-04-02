@@ -213,6 +213,11 @@
     </audio>
     <script th:src="@{/js/tellstone-ui.js}"></script>
     <script>
+        const token = document.querySelector('meta[name="_csrf"]')?.content;
+        const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+        let matchFinished = false;
+    </script>
+    <script>
         async function updatebaackendline() {
             const theline = document.querySelectorAll(".slot");
             const data = [];
@@ -432,6 +437,22 @@
 
     socket.on("outthedoor", () => {
         massspawnplayer();
+    });
+
+    socket.on("matchResult", (data) => {
+        if (matchFinished) {
+            return;
+        }
+
+        matchFinished = true;
+        leaveRoom();
+
+        if (data && data.winnerUsername === selfPlayer?.username) {
+            window.location.href = data.winnerRedirect || "/";
+            return;
+        }
+
+        window.location.href = "/";
     });
 
     function massspawnplayer() {
@@ -675,8 +696,34 @@
 
         if (surrenderBtn) {
             surrenderBtn.addEventListener("click", async function() {
-                await leaveRoom();
-                window.location.href = "/";
+                if (matchFinished) {
+                    return;
+                }
+
+                try {
+                    const res = await fetch("/tellstones/surrender", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            [header]: token
+                        },
+                        body: JSON.stringify({ roomId: productId }),
+                        credentials: "include"
+                    });
+
+                    if (!res.ok) {
+                        alert(await res.text());
+                        return;
+                    }
+
+                    matchFinished = true;
+                    leaveRoom();
+                    const result = await res.json();
+                    window.location.href = result.redirectUrl || "/";
+                } catch (err) {
+                    console.error(err);
+                    alert("Unable to surrender right now.");
+                }
             });
         }
 

@@ -33,6 +33,7 @@ public class Account implements UserDetails {
     private String avatar; // URL or path to avatar image
     private String displayName;
     private Integer credit = 0;
+    private Integer fragment = 0;
 
     @ElementCollection
     private List<String> matchHistory;
@@ -67,6 +68,9 @@ public class Account implements UserDetails {
     
     public Integer getCredit() { return credit; }
     public void setCredit(Integer credit) { this.credit = credit; }
+
+    public Integer getFragment() { return fragment; }
+    public void setFragment(Integer fragment) { this.fragment = fragment; }
 
     public String getAvatar() { return avatar; }
     public void setAvatar(String avatar) { this.avatar = avatar; }

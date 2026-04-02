@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tellstones - Match Result</title>
+    <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
+    <style>
+        .result-stage {
+            width: min(920px, calc(100% - 2rem));
+            margin: 2rem auto;
+            min-height: calc(100vh - 4rem);
+            display: grid;
+            align-items: center;
+        }
+
+        .result-panel {
+            padding: 1.6rem;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .result-copy {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .result-copy .lead {
+            max-width: 33rem;
+            margin: 0;
+        }
+
+        .result-meta {
+            display: grid;
+            gap: 0.9rem;
+        }
+
+        .result-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: fit-content;
+            padding: 0.55rem 0.9rem;
+            border-radius: 999px;
+            border: 1px solid rgba(223, 193, 125, 0.22);
+            background: rgba(255, 255, 255, 0.04);
+            font-family: "Cinzel", serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--gold-bright);
+        }
+
+        .result-summary {
+            margin: 0;
+            color: rgba(234, 223, 202, 0.78);
+            font-size: 1.04rem;
+            line-height: 1.45;
+        }
+
+        .result-art {
+            min-height: 24rem;
+            padding: 1.25rem;
+            display: grid;
+            align-content: space-between;
+            gap: 1rem;
+            background:
+                radial-gradient(circle at top, rgba(223, 193, 125, 0.16), transparent 34%),
+                linear-gradient(180deg, rgba(70, 48, 34, 0.82), rgba(16, 11, 8, 0.95));
+        }
+
+        .result-portrait-shell {
+            display: grid;
+            place-items: center;
+            min-height: 17rem;
+        }
+
+        #resultRewardMount {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            place-items: center;
+        }
+
+        .result-reward-frame {
+            position: relative;
+            width: min(16rem, 70vw);
+            aspect-ratio: 1;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            border: 1px solid rgba(223, 193, 125, 0.24);
+            background:
+                radial-gradient(circle at 32% 28%, rgba(255, 247, 220, 0.25), transparent 24%),
+                radial-gradient(circle at 50% 50%, rgba(98, 68, 34, 0.92), rgba(32, 22, 15, 0.98));
+            box-shadow: 0 0 48px rgba(185, 147, 79, 0.18);
+            overflow: hidden;
+        }
+
+        .result-reward-frame::after {
+            content: "";
+            position: absolute;
+            inset: 11%;
+            border-radius: 50%;
+            border: 1px solid rgba(223, 193, 125, 0.15);
+            pointer-events: none;
+        }
+
+        .result-reward-art {
+            width: 58%;
+            height: 58%;
+            object-fit: contain;
+            filter: drop-shadow(0 1rem 1.25rem rgba(0, 0, 0, 0.34));
+        }
+
+        .result-gem-reward {
+            display: grid;
+            place-items: center;
+            gap: 0.35rem;
+            text-align: center;
+        }
+
+        .result-gem-reward strong {
+            display: block;
+            font-family: "Cinzel", serif;
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            color: var(--parchment);
+            line-height: 1;
+        }
+
+        .result-gem-reward span {
+            display: block;
+            margin-top: 0.3rem;
+            font-family: "Cinzel", serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: rgba(234, 223, 202, 0.82);
+        }
+
+        .result-gem-icon {
+            font-size: clamp(2rem, 4vw, 2.8rem);
+            line-height: 1;
+            filter: drop-shadow(0 0.45rem 0.8rem rgba(0, 0, 0, 0.24));
+        }
+
+        .result-caption {
+            text-align: center;
+            color: rgba(234, 223, 202, 0.7);
+        }
+
+        .result-caption strong {
+            display: block;
+            font-family: "Cinzel", serif;
+            color: var(--parchment);
+            margin-bottom: 0.35rem;
+        }
+
+        @media (max-width: 900px) {
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-art {
+                min-height: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-shell">
+        <header class="topbar compact">
+            <a class="brand-mark" href="/">
+                <img th:src="@{/logo.png}" alt="Tellstones Logo">
+            </a>
+        </header>
+
+        <main class="result-stage">
+            <section class="panel result-panel">
+                <div class="result-grid">
+                    <div class="result-copy">
+                        <div class="eyebrow">Match Result</div>
+                        <h1 class="title-lg">The duel has ended.</h1>
+
+                        <div class="result-meta">
+                            <div class="result-pill" th:text="${resultReason != null ? resultReason : 'Victory By Rule'}">Victory By Rule</div>
+                            <div class="choice-card">
+                                <div class="eyebrow" style="margin-bottom: 0.35rem;">Winner</div>
+                                <h2 class="title-md" th:text="${winnerName != null ? winnerName : 'Player One'}">Player One</h2>
+                            </div>
+                            <div class="choice-card">
+                                <div class="eyebrow" style="margin-bottom: 0.35rem;">Updated Resources</div>
+                                <p class="result-summary" th:if="${rewardType == 'fragment'}" th:text="'Fragments: ' + ${currentFragmentBalance}">Fragments: 0</p>
+                                <p class="result-summary" th:if="${rewardType != 'fragment'}" th:text="'Gems: ' + ${currentGemBalance}">Gems: 0</p>
+                            </div>
+                            <div class="menu-actions">
+                                <a href="/" class="fantasy-btn primary">Confirm</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <aside class="panel result-art">
+                        <div>
+                            <div class="eyebrow">Victory Relic</div>
+                            <h2 class="title-md">Winner's Tribute</h2>
+                        </div>
+                        <div class="result-portrait-shell">
+                            <div class="result-reward-frame" aria-hidden="true">
+                                <div id="resultRewardMount">
+                                    <img th:if="${rewardType == 'fragment'}" class="result-reward-art" th:src="@{/textu/fragment.png}" alt="Fragment reward">
+                                    <div th:if="${rewardType != 'fragment'}" class="result-gem-reward">
+                                        <div class="result-gem-icon">💎</div>
+                                        <div>
+                                            <strong th:text="'+' + ${rewardAmount}">+0</strong>
+                                            <span>Gems</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="result-caption">
+                            <strong id="resultRewardTitle" th:text="${rewardType == 'fragment' ? '+1 Fragment' : '+' + rewardAmount + ' Gems'}">Reward</strong>
+                            <span id="resultRewardDescription" th:text="${rewardType == 'fragment' ? 'Added to your fragment stash.' : 'Added to your gem vault.'}"></span>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <audio data-bgm loop>
+        <source th:src="@{/audio/bgm.mp3}" type="audio/mpeg">
+    </audio>
+    <script th:src="@{/js/tellstone-ui.js}"></script>
+</body>
+</html>

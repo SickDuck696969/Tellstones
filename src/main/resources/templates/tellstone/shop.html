@@ -3,8 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
     <title>Shop</title>
     <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
+    <style>
+        .resource-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+        }
+
+        .fragment-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.8rem 1rem;
+            border-radius: 999px;
+            background: rgba(58, 45, 35, 0.76);
+            border: 1px solid rgba(223, 193, 125, 0.18);
+            color: var(--parchment);
+            font-family: "Cinzel", serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .fragment-pill img {
+            width: 1.25rem;
+            height: 1.25rem;
+            object-fit: contain;
+        }
+
+        .skin-exchange-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .skin-exchange-card {
+            display: grid;
+            gap: 0.95rem;
+            padding: 1rem;
+            border-radius: 1.15rem;
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid rgba(223, 193, 125, 0.08);
+            transition: border-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+        }
+
+        .skin-exchange-card.is-unlocked {
+            border-color: rgba(223, 193, 125, 0.28);
+            box-shadow: inset 0 0 0 1px rgba(223, 193, 125, 0.08);
+        }
+
+        .skin-preview-row {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 0.45rem;
+        }
+
+        .skin-stone {
+            aspect-ratio: 1;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            padding: 0.35rem;
+            border: 1px solid rgba(223, 193, 125, 0.16);
+            background:
+                radial-gradient(circle at 30% 28%, rgba(255, 247, 220, 0.26), transparent 24%),
+                radial-gradient(circle at 50% 50%, rgba(108, 76, 41, 0.78), rgba(34, 24, 18, 0.94));
+        }
+
+        .skin-stone img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 0.45rem 0.7rem rgba(0, 0, 0, 0.28));
+        }
+
+        .exchange-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.8rem;
+            margin-top: auto;
+        }
+
+        .exchange-btn[disabled] {
+            opacity: 0.65;
+            cursor: default;
+        }
+
+        .exchange-lock {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-family: "Cinzel", serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(234, 223, 202, 0.7);
+        }
+
+        .exchange-lock.is-unlocked {
+            color: #9ed9a7;
+        }
+
+        .exchange-progress {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-family: "Cinzel", serif;
+            font-size: 0.76rem;
+            letter-spacing: 0.06em;
+            color: var(--gold-bright);
+        }
+
+        .exchange-progress img {
+            width: 1.05rem;
+            height: 1.05rem;
+            object-fit: contain;
+        }
+
+        .shop-notice {
+            position: fixed;
+            right: 1.2rem;
+            bottom: 1.2rem;
+            z-index: 25;
+            min-width: min(25rem, calc(100vw - 2rem));
+            max-width: 26rem;
+            padding: 1rem 1.05rem;
+            border-radius: 1.05rem;
+            border: 1px solid rgba(223, 193, 125, 0.18);
+            background: rgba(18, 14, 11, 0.94);
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.36);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(0.8rem);
+            transition: opacity 180ms ease, transform 180ms ease;
+        }
+
+        .shop-notice.is-open {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .shop-notice strong {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-family: "Cinzel", serif;
+        }
+
+        .shop-notice p {
+            margin: 0;
+            color: rgba(234, 223, 202, 0.78);
+        }
+
+        @media (max-width: 960px) {
+            .skin-exchange-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .skin-preview-row {
+                gap: 0.3rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="page-shell">
@@ -13,8 +181,14 @@
                 <img th:src="@{/logo.png}" alt="Tellstones Logo">
             </a>
             <div class="nav-cluster">
-                <div class="gem-pill">💎 <span th:text="${num} + ' Gems'"></div>
-                <a href="/shop/gem" class="icon-btn" title="Buy gems">+</a>
+                <div class="resource-row">
+                    <div class="gem-pill">💎 <span th:text="${num} + ' Gems'"></span></div>
+                    <div class="fragment-pill">
+                        <img th:src="@{/textu/fragment.png}" alt="Fragment">
+                        <span id="fragmentCountLabel" th:text="${(fragmentCount != null ? fragmentCount : 0) + ' Fragments'}">0 Fragments</span>
+                    </div>
+                    <a href="/shop/gem" class="icon-btn" title="Buy gems">+</a>
+                </div>
                 <a href="/rules" class="fantasy-btn ghost">Rulebook</a>
                 <a href="/" class="fantasy-btn ghost">Main Menu</a>
             </div>
@@ -92,20 +266,244 @@
                         </div>
                     </div>
                 </section>
+
+                <section class="panel card span-12">
+                    <div class="section-head">
+                        <div>
+                            <div class="eyebrow">Fragment Exchange</div>
+                            <h2 class="title-md">Trade fragments for stone skins</h2>
+                        </div>
+                    </div>
+                    <p class="text-muted" style="margin-top: 0;">
+                        Gather 10 fragments to exchange for a full stone skin set.
+                    </p>
+                    <div class="skin-exchange-grid">
+                        <div class="skin-exchange-card" data-skin-card="golden">
+                            <div>
+                                <strong>Golden Skin</strong>
+                                <p class="text-muted">Ceremonial gold plating and radiant engraving.</p>
+                            </div>
+                            <div class="skin-preview-row">
+                                <div class="skin-stone"><img th:src="@{/textu/stones/golden/sword.png}" alt="Golden sword"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/golden/knight.png}" alt="Golden knight"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/golden/shield.png}" alt="Golden shield"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/golden/hammer.png}" alt="Golden hammer"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/golden/flag.png}" alt="Golden flag"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/golden/crown.png}" alt="Golden crown"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/golden/scale.png}" alt="Golden scale"></div>
+                            </div>
+                            <div class="exchange-meta">
+                                <button type="button" class="fantasy-btn ghost exchange-btn" data-skin="golden">Exchange</button>
+                                <div class="exchange-progress">
+                                    <img th:src="@{/textu/fragment.png}" alt="Fragment">
+                                    <span class="fragment-progress" th:text="${(fragmentCount != null ? fragmentCount : 0) + '/10'}">0/10</span>
+                                </div>
+                            </div>
+                            <div class="exchange-lock" data-lock-label="golden">Locked</div>
+                        </div>
+
+                        <div class="skin-exchange-card" data-skin-card="primitive">
+                            <div>
+                                <strong>Primitive Skin</strong>
+                                <p class="text-muted">Rough-hewn relic faces with ancient weight.</p>
+                            </div>
+                            <div class="skin-preview-row">
+                                <div class="skin-stone"><img th:src="@{/textu/stones/primitive/sword.png}" alt="Primitive sword"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/primitive/knight.png}" alt="Primitive knight"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/primitive/shield.png}" alt="Primitive shield"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/primitive/hammer.png}" alt="Primitive hammer"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/primitive/flag.png}" alt="Primitive flag"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/primitive/crown.png}" alt="Primitive crown"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/primitive/scale.png}" alt="Primitive scale"></div>
+                            </div>
+                            <div class="exchange-meta">
+                                <button type="button" class="fantasy-btn ghost exchange-btn" data-skin="primitive">Exchange</button>
+                                <div class="exchange-progress">
+                                    <img th:src="@{/textu/fragment.png}" alt="Fragment">
+                                    <span class="fragment-progress" th:text="${(fragmentCount != null ? fragmentCount : 0) + '/10'}">0/10</span>
+                                </div>
+                            </div>
+                            <div class="exchange-lock" data-lock-label="primitive">Locked</div>
+                        </div>
+
+                        <div class="skin-exchange-card" data-skin-card="neon">
+                            <div>
+                                <strong>Neon Skin</strong>
+                                <p class="text-muted">Luminous edges and arcane modern glow.</p>
+                            </div>
+                            <div class="skin-preview-row">
+                                <div class="skin-stone"><img th:src="@{/textu/stones/neon/sword.png}" alt="Neon sword"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/neon/knight.png}" alt="Neon knight"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/neon/shield.png}" alt="Neon shield"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/neon/hammer.png}" alt="Neon hammer"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/neon/flag.png}" alt="Neon flag"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/neon/crown.png}" alt="Neon crown"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/neon/scale.png}" alt="Neon scale"></div>
+                            </div>
+                            <div class="exchange-meta">
+                                <button type="button" class="fantasy-btn ghost exchange-btn" data-skin="neon">Exchange</button>
+                                <div class="exchange-progress">
+                                    <img th:src="@{/textu/fragment.png}" alt="Fragment">
+                                    <span class="fragment-progress" th:text="${(fragmentCount != null ? fragmentCount : 0) + '/10'}">0/10</span>
+                                </div>
+                            </div>
+                            <div class="exchange-lock" data-lock-label="neon">Locked</div>
+                        </div>
+
+                        <div class="skin-exchange-card" data-skin-card="black">
+                            <div>
+                                <strong>Black Skin</strong>
+                                <p class="text-muted">Midnight lacquer and shadowed heraldry.</p>
+                            </div>
+                            <div class="skin-preview-row">
+                                <div class="skin-stone"><img th:src="@{/textu/stones/black/sword.png}" alt="Black sword"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/black/knight.png}" alt="Black knight"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/black/shield.png}" alt="Black shield"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/black/hammer.png}" alt="Black hammer"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/black/flag.png}" alt="Black flag"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/black/crown.png}" alt="Black crown"></div>
+                                <div class="skin-stone"><img th:src="@{/textu/stones/black/scale.png}" alt="Black scale"></div>
+                            </div>
+                            <div class="exchange-meta">
+                                <button type="button" class="fantasy-btn ghost exchange-btn" data-skin="black">Exchange</button>
+                                <div class="exchange-progress">
+                                    <img th:src="@{/textu/fragment.png}" alt="Fragment">
+                                    <span class="fragment-progress" th:text="${(fragmentCount != null ? fragmentCount : 0) + '/10'}">0/10</span>
+                                </div>
+                            </div>
+                            <div class="exchange-lock" data-lock-label="black">Locked</div>
+                        </div>
+                    </div>
+                </section>
             </div>
         </main>
+    </div>
+    <div id="shopNotice" class="shop-notice">
+        <strong id="shopNoticeTitle">Notice</strong>
+        <p id="shopNoticeText"></p>
     </div>
     <audio data-bgm loop>
         <source th:src="@{/audio/bgm.mp3}" type="audio/mpeg">
     </audio>
     <script th:src="@{/js/tellstone-ui.js}"></script>
-    <script>
+    <script th:inline="javascript">
+        const token = document.querySelector('meta[name="_csrf"]')?.content;
+        const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+        const shopNotice = document.getElementById("shopNotice");
+        const shopNoticeTitle = document.getElementById("shopNoticeTitle");
+        const shopNoticeText = document.getElementById("shopNoticeText");
+        const fragmentCountLabel = document.getElementById("fragmentCountLabel");
+        const fragmentProgressLabels = document.querySelectorAll(".fragment-progress");
+        const exchangeButtons = document.querySelectorAll(".exchange-btn");
+        const skinIdByCode = {
+            black: 1,
+            golden: 2,
+            neon: 3,
+            primitive: 4
+        };
+        let unlockedSkinIds = new Set(/*[[${ownedSkinIds}]]*/ []);
+        let fragmentCount = parseInt((fragmentCountLabel?.textContent || "0").replace(/\D/g, ""), 10) || 0;
+
+        function showShopNotice(title, message) {
+            if (!shopNotice || !shopNoticeTitle || !shopNoticeText) {
+                return;
+            }
+
+            shopNoticeTitle.textContent = title;
+            shopNoticeText.textContent = message;
+            shopNotice.classList.add("is-open");
+            clearTimeout(showShopNotice.hideTimer);
+            showShopNotice.hideTimer = setTimeout(() => {
+                shopNotice.classList.remove("is-open");
+            }, 2600);
+        }
+
+        function renderFragmentLabels() {
+            if (fragmentCountLabel) {
+                fragmentCountLabel.textContent = `${fragmentCount} Fragments`;
+            }
+            fragmentProgressLabels.forEach((label) => {
+                label.textContent = `${fragmentCount}/10`;
+            });
+        }
+
+        function renderUnlockedSkins() {
+            document.querySelectorAll("[data-skin-card]").forEach((card) => {
+                const skin = card.getAttribute("data-skin-card");
+                const button = card.querySelector(".exchange-btn");
+                const lockLabel = card.querySelector(".exchange-lock");
+                const isUnlocked = unlockedSkinIds.has(skinIdByCode[skin]);
+
+                card.classList.toggle("is-unlocked", isUnlocked);
+                if (button) {
+                    button.disabled = isUnlocked;
+                    button.textContent = isUnlocked ? "Unlocked" : "Exchange";
+                }
+                if (lockLabel) {
+                    lockLabel.textContent = isUnlocked ? "Unlocked" : "Locked";
+                    lockLabel.classList.toggle("is-unlocked", isUnlocked);
+                }
+            });
+        }
+
+        exchangeButtons.forEach((button) => {
+            button.addEventListener("click", async () => {
+                const skin = button.getAttribute("data-skin");
+
+                if (unlockedSkinIds.has(skinIdByCode[skin])) {
+                    showShopNotice("Already Unlocked", `The ${skin} skin set is already in your collection.`);
+                    return;
+                }
+
+                if (fragmentCount < 10) {
+                    showShopNotice("Not Enough Fragments", "Collect 10 fragments before exchanging for this skin set.");
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/tellstones/exchange-skin', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...(token && header ? { [header]: token } : {})
+                        },
+                        body: JSON.stringify({ skin })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error("Exchange request failed");
+                    }
+
+                    const result = await response.json();
+                    fragmentCount = result.fragmentCount ?? fragmentCount;
+                    unlockedSkinIds = new Set(result.ownedSkinIds || []);
+                    renderFragmentLabels();
+                    renderUnlockedSkins();
+
+                    if (result.message === "Exchange successful") {
+                        showShopNotice("Exchange Successful", `The ${skin} skin set has been added to your unlocked collection.`);
+                    } else if (result.message === "Already unlocked") {
+                        showShopNotice("Already Unlocked", `The ${skin} skin set is already in your collection.`);
+                    } else {
+                        showShopNotice("Not Enough Fragments", "Collect 10 fragments before exchanging for this skin set.");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showShopNotice("Exchange Failed", "Could not complete the exchange. Please try again.");
+                }
+            });
+        });
+
+        renderFragmentLabels();
+        renderUnlockedSkins();
+
         async function buy(price, name, id) {
         try {
             const response = await fetch('/tellstones/buy', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    ...(token && header ? { [header]: token } : {})
                 },
                 body: JSON.stringify({
                     price: price,

@@ -22,6 +22,8 @@ import com.example.demo.model.Account;
 public class SocketIOService {
 
     public SocketIOServer server;
+    private final Object quickMatchLock = new Object();
+    private com.corundumstudio.socketio.SocketIOClient waitingQuickMatchClient;
 
     public static class PlaceData {
         public String room;
@@ -91,6 +93,14 @@ public class SocketIOService {
         server.addConnectListener(client ->
                 System.out.println("Client connected: " + client.getSessionId())
         );
+        server.addDisconnectListener(client -> {
+            synchronized (quickMatchLock) {
+                if (waitingQuickMatchClient != null
+                        && waitingQuickMatchClient.getSessionId().equals(client.getSessionId())) {
+                    waitingQuickMatchClient = null;
+                }
+            }
+        });
 
         // Message listener
         server.addEventListener("message", msgData.class, (client, data, ackSender) -> {
@@ -163,6 +173,24 @@ public class SocketIOService {
         server.addEventListener("moveRoom", String.class, (client, roomId, ack) -> {
             client.sendEvent("roomJoined", roomId);
             client.sendEvent("goto", client.getSessionId().toString());
+        });
+
+        server.addEventListener("quickmatch", String.class, (client, data, ack) -> {
+            synchronized (quickMatchLock) {
+                if (waitingQuickMatchClient != null
+                        && waitingQuickMatchClient.isChannelOpen()
+                        && !waitingQuickMatchClient.getSessionId().equals(client.getSessionId())) {
+                    String roomId = randomRoomId();
+                    waitingQuickMatchClient.joinRoom(roomId);
+                    client.joinRoom(roomId);
+                    waitingQuickMatchClient.sendEvent("quickmatched", roomId);
+                    client.sendEvent("quickmatched", roomId);
+                    waitingQuickMatchClient = null;
+                } else {
+                    waitingQuickMatchClient = client;
+                    client.sendEvent("quickmatchwaiting");
+                }
+            }
         });
 
         server.addEventListener("massleave", Void.class, (client, data, ack) -> {
@@ -292,5 +320,13 @@ public class SocketIOService {
 
     public SocketIOServer getServer() {
         return server;
+    }
+
+    private String randomRoomId() {
+        String roomId = Long.toString(System.nanoTime(), 36).toUpperCase();
+        if (roomId.length() >= 6) {
+            return roomId.substring(roomId.length() - 6);
+        }
+        return String.format("%6s", roomId).replace(' ', 'X');
     }
 }
