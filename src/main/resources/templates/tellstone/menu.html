@@ -289,81 +289,33 @@
             }
 
             try {
-				const res = await fetch("/tellstones/welcomeplayer", {
-				method: "POST",
-				headers: {
-                    'Content-Type': 'application/json',
-                    [header]: token,
-                },
-                credentials: "include",
-				});
+                const res = await fetch("/tellstones/welcomeplayer", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        [header]: token
+                    },
+                    credentials: "include"
+                });
 
-				if (res.ok) {
-					restone = await res.json();
-                    console.log(restone);
-				} else {
-				}
-			} catch (err) {
-				console.error(err);
-			}
+                if (res.ok) {
+                    restone = await res.json();
+                }
+            } catch (err) {
+                console.error(err);
+            }
         }
-</script>
 
-<script>
-    const socket = io("http://172.19.200.198:9092", {
-        transports: ["websocket"],
-        query: {
-            userId: restone.username
-        }
-    });
+        const socket = io("http://172.30.1.244:9092", {
+            transports: ["websocket"],
+            query: {
+                userId: restone.username
+            }
+        });
 
-    socket.on("connect", () => {
-        socket.emit("massleave");
-        console.log("CONNECTED");
-    });
-
-    socket.on("connect_error", (err) => {
-        console.log("ERROR:", err);
-    });
-
-    socket.on("message", (data) => {
-        const li = document.createElement("li");
-        li.innerText = data;
-        document.getElementById("messages").appendChild(li);
-    });
-
-
-    let data = [];
-    let joined = null;
-
-    socket.on("sessionID", async (sessionID) => {
-        await updatebaackendline(data);
-        console.log("joining room " + joined);
-        socket.emit("inRoom", joined);
-    });
-
-    
-
-    socket.on("Youin", async () => {
-        if(joined != null){
-            console.log("You are in a room " + joined);
-            console.log(`tellstones/${restone.id}/${joined}/${restone.username}`);
-            window.location.href = `tellstones/${restone.id}/${joined}/${restone.username}`;
-        }
-    });
-
-    socket.on("roomJoined", (roomId) => {
-        console.log("Joined room:", roomId);
-        joined = roomId;
-    });
-
-
-    function startRoom() {
-        const roomId = Math.random().toString(36).slice(2, 8).toUpperCase();
-        socket.emit("startRoom", roomId);
-        console.log("Started room:", roomId);
-    }
-</script>
+        socket.on("connect", () => {
+            socket.emit("massleave");
+        });
 
         socket.on("connect_error", (err) => {
             console.log("ERROR:", err);

@@ -131,9 +131,15 @@
                         <strong>Board Skin</strong>
                         <p class="text-muted">Velvet tournament dais with gilt corners.</p>
                     </div>
-                    <div class="choice-card">
-                        <strong>Stone Skin</strong>
-                        <p class="text-muted">Ivory face, obsidian edge, crestwork in brass.</p>
+                    <div class="choice-card" style="display: grid; gap: 0.6rem;">
+                        <label for="stoneSkinSelect"><strong>Stone Skin</strong></label>
+                        <select id="stoneSkinSelect" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 0.35rem; background: #fff;">
+                            <option th:each="c : ${stoneskins}"
+                                    th:value="${c.id}"
+                                    th:text="${c.name}">
+                            </option>
+                        </select>
+                        <p class="text-muted" id="stoneSkinDesc" style="margin: 0;">Ivory face, obsidian edge, crestwork in brass.</p>
                     </div>
                 </div>
             </section>
@@ -146,24 +152,26 @@
         let restone = [];
         async function updatebaackendline() {
             try {
-				const res = await fetch("/tellstones/welcomeplayer", {
-				method: "POST",
-				headers: {
-                    'Content-Type': 'application/json',
-                    [header]: token,
-                },
-                credentials: "include",
-				});
+                const res = await fetch("/tellstones/setskins", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        [header]: token,
+                    },
+                    body: JSON.stringify({
+                        stoneid: document.getElementById("stoneSkinSelect").value
+                    }),
+                    credentials: "include",
+                });
 
-				if (res.ok) {
-					restone = await res.json();
+                if (res.ok) {
+                    restone = await res.json();
                     console.log(restone);
-				} else {
-				}
-                } catch (err) {
-                    console.error(err);
                 }
+            } catch (err) {
+                console.error(err);
             }
+        }
     </script>
 
     <script>
@@ -181,9 +189,16 @@
             }
         }
     </script>
+    <script>
+    const select = document.getElementById("stoneSkinSelect");
+    select.addEventListener("change", function() {
+        console.log("Selected value:", this.value);
+        updatebaackendline();
+    });
+    </script>
 
 <script>
-    const socket = io("http://172.19.200.198:9092", {
+    const socket = io("http://172.30.1.244:9092", {
         transports: ["websocket"],
         query: {
             userId: window.location.pathname.split("/").pop()
@@ -263,6 +278,7 @@
 
         socket.on("connect", () => {
             console.log("CONNECTED");
+            updatebaackendline();
             inRoom();
         });
 
@@ -396,8 +412,23 @@
                 }
                 createMode = false;
                 joined = null;
-                socket.emit("startRoom", targetRoom);
+                socket.emit("moveRoom", targetRoom);
                 console.log("Joined room request:", targetRoom);
+            });
+        }
+
+        const stoneSkinSelect = document.getElementById("stoneSkinSelect");
+        const stoneSkinDesc = document.getElementById("stoneSkinDesc");
+        const stoneSkinOptions = {
+            ivory: "Ivory face, obsidian edge, crestwork in brass.",
+            shadow: "Shadow obsidian with rune etching.",
+            frost: "Frosted marble with silver rim.",
+            ember: "Ember red with gold inlay."
+        };
+
+        if (stoneSkinSelect && stoneSkinDesc) {
+            stoneSkinSelect.addEventListener("change", () => {
+                stoneSkinDesc.textContent = stoneSkinOptions[stoneSkinSelect.value] || "Choose your stone skin from the list.";
             });
         }
     </script>

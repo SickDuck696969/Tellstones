@@ -198,6 +198,16 @@
         }
 
         function closeModal() {
+            document.querySelector('.payment-methods').innerHTML = `
+                <div class="payment-method" onclick="selectMethod('vnpay')">
+                    <img src="/textu/vnpay.png">
+                    <span>VNPay</span>
+                </div>
+                <div class="payment-method" onclick="selectMethod('bank')">
+                    <img src="/textu/vietqr.png">
+                    <span>Bank Transfer</span>
+                </div>
+             `;
             document.getElementById("payment-modal").classList.add("hidden");
         }
 
@@ -208,7 +218,7 @@
             }
             else if (howwedothis === "bank") {
                 document.querySelectorAll("payment-actions button").forEach(el => el.disabled = true);
-                bankpay();
+                bankpay(amount, gemamount);
             }
             else {
                 alert("please select a payment method");
@@ -256,24 +266,21 @@
     }
     </script>
     <script>
-        function bankpay() {
+        function bankpay(aamount, gemamount) {
             fetch('/moolah/payos', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify({
+                    gems: gemamount,
+                    price: aamount
+                })
             })
             .then(res => res.json())
             .then(data => {
                 console.log(data);
-                document.querySelector(".payment-methods").innerHTML = `
-                <iframe 
-                    src="${data.checkoutUrl}"
-                    width=""100%"" 
-                    height="600"
-                    style="border:none; overflow:hidden; overflow-y:hidden;">
-                </iframe>
-                `;
+                window.open(data.checkoutUrl, "_blank");
             })
             .catch(err => console.error(err));
     }

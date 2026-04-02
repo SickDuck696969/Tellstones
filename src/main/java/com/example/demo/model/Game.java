@@ -18,7 +18,9 @@ public class Game {
     Account me;
     Account opponent;
 
-    Map <String, Long> Scoreboard;
+    int mescore = 0;
+    int theyscore = 0;
+    
     int wincondition = 3;
 
     Account currentPlayerIndex;

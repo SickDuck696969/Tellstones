@@ -24,6 +24,11 @@
         .chat-history { position: relative; z-index: 1; flex: 1; overflow-y: auto; }
         .chat-history ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; }
         .chat-history li { padding: .75rem .9rem; border-radius: .95rem; background: rgba(255,255,255,.045); border: 1px solid rgba(223,193,125,.08); font-size: 1rem; line-height: 1.35; word-break: break-word; }
+        .chat-history li.mine {
+            border: 1px solid rgba(241, 170, 3, 0.599);
+            background: rgb(255, 220, 115);
+            color: black;
+        }
         .chat-empty { color: rgba(234,223,202,.58); font-size: 1rem; }
         .chat-form { position: relative; z-index: 1; display: grid; gap: .7rem; margin-top: .9rem; }
         .chat-form label { display: block; font-family: "Cinzel", serif; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: #c8b89a; }
@@ -77,9 +82,11 @@
         .board-shell::before { content: ""; position: absolute; inset: 1rem; border-radius: 1.35rem; border: 1px solid rgba(223,193,125,.12); pointer-events: none; }
         .board-shell::after { content: ""; position: absolute; left: 50%; top: 1rem; bottom: 1rem; width: 1px; transform: translateX(-50%); background: linear-gradient(180deg, transparent, rgba(223,193,125,.18), transparent); pointer-events: none; }
         .theline { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-        .side { position: absolute; top: 0; height: 100%; width: 50%; z-index: 2; }
+        .side { position: absolute; top: 0; height: 100%; width: 50%; z-index: 2; transition: all 0.3s ease;}
         .left { left: 0; }
         .right { right: 0; }
+        .chosen { background: rgba(247, 156, 11, 0.27);}
+        .chosen:hover { background: rgba(247, 157, 11, 0.138);}
         .slots { position: relative; z-index: 3; display: flex; gap: clamp(.35rem, 1vw, .8rem); width: min(860px, calc(100% - 5rem)); align-items: center; justify-content: center; pointer-events:none;}
         .slot { width: clamp(72px, 8vw, 106px); height: clamp(72px, 8vw, 106px); position: relative; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px dashed rgba(234,223,202,.46); background: radial-gradient(circle at center, rgba(255,255,255,.12), transparent 62%), rgba(11,9,8,.36); box-shadow: inset 0 0 24px rgba(0,0,0,.25); pointer-events:none;}
         .slot::before { content: ""; position: absolute; inset: .45rem; border-radius: 50%; border: 1px solid rgba(223,193,125,.1); pointer-events:none;}
@@ -163,9 +170,9 @@
                     <div class="action-panel">
                         <button type="button" class="action-choice" onclick="Place()">Place</button>
                         <button type="button" class="action-choice" onclick="Hide()">Hide</button>
-                        <button type="button" class="action-choice">Swap</button>
-                        <button type="button" class="action-choice">Peek</button>
-                        <button type="button" class="action-choice">Challenge</button>
+                        <button type="button" class="action-choice" onclick="Swap()">Swap</button>
+                        <button type="button" class="action-choice" onclick="Peek()">Peek</button>
+                        <button type="button" class="action-choice" onclick="Challenge()">Challenge</button>
                         <button type="button" class="action-choice">Boast</button>
                     </div>
                     <button type="button" class="action-trigger">Act</button>
@@ -284,7 +291,7 @@
 
 <script>
     let isSocketConnected = false;
-    const socket = io("http://172.19.200.198:9092", {
+    const socket = io("http://172.30.1.244:9092", {
         transports: ["websocket"],
         query: {
             userId: window.location.pathname.split("/").pop()
@@ -336,11 +343,91 @@
 
     function sendMessage() {
         const msg = document.getElementById("message").value;
-        socket.emit("message", msg);
-    }
-
-    function sendMessage() {
-        socket.emit('leaveRoom', productId);
+        data = {
+            roomId: productId,
+            signedId: window.location.pathname.split("/").pop(),
+            message: msg
+        };
+        document.getElementById("message").value = "";
+        socket.emit("message", data);
+        if(challenged && msg.startsWith(">")){
+            console.log(challengedata);
+            let answer = msg.slice(1).toLowerCase();
+            console.log(answer);
+            if(challengedata.slotid === "7" && answer === "scale"){
+                socket.emit("score", {
+                    room: productId,
+                    who: selfPlayer.id,
+                    howmany: 1
+                });
+                enablerreset();
+                challenged = false;
+            } else if (challengedata.slotid === "6" && answer === "knight"){
+                socket.emit("score", {
+                    room: productId,
+                    who: selfPlayer.id,
+                    howmany: 1
+                });
+                enablerreset();
+                challenged = false;
+            } else if (challengedata.slotid === "2" && answer === "hammer"){
+                socket.emit("score", {
+                    room: productId,
+                    who: selfPlayer.id,
+                    howmany: 1
+                });
+                enablerreset();
+                challenged = false;
+            } else if (challengedata.slotid === "8" && answer === "flag"){
+                socket.emit("score", {
+                    room: productId,
+                    who: selfPlayer.id,
+                    howmany: 1
+                });
+                enablerreset();
+                challenged = false;
+            } else if (challengedata.slotid === "3" && answer === "crown"){
+                socket.emit("score", {
+                    room: productId,
+                    who: selfPlayer.id,
+                    howmany: 1
+                });
+                enablerreset();
+                challenged = false;
+            } else if (challengedata.slotid === "5" && answer === "sword"){
+                socket.emit("score", {
+                    room: productId,
+                    who: selfPlayer.id,
+                    howmany: 1
+                });
+                enablerreset();
+                challenged = false;
+            } else if (challengedata.slotid === "4" && answer === "shield"){
+                socket.emit("score", {
+                    room: productId,
+                    who: selfPlayer.id,
+                    howmany: 1
+                });
+                enablerreset();
+                challenged = false;
+            } else if (challengedata.slotid === "5" && answer === "knight"){
+                socket.emit("score", {
+                    room: productId,
+                    who: selfPlayer.id,
+                    howmany: 1
+                });
+                enablerreset();
+                challenged = false;
+            } else {
+                socket.emit("score", {
+                    room: productId,
+                    who: opponent.id,
+                    howmany: 1
+                });
+                enablerreset();
+                challenged = false;
+            }
+        }
     }
 
     socket.on("outthedoor", () => {
@@ -534,18 +621,22 @@
 
         left.addEventListener("drop", function(e) {
             e.preventDefault();
+            if(sideing === "left"){
 
-            const id = e.dataTransfer.getData("text");
+                const id = e.dataTransfer.getData("text");
 
-            placeStone(id, "left");
+                placeStone(id, "left");
+            }
         });
 
         right.addEventListener("drop", function(e) {
             e.preventDefault();
+            if(sideing === "right"){
 
-            const id = e.dataTransfer.getData("text");
+                const id = e.dataTransfer.getData("text");
 
-            placeStone(id, "right");
+                placeStone(id, "right");
+            }
         });
     </script>
     <script>
@@ -607,27 +698,163 @@
         let peekenabled = false;
         let challengeenabled = false;
         let boastenabled = false;
+        let sideenabled = false;
+
+        let peeked = false;
+
+        let swapdata = {
+                roomid: productId
+            };
+        let index = 1;
+
+        function enablerreset(){
+            placeenabled = false;
+            hideenabled = false;
+            swapenabled = false;
+            peekenabled = false;
+            challengeenabled = false;
+            boastenabled = false;
+            sideenabled = false;
+            document.querySelectorAll(".stonevisual").forEach(spot => {
+                spot.classList.remove("chosen");
+            });
+            swapdata = {
+                roomid: productId
+            };
+            index = 1;
+        }
         
+        document.querySelectorAll(".slot").forEach(spot => {
+            spot.addEventListener("click", function(e) {
+                if(swapenabled){
+                    if(spot.children.length > 0){
+                        if(spot.children[0].classList.contains("chosen")){
+                            spot.children[0].classList.remove("chosen");
+                            swapdata["stone" + index] = spot.id;
+                            console.log(swapdata);
+                            if(index == 2){
+                                swapenabled = false;
+                                socket.emit("swaptell", swapdata);
+                                enablerreset();
+                                changingturns(opponent);
+                            }
+                            index++;
+                        }
+                        else {
+                            spot.children[0].classList.add("chosen");
+                            const targetValue = spot.id;
+                            for (let key in swapdata) {
+                                if (user[key] === targetValue) {
+                                    delete user[key];
+                                }
+                            }
+                            index--;
+                            console.log(swapdata);
+                        }
+                    }
+                }
+            })
+        });
+        function Swap(){
+            enablerreset();
+            swapenabled = true;
+            document.querySelectorAll(".slot").forEach(spot => {
+                if(spot.children.length > 0){
+                    spot.children[0].classList.add("chosen");
+                }
+            });
+        }
+        
+        document.querySelectorAll(".slot").forEach(spot => {
+            spot.addEventListener("click", function(e) {
+                if(spot.children.length > 0 && spot.children[0].classList.contains("hiden")){
+                    if(peekenabled && !peeked){
+                        spot.children[0].classList.remove("hiden");
+                        document.querySelectorAll(".slot").forEach(stone => {
+                            if(stone.children.length > 0 && stone.children[0].classList.contains("chosen") && stone != spot){
+                                stone.children[0].classList.remove("chosen");
+                            }
+                        });
+                        peeked = true;
+                    }
+                }else if(peekenabled && peeked){
+                        spot.children[0].classList.add("hiden");
+                        document.querySelectorAll(".slot").forEach(stone => {
+                            if(stone.children.length > 0 && stone.children[0].classList.contains("chosen")){
+                                stone.children[0].classList.remove("chosen");
+                            }
+                        });
+                        peekenabled = false;
+                        peeked = false;
+                        changingturns(opponent);
+                }
+            });
+        });
+
+        async function Peek(){
+            await enablerreset();
+            peekenabled = true;
+            stones = document.querySelectorAll(".slot");
+            stones.forEach(stone => {
+                if(stone.children.length === 0) return;
+                if(stone.children[0].classList.contains("hiden")){
+                    stone.children[0].classList.add("chosen");
+                }
+            });
+        }
+
+        document.querySelector(".side.left").addEventListener("click", function() {
+            if(sideenabled){
+                socket.emit("place", {
+                    room: window.location.pathname.split("/")[window.location.pathname.split("/").length - 2],
+                    to: opponent.username,
+                    stone: thestone,
+                    where: "left"
+                });
+                sideenabled = false;
+                document.querySelectorAll(".side").forEach(side => {
+                    side.classList.remove("chosen");
+                });
+                changingturns(opponent);
+            }
+        });
+
+        document.querySelector(".side.right").addEventListener("click", function() {
+            if(sideenabled){
+                socket.emit("place", {
+                    room: window.location.pathname.split("/")[window.location.pathname.split("/").length - 2],
+                    to: opponent.username,
+                    stone: thestone,
+                    where: "right"
+                });
+                sideenabled = false;
+                document.querySelectorAll(".side").forEach(side => {
+                    side.classList.remove("chosen");
+                });
+                changingturns(opponent);
+            }
+        });
+        let thestone = null;
         stones = document.querySelectorAll(".stone");
             stones.forEach(stone => {
                 stone.addEventListener("click", function(e) {
                     if(placeenabled){
-                        console.log("sent");
-                        socket.emit("place", {
-                            room: window.location.pathname.split("/")[window.location.pathname.split("/").length - 2],
-                            to: opponent.username,
-                            stone: stone.id,
-                            where: "left"
-                        });
+                        thestone = stone.id
                         placeenabled = false;
+                        sideenabled = true;
+                        document.querySelectorAll(".side").forEach(s => {
+                            s.style.pointerEvents = "auto";
+                            s.style.cursor = "pointer";
+                            s.classList.add("chosen");
+                        });
                         stones.forEach(s => {
                             s.children[0].classList.remove("chosen");
                         });
-                        changingturns(opponent);
                     }
                 });
             });
-        function Place(){
+        async function Place(){
+            await enablerreset();
             placeenabled = true;
             stones = document.querySelectorAll(".stone");
             stones.forEach(stone => {
@@ -638,30 +865,59 @@
         stones = document.querySelectorAll(".slot");
             stones.forEach(stone => {
                 stone.addEventListener("click", function(e) {
-                    if(hideenabled){
-                        console.log("sent");
-                        socket.emit("hide", {
-                            room: window.location.pathname.split("/")[window.location.pathname.split("/").length - 2],
-                            to: opponent.username,
-                            stone: stone.id,
-                            where: "left"
-                        });
-                        hideenabled = false;
-                        stones.forEach(s => {
-                            if(s.children.length > 0){
-                                s.children[0].classList.remove("chosen");
-                            }
-                        });
-                        changingturns(opponent);
+                    if(!stone.classList.contains("hiden")){
+                        if(hideenabled){
+                            console.log("sent");
+                            socket.emit("hide", {
+                                room: window.location.pathname.split("/")[window.location.pathname.split("/").length - 2],
+                                to: opponent.username,
+                                stone: stone.id,
+                                where: "left"
+                            });
+                            hideenabled = false;
+                            stones.forEach(s => {
+                                if(s.children.length > 0){
+                                    s.children[0].classList.remove("chosen");
+                                }
+                            });
+                            changingturns(opponent);
+                        }
                     }
                 });
             });
-        function Hide(){
+        async function Hide(){
+            await enablerreset();
             hideenabled = true;
             stones = document.querySelectorAll(".slot");
             stones.forEach(stone => {
                 if(stone.children.length === 0) return;
-                stone.children[0].classList.add("chosen");
+                if(!stone.children[0].classList.contains("hiden")){
+                    stone.children[0].classList.add("chosen");
+                }
+            });
+        }
+
+        document.querySelectorAll(".slot").forEach(spot => {
+            spot.addEventListener("click", function(e) {
+                if(challengeenabled && spot.children.length > 0 && spot.children[0].classList.contains("hiden")){
+                    changingturns(opponent);
+                    socket.emit("challenge", {
+                        roomid: productId,
+                        slotid: spot.id
+                    })
+                    enablerreset();
+                }
+            });
+        });
+        function Challenge(){
+            enablerreset();
+            challengeenabled = true;
+            stones = document.querySelectorAll(".slot");
+            stones.forEach(stone => {
+                if(stone.children.length === 0) return;
+                if(stone.children[0].classList.contains("hiden")){
+                    stone.children[0].classList.add("chosen");
+                }
             });
         }
     </script>
@@ -674,6 +930,20 @@
         let challengeon = false;
         let boaston = false;
         let firstturn = false;
+        let swapetellnabled = false;
+
+        socket.on("messageget", (data) => {
+            console.log(data);
+             const li = document.createElement("li");
+             if(data.signedId === selfPlayer.username){
+                li.classList.add("mine");
+             }
+             li.innerText = data.message;
+             if(document.getElementById("chatEmpty")){
+                document.getElementById("chatEmpty").remove();
+             }
+             document.getElementById("messages").appendChild(li);
+        });
 
         stones = document.querySelectorAll(".stone");
         socket.on("yougofirst", async () => {
@@ -746,10 +1016,11 @@
                 document.getElementById("eventDisplay").innerText = "Opponent's turn";
             }
         });
-
+        let sideing = "left";
         socket.on("place", (data) => {
             console.log(data);
             placeon = true;
+            sideing = data.where;
             let stones = document.querySelectorAll(".stone")
             stones.forEach(stone => {
                 if(stone.id === data.stone){
@@ -818,6 +1089,157 @@
                 }
             });
         });
+
+        socket.on("swapcommence", (data) => {
+            let thestone1 = null;
+            let thestone2 = null;
+
+            document.querySelectorAll(".slot").forEach(spot => {
+                if (spot.children.length > 0) {
+                    if (spot.id === data.stone1) {
+                        thestone1 = spot.children[0];
+                    } else if (spot.id === data.stone2) {
+                        thestone2 = spot.children[0];
+                    }
+                }
+            });
+
+            if (!thestone1 || !thestone2) return;
+
+
+            const rect1 = thestone1.getBoundingClientRect();
+            const rect2 = thestone2.getBoundingClientRect();
+
+            const dx = rect2.left - rect1.left;
+            const dy = rect2.top - rect1.top;
+
+            const dx2 = rect1.left - rect2.left;
+            const dy2 = rect1.top - rect2.top;
+
+            thestone1.style.transition = "transform 0.4s ease";
+            thestone2.style.transition = "transform 0.4s ease";
+
+            thestone1.style.transform = `translate(${dx}px, ${dy}px)`;
+            thestone2.style.transform = `translate(${dx2}px, ${dy2}px)`;
+
+            setTimeout(() => {
+                thestone1.style.transition = "";
+                thestone2.style.transition = "";
+                thestone1.style.transform = "";
+                thestone2.style.transform = "";
+
+                const parent1 = thestone1.parentNode;
+                const parent2 = thestone2.parentNode;
+                const id1 = parent1.id;
+                const id2 = parent2.id;
+
+                parent1.id = id2;
+                parent2.id = id1;
+
+                parent1.appendChild(thestone2);
+                parent2.appendChild(thestone1);
+
+                enablerreset();
+            }, 400);
+        });
+
+        let telldata = {};
+        document.querySelectorAll(".slot").forEach(spot => {
+            document.getElementById("eventDisplay").innerText = "Swap";
+            spot.addEventListener("click", function(e) {
+                if(swapetellnabled){
+                    if(spot.children.length > 0){
+                        if(spot.children[0].classList.contains("chosen")){
+                            spot.children[0].classList.remove("chosen");
+                            swapdata["stone" + index] = spot.id;
+                            console.log(swapdata);
+                            if(index == 2){
+                                swapetellnabled = false;
+                                socket.emit("swap", telldata);
+                            }
+                            index++;
+                        }
+                        else {
+                            spot.children[0].classList.add("chosen");
+                            const targetValue = spot.id;
+                            for (let key in swapdata) {
+                                if (user[key] === targetValue) {
+                                    delete user[key];
+                                }
+                            }
+                            index--;
+                            console.log(swapdata);
+                        }
+                    }
+                }
+            })
+        });
+        socket.on("swapresponse", (data) => {
+            console.log(data);
+            swapetellnabled = true;
+            telldata = data;
+            document.querySelectorAll(".slot").forEach(spot => {
+                if(spot.id === data.stone1 || spot.id === data.stone2){
+                    if(spot.children.length > 0){
+                        spot.children[0].classList.add("chosen");
+                    }
+                }
+            })
+        })
+
+        let challenged = false;
+        let challengedata = {};
+
+        socket.on("challengecommence", (data) => {
+            challengedata = data;
+            document.getElementById("eventDisplay").innerText = "Write '>answer' in chat";
+            document.querySelectorAll(".slot").forEach(stone => {
+                if(stone.id === data.slotid){
+                    if(stone.children.length > 0){
+                        stone.children[0].classList.add("chosen");
+                    }
+                }
+                challenged = true;
+            })
+        });
+
+        socket.on("scorewrite", async (data) => {
+            console.log(data);
+            try {
+				const res = await fetch("/tellstones/score", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data)
+				});
+
+				if (res.ok) {
+					const restone = await res.json();
+                    console.log(restone);
+                    document.querySelectorAll(".player-rail").forEach(zone => {
+                    const orbs = zone.querySelectorAll(".score-orb");
+
+                    orbs.forEach(orb => orb.classList.remove("lit"));
+
+                    const name = zone.querySelector(".player-name").textContent;
+
+                    if (name === restone.me.username) {
+                        for (let i = 0; i < restone.mescore; i++) {
+                            orbs[i].classList.add("lit");
+                        }
+                    } else {
+                        for (let i = 0; i < restone.theyscore; i++) {
+                            orbs[i].classList.add("lit");
+                        }
+                    }
+                });
+				} else {
+					alert(await res.text());
+				}
+			} catch (err) {
+				alert("Network error");
+				console.error(err);
+			}
+        })
     </script>
     <script>
         let game = null;

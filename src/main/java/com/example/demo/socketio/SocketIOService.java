@@ -16,6 +16,8 @@ import com.example.demo.model.Account;
 
 import java.util.Random;
 
+import com.example.demo.model.Account;
+
 @Service
 public class SocketIOService {
 
@@ -28,9 +30,32 @@ public class SocketIOService {
         public String where;
     }
 
+    public static class scoredata {
+        public String room;
+        public String who;
+        public String howmany;
+    }
+
     public static class TurnUpdateData { 
         public String roomId;
         public String turn;
+    }
+
+    public static class msgData {
+        public String roomId;
+        public String signedId;
+        public String message;
+    }
+
+    public static class swapdata {
+        public String roomid;
+        public String stone1;
+        public String stone2;
+    }
+
+    public static class challengedata {
+        public String roomid;
+        public String slotid;
     }
 
     public static class LineUpdateData {
@@ -68,11 +93,21 @@ public class SocketIOService {
         );
 
         // Message listener
-        server.addEventListener("message", String.class, (client, data, ackSender) -> {
+        server.addEventListener("message", msgData.class, (client, data, ackSender) -> {
             System.out.println("Received: " + data);
-
-            // Broadcast
-            server.getBroadcastOperations().sendEvent("message", data);
+            var clients = server.getRoomOperations(data.roomId).getClients();
+            var index = 0;
+            for (var c : clients) {
+                String pp = java.net.URLDecoder.decode(c.getHandshakeData().getSingleUrlParam("userId"), StandardCharsets.UTF_8);
+                c.sendEvent("messageget", data);
+                if(index > 2){
+                    break;
+                }
+                else{
+                    System.out.println("Sent to: " + pp);
+                    index++;
+                }
+            }
         });
         System.out.printf("butt %d\n", server.getConfiguration().getPort());
 
@@ -183,6 +218,54 @@ public class SocketIOService {
                 if(pp.equals(aa)){
                     c.sendEvent("hide", data);
                 }
+            }
+        });
+
+        server.addEventListener("swap", swapdata.class, (client, data, ack) -> {
+            System.out.println("swap");
+            var clients = server.getRoomOperations(data.roomid).getClients();
+            int index = 0;
+            for (var c : clients) {
+                if(index <= 2){
+                    c.sendEvent("swapcommence", data);
+                }
+                index++;
+            }
+        });
+
+        server.addEventListener("swaptell", swapdata.class, (client, data, ack) -> {
+            System.out.println("swaptelling");
+            var clients = server.getRoomOperations(data.roomid).getClients();
+            int index = 0;
+            for (var c : clients) {
+                if((index <= 2) && (c != client)){
+                    c.sendEvent("swapresponse", data);
+                }
+                index++;
+            }
+        });
+
+        server.addEventListener("challenge", challengedata.class, (client, data, ack) -> {
+            System.out.println("challenging");
+            var clients = server.getRoomOperations(data.roomid).getClients();
+            int index = 0;
+            for (var c : clients) {
+                if((index <= 2) && (c != client)){
+                    c.sendEvent("challengecommence", data);
+                }
+                index++;
+            }
+        });
+
+        server.addEventListener("score", scoredata.class, (client, data, ack) -> {
+            System.out.println("challenging");
+            var clients = server.getRoomOperations(data.room).getClients();
+            int index = 0;
+            for (var c : clients) {
+                if((index <= 2)){
+                    c.sendEvent("scorewrite", data);
+                }
+                index++;
             }
         });
 

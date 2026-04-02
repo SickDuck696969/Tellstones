@@ -62,12 +62,12 @@
                         <div class="store-item">
                             <div class="store-art"></div>
                             <div><strong>Ivory Herald</strong><p class="text-muted">Pale stone faces with heraldic gold trim.</p></div>
-                            <div class="store-meta"><span>320 Gems</span><button class="fantasy-btn">Buy</button></div>
+                            <div class="store-meta"><span>320 Gems</span><button class="fantasy-btn" onclick="buy(320, 'Pale stone faces with heraldic gold trim', 1)">Buy</button></div>
                         </div>
                         <div class="store-item">
                             <div class="store-art"></div>
                             <div><strong>Raven Marble</strong><p class="text-muted">Dark lacquer and moonlit engraving.</p></div>
-                            <div class="store-meta"><span>380 Gems</span><button class="fantasy-btn">Buy</button></div>
+                            <div class="store-meta"><span>380 Gems</span><button class="fantasy-btn" onclick="buy(380, 'Dark lacquer and moonlit engraving',0)">Buy</button></div>
                         </div>
                     </div>
                 </section>
@@ -99,5 +99,34 @@
         <source th:src="@{/audio/bgm.mp3}" type="audio/mpeg">
     </audio>
     <script th:src="@{/js/tellstone-ui.js}"></script>
+    <script>
+        async function buy(price, name, id) {
+        try {
+            const response = await fetch('/tellstones/buy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    price: price,
+                    id: id,
+                    name: name
+                })
+            });
+
+            const text = await response.text();
+
+            alert(text);
+
+            if (text === "Bought successfully") {
+                location.reload(); // refresh gems/items
+            }
+
+        } catch (err) {
+            console.error(err);
+            alert("Error while buying");
+        }
+    }
+    </script>
 </body>
 </html>

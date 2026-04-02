@@ -11,6 +11,8 @@ import org.springframework.stereotype.Controller;
 import com.example.demo.payment.vnpay.PaymentDTO;
 import com.example.demo.config.payment.VNPAYConfig;
 import com.example.demo.util.VNPayUtil;
+import com.mysql.cj.x.protobuf.MysqlxDatatypes.Object;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 import com.example.demo.payment.vnpay.PaymentService;
@@ -80,12 +82,13 @@ public class paymentcontroller {
     }
 
     @PostMapping("/payos")
-    public ResponseEntity<?> createPayment(@AuthenticationPrincipal UserDetails user) {
+    public ResponseEntity<?> createPayment(@RequestBody Map<String, String> additional, @AuthenticationPrincipal UserDetails user) {
         Account account = accountService.getAccountByUsername(user.getUsername()).orElseThrow(() -> new RuntimeException("User not found"));
+        System.err.println("Creating payment for user: " + account.getUsername() + ", email: " + account.getEmail() + ", price: " + additional.get("price"));
         PaymentOSDTO request = new PaymentOSDTO(
             System.currentTimeMillis(), 
-            50000, 
-            "Test payment", 
+            Integer.parseInt(additional.get("price")), 
+            "buying " + additional.get("gems") + " gems", 
             "http://localhost:8080/payos-callbacksuccess", 
             "http://localhost:8080/payos-callbackfail", 
             account.getUsername(), account.getEmail(), 

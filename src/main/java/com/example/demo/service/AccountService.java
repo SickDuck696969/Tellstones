@@ -8,6 +8,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import jakarta.validation.constraints.NotNull;
+
 import java.util.Optional;
 
 @Service
@@ -41,6 +43,10 @@ public class AccountService implements UserDetailsService {
 
     public Optional<Account> getAccountByUsername(String name) {
         return accountRepository.findByUsername(name);
+    }
+
+    public Optional<Account> getAccountByEmail(String email){
+        return accountRepository.findByemail(email);
     }
 
     private boolean isEncodedPassword(String password) {

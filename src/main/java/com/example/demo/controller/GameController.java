@@ -4,8 +4,10 @@ import com.example.demo.model.Account;
 import com.example.demo.service.AccountService;
 import com.example.demo.service.Emailservice;
 import com.example.demo.service.PlayerService;
+import com.example.demo.service.stoneskinService;
 import com.example.demo.model.Game;
 import com.example.demo.model.Stone;
+import com.example.demo.model.stoneskin;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -70,14 +72,17 @@ public class GameController {
 
     private final AccountService accountService;
 
+    private final stoneskinService stoneskinservice;
+
     public GameController(SocketIOService socketservice, Client coreclient, PlayerService playerService,
-            Emailservice themailman, AccountService accountService, GameService gameService) {
+            Emailservice themailman, AccountService accountService, GameService gameService, stoneskinService stoneskinservice) {
             this.socketservice = socketservice;
             this.coreclient = coreclient;
             this.playerService = playerService;
             this.themailman = themailman;
             this.accountService = accountService;
             this.gameService = gameService;
+            this.stoneskinservice = stoneskinservice;
     }
 
     public int howmany = 0;
@@ -141,18 +146,24 @@ public class GameController {
             game.setRoomCode(request.getRoomId());
             game.setMe(request.getMe());
             game.setOpponent(request.getOpponent());
+            game.setMescore(0);
+            game.setTheyscore(0);
             gameService.addGame(game);
+        }
+        for (int i = 0; i < theline.length; i++) {
+            theline[i] = null;
         }
         return ResponseEntity.ok(game);
     }
 
     @GetMapping("/{actualid}/{id}/{userid}")
-    public String backtologin(@PathVariable String id, Model model) {
-        
+    public String backtologin(@PathVariable String id, Model model, @AuthenticationPrincipal UserDetails user) {
+        Account s = accountService.getAccountByUsername(user.getUsername()).get();
         if(socketservice.getServer().getRoomOperations(id).getClients().isEmpty()){
             return "redirect:/";
         }
         model.addAttribute("roomId", id);
+        model.addAttribute("stoneskins", stoneskinservice.findByBelong(s));
         try {
             if(coreclient.socket == null){
                 coreclient.init();
@@ -220,7 +231,7 @@ public class GameController {
     }
 
     @PostMapping("/settinggame")
-    public ResponseEntity<?> deleteProduct(@RequestBody List<Map<String, String>> body) {
+    public ResponseEntity<?> deleteProduct(@RequestBody List<Map<String, String>> body,  @AuthenticationPrincipal UserDetails user) {
         body.forEach(stone -> {
             bag.forEach(bagstone -> {
                 System.out.println("Value from key: " + stone.get("stoneid"));
@@ -249,15 +260,38 @@ public class GameController {
         return ResponseEntity.ok(game);
     }
 
+    @PostMapping("/score")
+    public ResponseEntity<?> score(@RequestBody Map<String, String> body) {
+        Game game = gameService.getGame(body.get("room"));
+        Account opponent = game.getOpponent();
+        Account selfPlayer = game.getMe();
+        if(opponent.getId().toString().equals(body.get("who"))){
+            game.setTheyscore(game.getMescore() + Integer.parseInt((String) body.get("howmany")));
+        } else {
+            game.setMescore(game.getMescore() + Integer.parseInt((String) body.get("howmany")));
+        }
+        return ResponseEntity.ok(game);
+    }
+
     @PostMapping("/welcomeplayer")
     public ResponseEntity<?> welcomePlayer(@AuthenticationPrincipal UserDetails user) {
         Map<String, Account> player = new HashMap<>();
         Account tempAccount = accountService.getAccountByUsername(user.getUsername()).get();
         player.put(tempAccount.getUsername(), tempAccount);
-        if(!playerService.getPlayers().contains(player)){
+        if(playerService.getPlayerByUsername(tempAccount.getUsername()) == null){
             playerService.addPlayer(player);
         }
         return ResponseEntity.ok(tempAccount);
+    }
+
+    @PostMapping("/setskins")
+    public ResponseEntity<?> handlesPayment(@RequestBody Map<String, Long> request, @AuthenticationPrincipal UserDetails user) {
+        skinpointer = request.get("stoneid").intValue();
+        Account s = accountService.getAccountByUsername(user.getUsername()).get();
+        Map<Account, stoneskin> fs = new HashMap<>();
+        fs.put(s, stoneskinservice.findById(request.get("stoneid")).get());
+        playerService.addSkin(fs);
+        return ResponseEntity.ok().body(skinpointer);
     }
 
     @PostMapping("/keeptabs")
@@ -267,6 +301,32 @@ public class GameController {
         howmany = gems;
         forhow = request.get("price");
         return ResponseEntity.ok().body("Received!");
+    }
+
+    public static class BuyRequest {
+        public int price;
+        public String name;
+        public  long id;
+    }
+
+    @PostMapping("/buy")
+        public ResponseEntity<?> buy(@RequestBody BuyRequest request, @AuthenticationPrincipal UserDetails user) {
+        int price = request.price;
+        long id = request.id;
+        Account s = accountService.getAccountByUsername(user.getUsername()).get();
+        if(s.getCredit() >= price){
+            stoneskin temp = new stoneskin();
+            temp.setId(id);
+            temp.setName(request.name);
+            temp.setBelong(s);
+            stoneskinservice.save(temp);
+            s.setCredit(s.getCredit() - price);
+            accountService.save(s);
+            return ResponseEntity.ok("Bought successfully");
+        }
+        else{
+            return ResponseEntity.ok("Get more gems");
+        }
     }
 
     @GetMapping("/vn-pay-callback")
