@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List; 
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.example.demo.model.stoneskin;
 
@@ -17,6 +18,7 @@ import com.example.demo.model.stoneskin;
 public class PlayerService {
     private final List<Map<String, Account>> players = new ArrayList<>();
     private final List<Map<Account, stoneskin>> stoneskins = new ArrayList<>();
+    private final Map<String, String> selectedStoneSkins = new ConcurrentHashMap<>();
 
     public void addPlayer(Map<String, Account> player) {
         players.add(player);
@@ -47,5 +49,19 @@ public class PlayerService {
                 .map(map -> map.get(account))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public void setSelectedSkin(String username, String skinCode) {
+        if (username == null || username.isBlank() || skinCode == null || skinCode.isBlank()) {
+            return;
+        }
+        selectedStoneSkins.put(username, skinCode);
+    }
+
+    public String getSelectedSkin(String username) {
+        if (username == null || username.isBlank()) {
+            return "default";
+        }
+        return selectedStoneSkins.getOrDefault(username, "default");
     }
 }

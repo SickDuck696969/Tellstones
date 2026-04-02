@@ -25,8 +25,36 @@ public class AccountService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return accountRepository.findByUsername(username)
+        Account account = accountRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        boolean updated = false;
+
+        if (account.isEnabled() != true) {
+            account.setIsEnabled(true);
+            updated = true;
+        }
+
+        if (!account.isAccountNonExpired()) {
+            account.setAccountNonExpired(true);
+            updated = true;
+        }
+
+        if (!account.isAccountNonLocked()) {
+            account.setAccountNonLocked(true);
+            updated = true;
+        }
+
+        if (!account.isCredentialsNonExpired()) {
+            account.setCredentialsNonExpired(true);
+            updated = true;
+        }
+
+        if (updated) {
+            accountRepository.save(account);
+        }
+
+        return account;
     }
 
     public Account save(Account account) {

@@ -2,8 +2,6 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Account;
 import com.example.demo.service.AccountService;
-import com.example.demo.service.Emailservice;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,15 +36,13 @@ public class LoginController {
     }
 
     private final AccountService accountService;
-    private final Emailservice themailman;
 
     private final Map<String, String> otpStore = new ConcurrentHashMap<>();
     private final Map<String, LocalDateTime> otpExpiry = new ConcurrentHashMap<>();
 
 
-    public LoginController(AccountService accountService, Emailservice themailman) {
+    public LoginController(AccountService accountService) {
         this.accountService = accountService;
-        this.themailman = themailman;
     }
 
     @GetMapping("/login")
@@ -60,33 +56,10 @@ public class LoginController {
     }
 
     @PostMapping("/signup")
-    public Map<String, String> signup(Account account) {
-        Account aa = accountService.save(account);
-        if(aa != null){
-                String html = """
-                <p>Dear Ms. Finding</p>
-                <p>Activate your account here:</p>
-                <a href="http://localhost:8080/activate/%d">Activate Account</a>
-            """.formatted(aa.getId());
-            themailman.sendHtmlEmail(
-                aa.getEmail(),
-                "Activate Account",
-                html
-            );
-            return Map.of("status", "ok",
-                "message", "sent");
-        }
-        return Map.of("status", "error",
-                      "message", "email not found");
-    }
-
-    @GetMapping("/activate/{id}")
-    public String activate(@PathVariable Long id) {
-        accountService.enableAccount(id);
+    public String signup(Account account) {
+        account.setIsEnabled(true);
         return "redirect:/login";
     }
-
-
 
     @GetMapping("/Reset")
     public String gotoreset() {
@@ -113,14 +86,7 @@ public class LoginController {
             <p>This OTP expires in 5 minutes.</p>
         """.formatted(otp);
 
-        try {
-            themailman.sendHtmlEmail(email, "OTP for Password Reset", html);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Map.of("status", "error", "message", "Failed to send email");
-        }
-
-        return Map.of("status", "ok", "message", "OTP sent");
+        return Map.of("status", "ok", "message", "OTP generated");
     }
 
     @PostMapping("/verify-otp")

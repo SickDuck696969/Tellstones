@@ -19,8 +19,6 @@ public class GameService {
     private final List<Game> Games = new ArrayList<>();
     private final Map<String, MatchResult> matchResults = new HashMap<>();
 
-    @lombok.Getter
-    @lombok.Setter
     public static class MatchResult {
         private String roomCode;
         private Long winnerId;
@@ -31,6 +29,78 @@ public class GameService {
         private int rewardAmount;
         private int updatedGemTotal;
         private int updatedFragmentTotal;
+
+        public String getRoomCode() {
+            return roomCode;
+        }
+
+        public void setRoomCode(String roomCode) {
+            this.roomCode = roomCode;
+        }
+
+        public Long getWinnerId() {
+            return winnerId;
+        }
+
+        public void setWinnerId(Long winnerId) {
+            this.winnerId = winnerId;
+        }
+
+        public String getWinnerUsername() {
+            return winnerUsername;
+        }
+
+        public void setWinnerUsername(String winnerUsername) {
+            this.winnerUsername = winnerUsername;
+        }
+
+        public String getLoserUsername() {
+            return loserUsername;
+        }
+
+        public void setLoserUsername(String loserUsername) {
+            this.loserUsername = loserUsername;
+        }
+
+        public String getResultReason() {
+            return resultReason;
+        }
+
+        public void setResultReason(String resultReason) {
+            this.resultReason = resultReason;
+        }
+
+        public String getRewardType() {
+            return rewardType;
+        }
+
+        public void setRewardType(String rewardType) {
+            this.rewardType = rewardType;
+        }
+
+        public int getRewardAmount() {
+            return rewardAmount;
+        }
+
+        public void setRewardAmount(int rewardAmount) {
+            this.rewardAmount = rewardAmount;
+        }
+
+        public int getUpdatedGemTotal() {
+            return updatedGemTotal;
+        }
+
+        public void setUpdatedGemTotal(int updatedGemTotal) {
+            this.updatedGemTotal = updatedGemTotal;
+        }
+
+        public int getUpdatedFragmentTotal() {
+            return updatedFragmentTotal;
+        }
+
+        public void setUpdatedFragmentTotal(int updatedFragmentTotal) {
+            this.updatedFragmentTotal = updatedFragmentTotal;
+        }
     }
 
     public void addGame(Game game) {

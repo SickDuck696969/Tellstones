@@ -1,15 +1,6 @@
 package com.example.demo.payment.payos;
 
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-@Getter
-@Setter
 public class PaymentOSDTO {
     private long orderCode;
     private int amount;
@@ -39,6 +30,86 @@ public class PaymentOSDTO {
         this.buyerEmail = buyerEmail;
         this.buyerPhone = buyerPhone;
         this.items = items;
+        this.expiredAt = expiredAt;
+    }
+
+    public long getOrderCode() {
+        return orderCode;
+    }
+
+    public void setOrderCode(long orderCode) {
+        this.orderCode = orderCode;
+    }
+
+    public int getAmount() {
+        return amount;
+    }
+
+    public void setAmount(int amount) {
+        this.amount = amount;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getReturnUrl() {
+        return returnUrl;
+    }
+
+    public void setReturnUrl(String returnUrl) {
+        this.returnUrl = returnUrl;
+    }
+
+    public String getCancelUrl() {
+        return cancelUrl;
+    }
+
+    public void setCancelUrl(String cancelUrl) {
+        this.cancelUrl = cancelUrl;
+    }
+
+    public String getBuyerName() {
+        return buyerName;
+    }
+
+    public void setBuyerName(String buyerName) {
+        this.buyerName = buyerName;
+    }
+
+    public String getBuyerEmail() {
+        return buyerEmail;
+    }
+
+    public void setBuyerEmail(String buyerEmail) {
+        this.buyerEmail = buyerEmail;
+    }
+
+    public String getBuyerPhone() {
+        return buyerPhone;
+    }
+
+    public void setBuyerPhone(String buyerPhone) {
+        this.buyerPhone = buyerPhone;
+    }
+
+    public List<Item> getItems() {
+        return items;
+    }
+
+    public void setItems(List<Item> items) {
+        this.items = items;
+    }
+
+    public Long getExpiredAt() {
+        return expiredAt;
+    }
+
+    public void setExpiredAt(Long expiredAt) {
         this.expiredAt = expiredAt;
     }
 }

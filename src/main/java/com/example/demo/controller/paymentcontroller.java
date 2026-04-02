@@ -27,16 +27,16 @@ import com.example.demo.model.Account;
 
 import java.util.*;
 
-@RestController
+@RestController("moolahController")
 @RequestMapping("/moolah")
-public class paymentcontroller {
+public class PaymentController {
 
     private final PaymentService paymentService;
     private final AccountService accountService;
     private final PaymentOSService payOSService;
     public int howmany = 0;
 
-    public paymentcontroller(PaymentOSService payOSService, PaymentService paymentService, AccountService accountService) {
+    public PaymentController(PaymentOSService payOSService, PaymentService paymentService, AccountService accountService) {
         this.paymentService = paymentService;
         this.accountService = accountService;
         this.payOSService = payOSService;

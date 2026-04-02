@@ -642,6 +642,39 @@ img {
     width: min(760px, 100%);
 }
 
+.queue-loader-shell {
+    display: grid;
+    justify-items: center;
+    gap: 0.9rem;
+    padding: 1.15rem 0.75rem 0.35rem;
+}
+
+.queue-loader {
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 50%;
+    border: 3px solid rgba(223, 193, 125, 0.18);
+    border-top-color: var(--gold-bright);
+    border-right-color: rgba(223, 193, 125, 0.7);
+    box-shadow: 0 0 28px rgba(185, 147, 79, 0.18);
+    animation: queue-spin 900ms linear infinite;
+}
+
+.queue-loader-text {
+    text-align: center;
+    max-width: 18rem;
+}
+
+@keyframes queue-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .close-link {
     position: absolute;
     top: 1.25rem;

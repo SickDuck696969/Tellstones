@@ -110,6 +110,120 @@
             78% { transform: scale(1.2) rotate(360deg); }
             100% { transform: scale(1) rotate(360deg); }
         }
+
+        .skin-picker {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+        }
+
+        .skin-carousel {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 17rem;
+            min-height: 12rem;
+            margin: 0 auto;
+            padding-inline: 2.8rem;
+        }
+
+        .skin-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2.45rem;
+            height: 2.45rem;
+            border-radius: 999px;
+            border: 1px solid rgba(223, 193, 125, 0.3);
+            background: rgba(17, 11, 9, 0.72);
+            color: #f1e6d2;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        #menuStoneSkinPrev {
+            left: 0;
+        }
+
+        #menuStoneSkinNext {
+            right: 0;
+        }
+
+        .skin-stage {
+            min-height: 9.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-width: 0;
+            width: 100%;
+        }
+
+        .skin-preview-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            min-height: 4.25rem;
+            flex-wrap: nowrap;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .skin-preview-orb {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background:
+                radial-gradient(circle at 35% 28%, rgba(255,255,255,0.16), transparent 28%),
+                radial-gradient(circle at center, rgba(120, 82, 38, 0.82), rgba(46, 28, 14, 0.96));
+            border: 1px solid rgba(223, 193, 125, 0.3);
+            box-shadow: inset 0 0 1rem rgba(255,255,255,0.05), 0 0.85rem 1.4rem rgba(0,0,0,0.26);
+        }
+
+        .skin-preview-orb img {
+            width: 60%;
+            height: 60%;
+            object-fit: contain;
+            filter: drop-shadow(0 0.35rem 0.45rem rgba(0,0,0,0.32));
+        }
+
+        .skin-meta {
+            display: grid;
+            gap: 0.15rem;
+            max-width: 12rem;
+            justify-items: center;
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        .skin-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.85rem;
+            text-align: center;
+        }
+
+        .skin-card > strong {
+            align-self: flex-start;
+        }
+
+        .skin-status {
+            color: #d6b073;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+        }
     </style>
 </head>
 <body>
@@ -217,9 +331,29 @@
                         <strong>Board Skin</strong>
                         <p class="text-muted">Moonlit oak, scorched obsidian, and tournament velvet motifs prepared for future unlocks.</p>
                     </div>
-                    <div class="choice-card">
+                    <div class="choice-card skin-card">
                         <strong>Stone Skin</strong>
-                        <p class="text-muted">Swap engraved relic sets and heraldic inlays to make your chamber unmistakable.</p>
+                        <div class="skin-picker" style="margin-top: 0.7rem;">
+                            <div class="skin-carousel">
+                                <button type="button" class="skin-arrow" id="menuStoneSkinPrev" aria-label="Previous skin">&#10094;</button>
+                                <div class="skin-stage">
+                                    <div class="skin-preview-row" id="menuStoneSkinPreviewRow">
+                                        <div class="skin-preview-orb">
+                                            <img data-menu-stone-slot="0" th:src="@{/textu/stones/default/crown.png}" alt="Default crown">
+                                        </div>
+                                        <div class="skin-preview-orb">
+                                            <img data-menu-stone-slot="1" th:src="@{/textu/stones/default/shield.png}" alt="Default shield">
+                                        </div>
+                                    </div>
+                                    <div class="skin-meta">
+                                        <div class="title-md" id="menuStoneSkinName" style="font-size: 1.25rem;">Default</div>
+                                        <div class="skin-status" id="menuStoneSkinStatus">Preview</div>
+                                        <p class="text-muted" id="menuStoneSkinDesc" style="margin: 0;">Swap engraved relic sets and heraldic inlays to make your chamber unmistakable.</p>
+                                    </div>
+                                </div>
+                                <button type="button" class="skin-arrow" id="menuStoneSkinNext" aria-label="Next skin">&#10095;</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="choice-card">
                         <strong>Spirit Aura</strong>
@@ -239,9 +373,14 @@
     </audio>
     <script th:src="@{/js/tellstone-ui.js}"></script>
 
-    <script>
+    <script th:inline="javascript">
         const token = document.querySelector('meta[name="_csrf"]')?.content;
         const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+        const loggedIn = /*[[${loggedIn}]]*/ false;
+        const ownedSkinIdsRaw = /*[[${ownedSkinIds}]]*/ [];
+        const selectedStoneSkinRaw = /*[[${selectedStoneSkin}]]*/ "default";
+        const ownedSkinIds = Array.isArray(ownedSkinIdsRaw) ? ownedSkinIdsRaw.map(Number) : [];
+        const selectedStoneSkin = typeof selectedStoneSkinRaw === "string" && selectedStoneSkinRaw ? selectedStoneSkinRaw : "default";
         let restone = {};
         let joined = null;
 
@@ -307,7 +446,8 @@
             }
         }
 
-        const socket = io("http://192.168.89.101:9092", {
+        const socketServerUrl = `${window.location.protocol}//${window.location.hostname}:9092`;
+        const socket = io(socketServerUrl, {
             transports: ["websocket"],
             query: {
                 userId: restone.username
@@ -323,6 +463,122 @@
         });
 
         populatePreviewStones();
+
+        const menuStoneSkinPreviewRow = document.getElementById("menuStoneSkinPreviewRow");
+        const menuStoneSkinName = document.getElementById("menuStoneSkinName");
+        const menuStoneSkinStatus = document.getElementById("menuStoneSkinStatus");
+        const menuStoneSkinDesc = document.getElementById("menuStoneSkinDesc");
+        const menuStoneSkinPrev = document.getElementById("menuStoneSkinPrev");
+        const menuStoneSkinNext = document.getElementById("menuStoneSkinNext");
+        const menuStoneSkinSlots = Array.from(document.querySelectorAll("[data-menu-stone-slot]"));
+        const stoneSkinIdByCode = {
+            default: 0,
+            black: 1,
+            golden: 2,
+            neon: 3,
+            primitive: 4
+        };
+        const stoneSkinCatalog = [
+            {
+                code: "default",
+                id: 0,
+                name: "Default",
+                description: "The original royal relic set kept in the main hall for every duelist.",
+                preview: ["crown", "shield"]
+            },
+            {
+                code: "black",
+                id: 1,
+                name: "Black",
+                description: "Midnight stone edged with a duelist's somber steel finish.",
+                preview: ["hammer", "knight"]
+            },
+            {
+                code: "golden",
+                id: 2,
+                name: "Golden",
+                description: "Bright ceremonial gold for victories meant to be seen.",
+                preview: ["crown", "scale"]
+            },
+            {
+                code: "neon",
+                id: 3,
+                name: "Neon",
+                description: "A charged modern glow wrapped around the old relic shapes.",
+                preview: ["flag", "shield"]
+            },
+            {
+                code: "primitive",
+                id: 4,
+                name: "Primitive",
+                description: "Rough-hewn carved relics with a weathered ancient-court feel.",
+                preview: ["knight", "scale"]
+            }
+        ];
+        const unlockedStoneSkins = stoneSkinCatalog.filter((skin) => !loggedIn || skin.code === "default" || ownedSkinIds.includes(skin.id));
+        let currentMenuStoneSkinIndex = Math.max(0, unlockedStoneSkins.findIndex((skin) => skin.code === selectedStoneSkin));
+
+        function renderMenuStoneSkinPicker() {
+            if (!menuStoneSkinPreviewRow || !menuStoneSkinName || !menuStoneSkinDesc || unlockedStoneSkins.length === 0) {
+                return;
+            }
+
+            const currentSkin = unlockedStoneSkins[currentMenuStoneSkinIndex] || unlockedStoneSkins[0];
+            menuStoneSkinSlots.forEach((slot, index) => {
+                const stoneName = currentSkin.preview[index];
+                if (!stoneName) {
+                    return;
+                }
+                slot.src = `/textu/stones/${currentSkin.code}/${stoneName}.png`;
+                slot.alt = `${currentSkin.name} ${stoneName}`;
+            });
+            menuStoneSkinName.textContent = currentSkin.name;
+            menuStoneSkinDesc.textContent = currentSkin.description;
+            if (menuStoneSkinStatus) {
+                menuStoneSkinStatus.textContent = loggedIn
+                    ? (currentSkin.code === "default" ? "Equipped Default Set" : "Unlocked Skin")
+                    : "Preview Only";
+            }
+        }
+
+        async function persistMenuStoneSkin() {
+            if (!loggedIn || !token || !header || unlockedStoneSkins.length === 0) {
+                return;
+            }
+
+            const currentSkin = unlockedStoneSkins[currentMenuStoneSkinIndex] || unlockedStoneSkins[0];
+            try {
+                await fetch("/tellstones/setskins", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        [header]: token
+                    },
+                    body: JSON.stringify({ stoneid: stoneSkinIdByCode[currentSkin.code] }),
+                    credentials: "include"
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        if (menuStoneSkinPrev) {
+            menuStoneSkinPrev.addEventListener("click", async () => {
+                currentMenuStoneSkinIndex = (currentMenuStoneSkinIndex - 1 + unlockedStoneSkins.length) % unlockedStoneSkins.length;
+                renderMenuStoneSkinPicker();
+                await persistMenuStoneSkin();
+            });
+        }
+
+        if (menuStoneSkinNext) {
+            menuStoneSkinNext.addEventListener("click", async () => {
+                currentMenuStoneSkinIndex = (currentMenuStoneSkinIndex + 1) % unlockedStoneSkins.length;
+                renderMenuStoneSkinPicker();
+                await persistMenuStoneSkin();
+            });
+        }
+
+        renderMenuStoneSkinPicker();
     </script>
 </body>
 </html>

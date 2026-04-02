@@ -227,7 +227,7 @@
             }
             console.log(data);
             try {
-				const res = await fetch("/tellstones/settinggame", {
+				const res = await fetch("/tellstones/settinggame?roomId=" + encodeURIComponent(productId), {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data)
@@ -296,7 +296,8 @@
 
 <script>
     let isSocketConnected = false;
-    const socket = io("http://192.168.89.101:9092", {
+    const socketServerUrl = `${window.location.protocol}//${window.location.hostname}:9092`;
+    const socket = io(socketServerUrl, {
         transports: ["websocket"],
         query: {
             userId: window.location.pathname.split("/").pop()
@@ -707,7 +708,11 @@
                             "Content-Type": "application/json",
                             [header]: token
                         },
-                        body: JSON.stringify({ roomId: productId }),
+                        body: JSON.stringify({
+                            roomId: productId,
+                            selfUsername: selfPlayer ? selfPlayer.username : null,
+                            opponentUsername: opponent ? opponent.username : null
+                        }),
                         credentials: "include"
                     });
 
