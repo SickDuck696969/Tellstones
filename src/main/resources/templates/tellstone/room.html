@@ -50,6 +50,11 @@
         .room-id-badge { top: 1rem; left: 1rem; font-family: "Cinzel", serif; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: #c8b89a; }
         .spectator-badge { position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 8; display: none; padding: .5rem .9rem; border-radius: 999px; border: 1px solid rgba(223,193,125,.2); background: rgba(10,8,7,.84); box-shadow: 0 16px 30px rgba(0,0,0,.22); font-family: "Cinzel", serif; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: #eadfca; }
         .spectator-badge.is-visible { display: inline-flex; align-items: center; justify-content: center; }
+        .spectator-panel { position: absolute; right: 1.1rem; top: 1rem; z-index: 8; display: none; width: 220px; padding: .85rem .95rem; border-radius: 1rem; border: 1px solid rgba(223,193,125,.16); background: linear-gradient(180deg, rgba(18,14,12,.9), rgba(10,8,7,.92)); box-shadow: 0 18px 30px rgba(0,0,0,.24); }
+        .spectator-panel.is-visible { display: grid; gap: .35rem; }
+        .spectator-panel .spectator-label { font-family: "Cinzel", serif; font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; color: #c8b89a; }
+        .spectator-panel .spectator-title { margin: 0; font-family: "Cinzel", serif; font-size: .95rem; color: #eadfca; }
+        .spectator-panel .spectator-copy { margin: 0; color: rgba(234,223,202,.72); font-size: .88rem; line-height: 1.35; }
         .playerbox { position: absolute; inset: 0; pointer-events: none; z-index: 6; }
         .player-rail { position: absolute; right: 2rem; left: auto; transform: none; display: flex; align-items: flex-end; gap: .7rem; width: 385px; justify-content: flex-end; }
         .player-rail.top { top: .95rem; }
@@ -177,6 +182,11 @@
             <section class="scene-frame room-stage">
                 <div class="room-id-badge" th:text="'Chamber ' + ${roomId}">Chamber</div>
                 <div class="spectator-badge" id="spectatorBadge">Spectator View</div>
+                <aside class="spectator-panel" id="spectatorPanel">
+                    <span class="spectator-label">Observer Seat</span>
+                    <h3 class="spectator-title">Watching as spectator</h3>
+                    <p class="spectator-copy" id="spectatorCopy">Follow the duel as it unfolds. The current turn and major actions will be announced here.</p>
+                </aside>
                 <p style="position: absolute; left: 20px; top: -30px; font-size: 70px;" id="eventDisplay">event</p>
                 <div class="playerbox"></div>
                 <div class="action-dock">
@@ -277,6 +287,8 @@
     const battlefield = document.querySelector(".battlefield");
     const sceneFrame = document.querySelector(".scene-frame");
     const spectatorBadge = document.getElementById("spectatorBadge");
+    const spectatorPanel = document.getElementById("spectatorPanel");
+    const spectatorCopy = document.getElementById("spectatorCopy");
     const chatInput = document.getElementById("message");
     const chatButton = document.getElementById("sendChat");
     const surrenderBtn = document.getElementById("surrenderBtn");
@@ -291,6 +303,9 @@
         }
         if (spectatorBadge) {
             spectatorBadge.classList.toggle("is-visible", isSpectator);
+        }
+        if (spectatorPanel) {
+            spectatorPanel.classList.toggle("is-visible", isSpectator);
         }
         if (chatInput) {
             chatInput.disabled = isSpectator;
@@ -320,6 +335,12 @@
         return "Player";
     }
 
+    function setSpectatorActionCopy(message) {
+        if (isSpectator && spectatorCopy) {
+            spectatorCopy.innerText = message;
+        }
+    }
+
     function setTurnDisplay(turnId) {
         const eventDisplay = document.getElementById("eventDisplay");
         if (!eventDisplay) {
@@ -327,7 +348,9 @@
         }
 
         if (isSpectator) {
-            eventDisplay.innerText = `${getTurnOwnerName(turnId)}'s turn`;
+            const turnOwner = getTurnOwnerName(turnId);
+            eventDisplay.innerText = `${turnOwner}'s turn`;
+            setSpectatorActionCopy(`${turnOwner} is acting. Spectators can watch the duel unfold but cannot alter the board.`);
             return;
         }
 
@@ -360,6 +383,25 @@
         else {
             eventDisplay.innerText = "Opponent's turn";
         }
+    }
+
+    function updateSpectatorTurnDisplay() {
+        if (!isSpectator || !game || !game.currentPlayerIndex) {
+            return;
+        }
+        setTurnDisplay(game.currentPlayerIndex.id);
+    }
+
+    function announceSpectatorAction(actor, message) {
+        if (!isSpectator) {
+            return;
+        }
+        const actorName = actor && (actor.displayName || actor.username) ? (actor.displayName || actor.username) : "A duelist";
+        const eventDisplay = document.getElementById("eventDisplay");
+        if (eventDisplay) {
+            eventDisplay.innerText = `${actorName} ${message}`;
+        }
+        setSpectatorActionCopy(`${actorName} ${message}.`);
     }
 
     function renderPlayerCard(player, roleLabel, cardClass) {
@@ -1070,6 +1112,11 @@
         stones = document.querySelectorAll(".stone");
         socket.on("yougofirst", async () => {
             await changingturns(selfPlayer);
+            if (isSpectator) {
+                announceSpectatorAction(selfPlayer, "is opening the duel");
+                updateSpectatorTurnDisplay();
+                return;
+            }
             stones.forEach(stone => {
                 stone.children[0].classList.add("chosen");
                 stone.draggable = true;
@@ -1079,6 +1126,11 @@
 
         socket.on("younotgofirst", async () => {
             await changingturns(opponent);
+            if (isSpectator) {
+                announceSpectatorAction(opponent, "is taking the opening move");
+                updateSpectatorTurnDisplay();
+                return;
+            }
             stones.forEach(stone => {
                 if(stone.children[0].classList.contains("chosen")){
                     stone.children[0].classList.remove("chosen");
@@ -1113,6 +1165,9 @@
         let sideing = "left";
         socket.on("place", (data) => {
             console.log(data);
+            if (isSpectator) {
+                updateSpectatorTurnDisplay();
+            }
             placeon = true;
             sideing = data.where;
             let stones = document.querySelectorAll(".stone")
@@ -1162,8 +1217,13 @@
         let hiding = false;
         socket.on("hide", (data) => {
             console.log(data);
+            if (isSpectator) {
+                announceSpectatorAction(opponent, "is concealing a stone");
+            }
             hideon = true;
-            document.getElementById("eventDisplay").innerText = "Hide";
+            if (!isSpectator) {
+                document.getElementById("eventDisplay").innerText = "Hide";
+            }
             hiding = true;
             let stonevisuals = document.querySelectorAll(".slot")
             stonevisuals.forEach(stone => {
@@ -1176,7 +1236,9 @@
                                 stone.children[0].classList.remove("chosen");
                                 stone.children[0].classList.add("hiden");
                                 hiding = false;
-                                document.getElementById("eventDisplay").innerText = "Your turn";
+                                if (!isSpectator) {
+                                    document.getElementById("eventDisplay").innerText = "Your turn";
+                                }
                                 updatebaackendline();
                             }
                         });
@@ -1185,6 +1247,9 @@
         });
 
         socket.on("swapcommence", (data) => {
+            if (isSpectator) {
+                announceSpectatorAction(selfPlayer, "is swapping stones");
+            }
             let thestone1 = null;
             let thestone2 = null;
 
@@ -1286,7 +1351,12 @@
 
         socket.on("challengecommence", (data) => {
             challengedata = data;
-            document.getElementById("eventDisplay").innerText = "Write '>answer' in chat";
+            if (isSpectator) {
+                announceSpectatorAction(opponent, "is resolving a challenge");
+            }
+            if (!isSpectator) {
+                document.getElementById("eventDisplay").innerText = "Write '>answer' in chat";
+            }
             document.querySelectorAll(".slot").forEach(stone => {
                 if(stone.id === data.slotid){
                     if(stone.children.length > 0){
@@ -1299,6 +1369,9 @@
 
         socket.on("scorewrite", async (data) => {
             console.log(data);
+            if (isSpectator) {
+                setSpectatorActionCopy("The duel score has changed after the latest exchange.");
+            }
             try {
 				const res = await fetch("/tellstones/score", {
 				method: "POST",
