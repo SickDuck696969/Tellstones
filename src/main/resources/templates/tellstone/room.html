@@ -161,6 +161,30 @@
         .action-trigger { transition: opacity .16s ease, transform .18s ease, box-shadow .18s ease; }
         .action-choice { transition: border 0.2s ease, background 0.2s ease, color 0.2s ease;display: inline-flex; align-items: center; justify-content: center; min-height: 2.7rem; padding: .55rem .8rem; border-radius: .95rem; border: 1px solid rgba(223,193,125,.14); background: rgba(255,255,255,.04); color: #eadfca; font-family: "Cinzel", serif; font-size: .68rem; letter-spacing: .07em; text-transform: uppercase; text-align: center; cursor: pointer;}
         .action-choice:hover {border: 1px solid rgba(255, 179, 0, 0.719); background: rgba(255, 255, 255, 0.845); color: #a56b00;}
+        .spectator-badge { position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 8; display: none; padding: .5rem .9rem; border-radius: 999px; border: 1px solid rgba(223,193,125,.2); background: rgba(10,8,7,.84); box-shadow: 0 16px 30px rgba(0,0,0,.22); font-family: "Cinzel", serif; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: #eadfca; }
+        .spectator-badge.is-visible { display: inline-flex; align-items: center; justify-content: center; }
+        .spectator-panel { position: absolute; right: 1.1rem; top: 1rem; z-index: 8; display: none; width: 220px; padding: .85rem .95rem; border-radius: 1rem; border: 1px solid rgba(223,193,125,.16); background: linear-gradient(180deg, rgba(18,14,12,.9), rgba(10,8,7,.92)); box-shadow: 0 18px 30px rgba(0,0,0,.24); }
+        .spectator-panel.is-visible { display: grid; gap: .35rem; }
+        .spectator-panel .spectator-label { font-family: "Cinzel", serif; font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; color: #c8b89a; }
+        .spectator-panel .spectator-title { margin: 0; font-family: "Cinzel", serif; font-size: .95rem; color: #eadfca; }
+        .spectator-panel .spectator-copy { margin: 0; color: rgba(234,223,202,.72); font-size: .88rem; line-height: 1.35; }
+        .spectator-toggle { position: absolute; top: 1rem; right: 1rem; z-index: 9; display: inline-flex; align-items: center; justify-content: center; width: 2.9rem; height: 2.9rem; border-radius: 999px; border: 1px solid rgba(223,193,125,.18); background: rgba(10,8,7,.82); color: #eadfca; box-shadow: 0 16px 30px rgba(0,0,0,.22); cursor: pointer; }
+        .spectator-toggle:hover { border-color: rgba(223,193,125,.34); background: rgba(26,20,16,.9); }
+        .spectator-toggle.is-open { border-color: rgba(223,193,125,.4); box-shadow: 0 0 0 1px rgba(223,193,125,.18), 0 16px 30px rgba(0,0,0,.22); }
+        .spectator-list-panel { position: absolute; top: 4.35rem; right: 1rem; z-index: 9; display: none; width: 240px; padding: .9rem; border-radius: 1rem; border: 1px solid rgba(223,193,125,.16); background: linear-gradient(180deg, rgba(18,14,12,.94), rgba(10,8,7,.96)); box-shadow: 0 18px 30px rgba(0,0,0,.24); }
+        .spectator-list-panel.is-open { display: grid; gap: .55rem; }
+        .spectator-list-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+        .spectator-list-head strong { font-family: "Cinzel", serif; font-size: .82rem; letter-spacing: .06em; text-transform: uppercase; }
+        .spectator-list-count { color: #c8b89a; font-size: .78rem; }
+        .spectator-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; }
+        .spectator-list li { display: flex; align-items: center; gap: .65rem; padding: .55rem .7rem; border-radius: .85rem; border: 1px solid rgba(223,193,125,.1); background: rgba(255,255,255,.035); color: #eadfca; font-size: .92rem; }
+        .spectator-avatar { width: 2.1rem; height: 2.1rem; border-radius: 50%; overflow: hidden; flex: 0 0 auto; border: 1px solid rgba(223,193,125,.2); background: rgba(255,255,255,.06); }
+        .spectator-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .spectator-meta { min-width: 0; display: grid; gap: .08rem; }
+        .spectator-name { color: #eadfca; font-size: .92rem; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .spectator-subtitle { color: rgba(234,223,202,.6); font-size: .78rem; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .spectator-you { display: inline-flex; align-items: center; justify-content: center; width: fit-content; padding: .12rem .4rem; border-radius: 999px; border: 1px solid rgba(223,193,125,.22); background: rgba(223,193,125,.08); color: #d9be8b; font-size: .66rem; letter-spacing: .06em; text-transform: uppercase; }
+        .spectator-list-empty { margin: 0; color: rgba(234,223,202,.68); font-size: .86rem; line-height: 1.35; }
         .room-settings-panel { width: min(460px, 100%); }
         .room-settings-actions { display: flex; gap: .7rem; flex-wrap: wrap; margin-top: 1.1rem; }
         .chat-author { display: block; margin-bottom: .2rem; font-family: "Cinzel", serif; font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; color: #c8b89a; }
@@ -261,6 +285,92 @@
         <source th:src="@{/audio/bgm.mp3}" type="audio/mpeg">
     </audio>
     <script th:src="@{/js/tellstone-ui.js}"></script>
+    <script>
+        const battlefield = document.querySelector(".battlefield");
+        const sceneFrame = document.querySelector(".scene-frame");
+        const spectatorBadge = document.getElementById("spectatorBadge");
+        const spectatorPanel = document.getElementById("spectatorPanel");
+        const spectatorCopy = document.getElementById("spectatorCopy");
+        const spectatorToggle = document.getElementById("spectatorToggle");
+        const spectatorListPanel = document.getElementById("spectatorListPanel");
+        const spectatorList = document.getElementById("spectatorList");
+        const spectatorCount = document.getElementById("spectatorCount");
+        const spectatorEmpty = document.getElementById("spectatorEmpty");
+        function applySpectatorMode() {
+        if (battlefield) {
+            battlefield.classList.toggle("is-spectator", spectator != null);
+        }
+        if (sceneFrame) {
+            sceneFrame.classList.toggle("is-spectator", spectator != null);
+        }
+        if (spectatorBadge) {
+            spectatorBadge.classList.toggle("is-visible", spectator != null);
+        }
+        if (spectatorPanel) {
+            spectatorPanel.classList.toggle("is-visible", spectator != null);
+        }
+        if (chatInput) {
+            chatInput.disabled = spectator != null;
+            chatInput.placeholder = spectator != null ? "Spectators cannot send messages" : "Send a whisper across the table";
+        }
+        if (chatButton) {
+            chatButton.disabled = spectator != null;
+        }
+        if (surrenderBtn) {
+            surrenderBtn.style.display = spectator != null ? "none" : "";
+        }
+        if (spectator != null) {
+            const eventDisplay = document.getElementById("eventDisplay");
+            if (eventDisplay) {
+                eventDisplay.innerText = "Spectating";
+            }
+        }
+    }
+        function setSpectatorActionCopy(message) {
+            if (spectator != null && spectatorCopy) {
+                spectatorCopy.innerText = message;
+            }
+        }
+
+        function renderSpectatorList() {
+            if (!spectatorList || !spectatorCount || !spectatorEmpty) {
+                return;
+            }
+
+            spectatorCount.innerText = `${spectators.length} watching`;
+            spectatorList.innerHTML = spectators.map((player) => {
+                const label = player.displayName || player.username || "Spectator";
+                const sublabel = player.username && player.displayName ? player.username : "";
+                const avatar = player.avatar || "/logo.png";
+                const isCurrentViewer = String(player.id) === window.location.pathname.split("/")[window.location.pathname.split("/").length - 3];
+                return `
+                    <li>
+                        <div class="spectator-avatar"><img src="${avatar}" alt="${label}"></div>
+                        <div class="spectator-meta">
+                            <span class="spectator-name">${label}</span>
+                            ${sublabel ? `<span class="spectator-subtitle">${sublabel}</span>` : ""}
+                            ${isCurrentViewer ? `<span class="spectator-you">You</span>` : ""}
+                        </div>
+                    </li>
+                `;
+            }).join("");
+            spectatorEmpty.style.display = spectators.length === 0 ? "block" : "none";
+            if (spectatorToggle && spectatorListPanel) {
+                spectatorToggle.addEventListener("click", function (event) {
+                    event.stopPropagation();
+                    spectatorListPanel.classList.toggle("is-open");
+                    spectatorToggle.classList.toggle("is-open");
+                });
+
+                document.addEventListener("click", function (event) {
+                    if (!spectatorListPanel.contains(event.target) && !spectatorToggle.contains(event.target)) {
+                        spectatorListPanel.classList.remove("is-open");
+                        spectatorToggle.classList.remove("is-open");
+                    }
+                });
+            }
+        }
+    </script>
     <script>
         async function updatebaackendline() {
             const theline = document.querySelectorAll(".slot");
@@ -493,7 +603,7 @@
 
 <script>
     let isSocketConnected = false;
-    const socket = io("http://192.168.89.101:9092", {
+    const socket = io("http://192.168.100.207:9092", {
         transports: ["websocket"],
         query: {
             userId: window.location.pathname.split("/").pop()
@@ -645,6 +755,7 @@
 
     socket.on("massspawnapprove", async () => {
         await loadProduct();
+        let index = 0;
         spawnplayer();
         loadskin();
     })
@@ -685,6 +796,8 @@
     <script>
         let selfPlayer = null;
         let opponent = null;
+        let spectator = null;
+        let spectators = Array.isArray(players) ? players.slice(2) : [];
         async function spawnplayer() {
             const playerbox = document.querySelector(".playerbox");
             playerbox.innerHTML = "";
@@ -699,43 +812,23 @@
                     selfPlayer = player;
                 } else if (opponent == null) {
                     opponent = player;
+                    if(selfPlayer != null){
+                        break;
+                    }
                 }
-            }
 
-            isSpectator = players.length > 2 && selfPlayer == null;
-            if (isSpectator) {
-                selfPlayer = duelists[0] || null;
-                opponent = duelists[1] || null;
-            } else if (selfPlayer == null && duelists.length > 0) {
-                selfPlayer = duelists[0];
-                opponent = duelists[1] || null;
-            }
-
-            applySpectatorMode();
-            renderSpectatorList();
+                if(player.id.toString() === window.location.pathname.split("/")[window.location.pathname.split("/").length - 3]){
+                    selfPlayer = player;
+                    if(opponent != null){
+                        break;
+                    }
+                }
+            };
             playerbox.innerHTML = `
-                <div class="player-rail top">${renderPlayerCard(opponent, isSpectator ? "Duelist Two" : "Opponent", "opponent")}</div>
-                <div class="player-rail bottom">${renderPlayerCard(selfPlayer, isSpectator ? "Duelist One" : "You", "player")}</div>
+                <div class="player-rail top">${renderPlayerCard(opponent, "Opponent", "opponent")}</div>
+                <div class="player-rail bottom">${renderPlayerCard(selfPlayer, "You", "player")}</div>
             `;
-            if (!isSpectator) {
-                startgame();
-            }
-        }
-    </script>
-    <script>
-        if (spectatorToggle && spectatorListPanel) {
-            spectatorToggle.addEventListener("click", function (event) {
-                event.stopPropagation();
-                spectatorListPanel.classList.toggle("is-open");
-                spectatorToggle.classList.toggle("is-open");
-            });
-
-            document.addEventListener("click", function (event) {
-                if (!spectatorListPanel.contains(event.target) && !spectatorToggle.contains(event.target)) {
-                    spectatorListPanel.classList.remove("is-open");
-                    spectatorToggle.classList.remove("is-open");
-                }
-            });
+            startgame();
         }
     </script>
     <script>
@@ -757,8 +850,12 @@
 
 				if (res.ok) {
 					const restone = await res.json();
-                    console.log(restone);
-                    socket.emit("whogofirst", productId);
+                    game = restone;
+                    console.log(game);
+                    socket.emit("whogofirst", {
+                        roomid: productId,
+                        username: game.currentPlayerIndex.username
+                    });
 				} else {
 				}
 			} catch (err) {
@@ -1186,6 +1283,7 @@
 
         stones = document.querySelectorAll(".stone");
         socket.on("yougofirst", async () => {
+            console.log("yougofirst");
             await changingturns(selfPlayer);
             if (isSpectator) {
                 announceSpectatorAction(selfPlayer, "is opening the duel");
@@ -1201,11 +1299,6 @@
 
         socket.on("younotgofirst", async () => {
             await changingturns(opponent);
-            if (isSpectator) {
-                announceSpectatorAction(opponent, "is taking the opening move");
-                updateSpectatorTurnDisplay();
-                return;
-            }
             stones.forEach(stone => {
                 if(stone.children[0].classList.contains("chosen")){
                     stone.children[0].classList.remove("chosen");
@@ -1235,7 +1328,35 @@
 			} catch (err) {
 				console.error(err);
 			}
-            setTurnDisplay(data.turn);
+            if(data.turn === String(selfPlayer.id)){
+                if(firstturn){
+                    document.getElementById("eventDisplay").innerText = "Place the starting stone";
+                    firstturn = false;
+                } else if (placeon) {
+                    document.getElementById("eventDisplay").innerText = "Place";
+                    placeon = false;
+                } else if (hideon) {
+                    document.getElementById("eventDisplay").innerText = "Hide";
+                    hideon = false;
+                } else if (swapon) {
+                    document.getElementById("eventDisplay").innerText = "Swap";
+                    swapon = false;
+                } else if (peekon) {
+                    document.getElementById("eventDisplay").innerText = "Peek";
+                    peekon = false;
+                } else if (challengeon) {
+                    document.getElementById("eventDisplay").innerText = "Challenge";
+                    challengeon = false;
+                } else if (boaston) {
+                    document.getElementById("eventDisplay").innerText = "Boast";
+                    boaston = false;
+                } else {
+                    document.getElementById("eventDisplay").innerText = "Your turn";
+                }
+            }
+            else {
+                document.getElementById("eventDisplay").innerText = "Opponent's turn";
+            }
         });
         let sideing = "left";
         socket.on("place", (data) => {
@@ -1486,6 +1607,13 @@
     <script>
         let game = null;
         async function changingturns(whogo){
+            if(spectator != null){
+                if(game.currentPlayerIndex.id != game.me.id){
+                    whogo = game.me;
+                }else if (game.currentPlayerIndex.id != game.opponent.id){
+                    whogo = game.opponent;
+                }
+            }
             data = {
                 turn: whogo.id,
                 roomId: productId

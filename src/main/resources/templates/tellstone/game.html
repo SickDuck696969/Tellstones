@@ -197,9 +197,37 @@
                 players = await res.json();
 
                 console.log(players);
+
+                players.forEach(player => {
+                    if(player.id.toString() === userid && players.indexOf(player) > 1){
+                        startRoomBtn.disabled = true;
+                    }
+                });
  
             } catch (err) {
                 console.error("Error loading players:", err);
+            }
+        }
+        async function getinroom() {
+            try {
+                const res = await fetch("/tellstones/setplayersinrooms/" + productId, {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        [header]: token,
+                    },
+                    body: JSON.stringify({
+                        userid: userid
+                    }),
+                    credentials: "include",
+                });
+
+                if (res.ok) {
+                    const a = await res.json();
+                    console.log(a);
+                }
+            } catch (err) {
+                console.error(err);
             }
         }
     </script>
@@ -212,13 +240,7 @@
     </script>
 
 <script>
-    const socketHost = `${window.location.protocol}//${window.location.hostname}:9092`;
-    const pathSegments = window.location.pathname.split("/").filter(Boolean);
-    const currentRoomFromPath = pathSegments[pathSegments.length - 2] || "";
-    const currentUserId = pathSegments[pathSegments.length - 3] || pathSegments[pathSegments.length - 1] || "";
-    const currentUsername = pathSegments[pathSegments.length - 1] || "";
-
-    const socket = io(socketHost, {
+    const socket = io("http://192.168.89.101:9092", {
         transports: ["websocket"],
         query: {
             userId: currentUserId
@@ -392,75 +414,74 @@
         }
     }
 
-    socket.on("connect", () => {
-        console.log("CONNECTED");
-        updatebaackendline();
-        if (currentRoomFromPath) {
-            socket.emit("inRoom", currentRoomFromPath);
-        }
-    });
+        socket.on("connect", () => {
+            console.log("CONNECTED");
+            updatebaackendline();
+            inRoom();
+        });
 
     socket.on("connect_error", (err) => {
         console.log("ERROR:", err);
     });
 
-    socket.on("message", (data) => {
-        console.log(data);
-    });
-
-    socket.on("Youin", () => {
-        loadProduct();
-    });
-
-    socket.on("roomJoined", async (roomId) => {
-        joinedRoomId = roomId;
-        currentRoomId = roomId;
-        setCreateRoomView(true);
-        updateRoomCopy(roomId, createMode ? "create" : "join");
-        await loadPlayers(roomId);
-    });
-
-    socket.on("sessionID", () => {
-        if (!joinedRoomId) {
-            return;
-        }
-        window.location.href = `/tellstones/${currentUserId}/${joinedRoomId}/${currentUsername}`;
-    });
-
-    socket.on("goto", () => {
-        const targetRoomId = pendingJoinRoomId || roomInput.value.trim().toUpperCase();
-        if (!targetRoomId) {
-            return;
-        }
-        socket.emit("startRoom", targetRoomId);
-    });
-
-    socket.on("gamestart", () => {
-        const targetRoomId = joinedRoomId || currentRoomId;
-        if (!targetRoomId) {
-            return;
-        }
-        window.location.href = `/tellstones/room/${currentUserId}/${targetRoomId}/${currentUsername}`;
-    });
-
-    if (stoneSkinSelect) {
-        stoneSkinSelect.addEventListener("change", () => {
-            updateStoneSkinDescription();
-            updatebaackendline();
+        socket.on("message", (data) => {
+            console.log(data);
         });
-        updateStoneSkinDescription();
-    }
 
-    if (createRoomBtn) {
-        createRoomBtn.addEventListener("click", () => {
-            createMode = true;
-            currentRoomId = generateRoomId();
-            joinedRoomId = currentRoomId;
-            setCreateRoomView(true);
-            updateRoomCopy(currentRoomId, "create");
-            renderPlayerList([]);
+        socket.on("roomJoined", async (roomId) => {
+            console.log("Joined room:", roomId);
+            joined = roomId;
+
+            if (roomBanner) {
+                roomBanner.textContent = "Chamber " + roomId + " is assembled.";
+            }
+
+            if (roomStatusLabel) {
+                roomStatusLabel.textContent = createMode
+                    ? "Your chamber is open. Share the sigil and begin when everyone is present."
+                    : "You are joining an existing chamber.";
+            }
+
+            if (roomInfoLabel) {
+                roomInfoLabel.textContent = createMode
+                    ? "Your chamber is open. Share the sigil, then start once everyone is seated."
+                    : "You have stepped into an existing chamber.";
+            }
+
+            await loadPlayers(roomId);
         });
-    }
+
+        if (createRoomBtn) {
+            createRoomBtn.addEventListener("click", () => {
+                currentRoomId = generateRoomId();
+
+                if (createRoomCollapsed) {
+                    createRoomCollapsed.style.display = "none";
+                }
+
+                if (createRoomExpanded) {
+                    createRoomExpanded.style.display = "grid";
+                }
+
+                if (currentRoomIdLabel) {
+                    currentRoomIdLabel.textContent = currentRoomId;
+                }
+
+                if (roomStatusLabel) {
+                    roomStatusLabel.textContent = "Placeholder chamber prepared. Start Game will create it when you are ready.";
+                }
+
+                if (roomInfoLabel) {
+                    roomInfoLabel.textContent = "This is only a placeholder preview for now. The actual room will be created when you continue the flow.";
+                }
+
+                if (roomBanner) {
+                    roomBanner.textContent = "A placeholder chamber has been prepared so you can test the create-room button.";
+                }
+
+                renderPlayerList([]);
+            });
+        }
 
     if (copyRoomBtn) {
         copyRoomBtn.addEventListener("click", async () => {
@@ -480,14 +501,120 @@
         });
     }
 
-    if (startRoomBtn) {
-        startRoomBtn.addEventListener("click", startGame);
-    }
+        function inRoom() {
+            const roomId = productId;
+            socket.emit("inRoom", roomId);
+            console.log("In room:", roomId);
+        }
 
-    if (joinRoomBtn) {
-        joinRoomBtn.addEventListener("click", handleJoinRoomClick);
-    }
-</script>
+        socket.on("Youin", async () => {
+            loadProduct();
+        });
+
+        let joined = null;
+
+        socket.on("sessionID", async (sessionID) => {
+            console.log("Joined room:", sessionID);
+            if(joined != null){
+                window.location.href = `/tellstones/${userid}/${joined}/${user}`;
+            }
+        });
+
+        function moveroom() {
+            socket.emit("moveRoom", currentRoomId);
+        }
+
+        socket.on("roomJoined", (roomId) => {
+            console.log("Joined room:", roomId);
+            joined = roomId;
+        });
+
+
+        
+        socket.on("goto", (session) => {
+            socket.emit("startRoom", document.getElementById("roomId").value);
+        });
+
+        function Startgame() {
+            socket.emit("startgame", roomid);
+        }
+
+        socket.on("gamestart", () => {
+            window.location.href = `/tellstones/room/${userid}/${roomid}/${user}`;
+        });
+
+        const spectatorModal = document.getElementById("spectatorModal");
+        const joinAsSpectatorBtn = document.getElementById("joinAsSpectatorBtn");
+        const cancelJoinBtn = document.getElementById("cancelJoinBtn");
+
+        if (joinRoomBtn) {
+            joinRoomBtn.addEventListener("click", async () => {
+                const targetRoom = roomInput.value.trim().toUpperCase();
+                if (!targetRoom) return;
+
+                try {
+                    const res = await fetch("/tellstones/getplayers/" + targetRoom);
+                    const players = await res.json();
+
+                    // 🚨 Nếu phòng đã đủ 2 người
+                    if (players.length >= 2) {
+                        spectatorModal.style.display = "block";
+
+                        // Nếu chọn xem
+                        joinAsSpectatorBtn.onclick = () => {
+                            spectatorModal.style.display = "none";
+                            createMode = false;
+                            joined = null;
+
+                            // gửi thêm role spectator
+                            socket.emit("moveRoom", {
+                                roomId: targetRoom,
+                                role: "spectator"
+                            });
+
+                            console.log("Join as spectator:", targetRoom);
+                        };
+
+                        // Nếu hủy
+                        cancelJoinBtn.onclick = () => {
+                            spectatorModal.style.display = "none";
+                        };
+
+                    } else {
+                        // 👤 Vào như player bình thường
+                        createMode = false;
+                        joined = null;
+
+                        socket.emit("moveRoom", {
+                            roomId: targetRoom,
+                            role: "player"
+                        });
+
+                        console.log("Join as player:", targetRoom);
+                    }
+
+                } catch (err) {
+                    console.error("Error checking room:", err);
+                }
+            });
+        }
+
+
+        const stoneSkinSelect = document.getElementById("stoneSkinSelect");
+        const stoneSkinDesc = document.getElementById("stoneSkinDesc");
+        const stoneSkinOptions = {
+            ivory: "Ivory face, obsidian edge, crestwork in brass.",
+            shadow: "Shadow obsidian with rune etching.",
+            frost: "Frosted marble with silver rim.",
+            ember: "Ember red with gold inlay."
+        };
+
+        if (stoneSkinSelect && stoneSkinDesc) {
+            stoneSkinSelect.addEventListener("change", () => {
+                stoneSkinDesc.textContent = stoneSkinOptions[stoneSkinSelect.value] || "Choose your stone skin from the list.";
+            });
+        }
+    </script>
 
 
     <audio data-bgm loop>
