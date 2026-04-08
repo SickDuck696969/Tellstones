@@ -159,19 +159,16 @@ public class SocketIOService {
             }
         });
 
-        server.addEventListener("whogofirst", String.class, (client, roomId, ack) -> {
-            Random random = new Random();
-            int result = random.nextInt(2);
-            var clients = server.getRoomOperations(roomId).getClients();
-            int index = 0;
+        server.addEventListener("whogofirst", flipdata.class, (client, data, ack) -> {
+            var clients = server.getRoomOperations(data.roomid).getClients();
+            System.out.println("who go first: " + data.username);
             for (var c : clients) {
-                if(index == result){
+                String pp = java.net.URLDecoder.decode(c.getHandshakeData().getSingleUrlParam("userId"));
+                if(pp.equals(data.username)){
                     c.sendEvent("yougofirst", "yougofirst");
-                }
-                else if (index == 1 - result){
+                }else {
                     c.sendEvent("younotgofirst", "younotgofirst");
                 }
-                index++;
             }
         });
 

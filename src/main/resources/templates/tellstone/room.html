@@ -1399,16 +1399,16 @@
     <script>
         let game = null;
         async function changingturns(whogo){
-            data = {
-                turn: whogo.id,
-                roomId: productId
-            }
             if(spectator != null){
                 if(game.currentPlayerIndex.id != game.me.id){
                     whogo = game.me;
                 }else if (game.currentPlayerIndex.id != game.opponent.id){
                     whogo = game.opponent;
                 }
+            }
+            data = {
+                turn: whogo.id,
+                roomId: productId
             }
             try {
 				const res = await fetch("/tellstones/setturn", {
