@@ -58,6 +58,11 @@ public class SocketIOService {
         public String slotid;
     }
 
+    public static class flipdata {
+        public String roomid;
+        public String username;
+    }
+
     public static class LineUpdateData {
         public String roomId;
         private Stone[] line;
@@ -116,6 +121,11 @@ public class SocketIOService {
             client.sendEvent("sessionID", client.getSessionId().toString());
         });
 
+        server.addEventListener("checkRoom", String.class, (client, roomId, ack) -> {
+            var clients = server.getRoomOperations(roomId).getClients();
+            client.sendEvent("checkedRoom", clients.toArray().length);
+        });
+
         server.addEventListener("inRoom", String.class, (client, roomId, ack) -> {
             System.out.println("Start room: " + roomId);
             client.joinRoom(roomId);
@@ -144,23 +154,21 @@ public class SocketIOService {
             }
         });
 
-        server.addEventListener("whogofirst", String.class, (client, roomId, ack) -> {
-            Random random = new Random();
-            int result = random.nextInt(2);
-            var clients = server.getRoomOperations(roomId).getClients();
-            int index = 0;
+        server.addEventListener("whogofirst", flipdata.class, (client, data, ack) -> {
+            var clients = server.getRoomOperations(data.roomid).getClients();
+            System.out.println("who go first: " + data.username);
             for (var c : clients) {
-                if(index == result){
+                String pp = java.net.URLDecoder.decode(c.getHandshakeData().getSingleUrlParam("userId"));
+                if(pp.equals(data.username)){
                     c.sendEvent("yougofirst", "yougofirst");
-                }
-                else if (index == 1 - result){
+                }else {
                     c.sendEvent("younotgofirst", "younotgofirst");
                 }
-                index++;
             }
         });
 
         server.addEventListener("moveRoom", String.class, (client, roomId, ack) -> {
+            System.out.println(roomId);
             client.sendEvent("roomJoined", roomId);
             client.sendEvent("goto", client.getSessionId().toString());
         });
