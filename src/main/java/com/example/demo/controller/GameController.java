@@ -143,12 +143,19 @@ public class GameController {
             }
         }
         if(game == null){
+            Random random = new Random();
+            int result = random.nextInt(2);
             game = new Game();
             game.setRoomCode(request.getRoomId());
             game.setMe(request.getMe());
             game.setOpponent(request.getOpponent());
             game.setMescore(0);
             game.setTheyscore(0);
+            if(result ==  0){
+                game.setCurrentPlayerIndex(game.getMe());
+            } else {
+                game.setCurrentPlayerIndex(game.getOpponent());
+            }
             gameService.addGame(game);
         }
         for (int i = 0; i < theline.length; i++) {
@@ -177,14 +184,15 @@ public class GameController {
     }
 
     @GetMapping("/coinflip/{id}")
-    public Long flip(@PathVariable String id) {
+    public ResponseEntity<?> flip(@PathVariable String id) {
+        System.out.println("flip in room" + id);
         Game game = gameService.getGame(id);
         Random random = new Random();
         int result = random.nextInt(2);
         if(result == 0){
-            return game.getMe().getId();
+            return ResponseEntity.ok(game.getMe().getUsername());
         }
-        return game.getOpponent().getId();
+        return ResponseEntity.ok(game.getOpponent().getUsername());
     }
 
     @GetMapping("/leave")
