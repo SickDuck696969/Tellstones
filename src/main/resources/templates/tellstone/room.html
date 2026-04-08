@@ -262,7 +262,9 @@
 
 <script>
     function renderPlayerCard(player, roleLabel, cardClass) {
-            const avatar = player.image_string ? player.image_string : "/logo.png";
+            const avatar = player && player.avatar
+                ? player.avatar
+                : (player && player.image_string ? player.image_string : "/logo.png");
             const name = player && player.displayName ? player.displayName : (player && player.username ? player.username : roleLabel);
             const subtitle = player && player.username ? "House " + player.username : "Awaiting challenger";
             return `
