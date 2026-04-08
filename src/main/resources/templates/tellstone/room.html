@@ -15,9 +15,19 @@
         body::before { content: ""; position: fixed; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,.22), transparent 22%, transparent 78%, rgba(0,0,0,.28)), repeating-linear-gradient(135deg, rgba(255,255,255,.012) 0, rgba(255,255,255,.012) 2px, transparent 2px, transparent 10px); opacity: .55; }
         .room-shell { position: relative; min-height: 100vh; padding: 5.2rem 1rem 1rem; }
         .battlefield { position: relative; display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 1rem; width: min(1500px, 100%); height: calc(100vh - 6.2rem); margin: 0 auto; }
+        .battlefield.is-spectator .chat-form { opacity: .45; pointer-events: none; }
+        .battlefield.is-spectator .chat-form input,
+        .battlefield.is-spectator .chat-actions button { cursor: not-allowed; }
         .chat-panel, .scene-frame { position: relative; min-height: 100%; border-radius: 1.7rem; border: 1px solid rgba(223,193,125,.14); box-shadow: 0 26px 56px rgba(0,0,0,.34); }
         .chat-panel { display: flex; flex-direction: column; padding: 1rem; background: linear-gradient(180deg, rgba(18,14,12,.92), rgba(10,8,7,.94)); }
         .scene-frame { overflow: visible; background: linear-gradient(180deg, rgba(15,12,10,.32), rgba(15,12,10,.72)), radial-gradient(circle at top, rgba(223,193,125,.1), transparent 34%); }
+        .scene-frame.is-spectator .bag,
+        .scene-frame.is-spectator .action-dock,
+        .scene-frame.is-spectator .side,
+        .scene-frame.is-spectator .slot,
+        .scene-frame.is-spectator .stone { pointer-events: none !important; }
+        .scene-frame.is-spectator .bag,
+        .scene-frame.is-spectator .action-dock { opacity: .35; }
         .chat-panel::before, .scene-frame::before { content: ""; position: absolute; inset: .75rem; border-radius: 1rem; border: 1px solid rgba(223,193,125,.08); pointer-events: none; }
         .chat-head { position: relative; z-index: 1; margin-bottom: .9rem; }
         .chat-head h2 { margin: 0; font-family: "Cinzel", serif; font-size: 1.2rem; }
@@ -38,6 +48,8 @@
         .room-stage { position: relative; min-height: 100%; overflow: hidden; padding: 5.8rem 1rem 12.6rem; }
         .room-id-badge { position: absolute; z-index: 8; padding: .45rem .75rem; border-radius: 999px; border: 1px solid rgba(223,193,125,.16); background: rgba(10,8,7,.74); box-shadow: 0 16px 30px rgba(0,0,0,.22); }
         .room-id-badge { top: 1rem; left: 1rem; font-family: "Cinzel", serif; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: #c8b89a; }
+        .spectator-badge { position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 8; display: none; padding: .5rem .9rem; border-radius: 999px; border: 1px solid rgba(223,193,125,.2); background: rgba(10,8,7,.84); box-shadow: 0 16px 30px rgba(0,0,0,.22); font-family: "Cinzel", serif; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: #eadfca; }
+        .spectator-badge.is-visible { display: inline-flex; align-items: center; justify-content: center; }
         .playerbox { position: absolute; inset: 0; pointer-events: none; z-index: 6; }
         .player-rail { position: absolute; right: 2rem; left: auto; transform: none; display: flex; align-items: flex-end; gap: .7rem; width: 385px; justify-content: flex-end; }
         .player-rail.top { top: .95rem; }
@@ -164,6 +176,7 @@
             </aside>
             <section class="scene-frame room-stage">
                 <div class="room-id-badge" th:text="'Chamber ' + ${roomId}">Chamber</div>
+                <div class="spectator-badge" id="spectatorBadge">Spectator View</div>
                 <p style="position: absolute; left: 20px; top: -30px; font-size: 70px;" id="eventDisplay">event</p>
                 <div class="playerbox"></div>
                 <div class="action-dock">
@@ -261,6 +274,42 @@
 </script>
 
 <script>
+    const battlefield = document.querySelector(".battlefield");
+    const sceneFrame = document.querySelector(".scene-frame");
+    const spectatorBadge = document.getElementById("spectatorBadge");
+    const chatInput = document.getElementById("message");
+    const chatButton = document.getElementById("sendChat");
+    const surrenderBtn = document.getElementById("surrenderBtn");
+    let isSpectator = false;
+
+    function applySpectatorMode() {
+        if (battlefield) {
+            battlefield.classList.toggle("is-spectator", isSpectator);
+        }
+        if (sceneFrame) {
+            sceneFrame.classList.toggle("is-spectator", isSpectator);
+        }
+        if (spectatorBadge) {
+            spectatorBadge.classList.toggle("is-visible", isSpectator);
+        }
+        if (chatInput) {
+            chatInput.disabled = isSpectator;
+            chatInput.placeholder = isSpectator ? "Spectators cannot send messages" : "Send a whisper across the table";
+        }
+        if (chatButton) {
+            chatButton.disabled = isSpectator;
+        }
+        if (surrenderBtn) {
+            surrenderBtn.style.display = isSpectator ? "none" : "";
+        }
+        if (isSpectator) {
+            const eventDisplay = document.getElementById("eventDisplay");
+            if (eventDisplay) {
+                eventDisplay.innerText = "Spectating";
+            }
+        }
+    }
+
     function renderPlayerCard(player, roleLabel, cardClass) {
             const avatar = player && player.avatar
                 ? player.avatar
@@ -344,6 +393,9 @@
     }
 
     function sendMessage() {
+        if (isSpectator) {
+            return;
+        }
         const msg = document.getElementById("message").value;
         data = {
             roomId: productId,
@@ -485,30 +537,43 @@
         async function spawnplayer() {
             const playerbox = document.querySelector(".playerbox");
             playerbox.innerHTML = "";
-            for (const player of players) {
-                if(player.id.toString() !== window.location.pathname.split("/")[window.location.pathname.split("/").length - 3]){
-                    opponent = player;
-                    if(selfPlayer != null){
-                        break;
-                    }
-                }
+            const currentViewerId = window.location.pathname.split("/")[window.location.pathname.split("/").length - 3];
+            const duelists = Array.isArray(players) ? players.slice(0, 2) : [];
+            selfPlayer = null;
+            opponent = null;
 
-                if(player.id.toString() === window.location.pathname.split("/")[window.location.pathname.split("/").length - 3]){
+            for (const player of duelists) {
+                if (player.id.toString() === currentViewerId) {
                     selfPlayer = player;
-                    if(opponent != null){
-                        break;
-                    }
+                } else if (opponent == null) {
+                    opponent = player;
                 }
-            };
+            }
+
+            isSpectator = players.length > 2 && selfPlayer == null;
+            if (isSpectator) {
+                selfPlayer = duelists[0] || null;
+                opponent = duelists[1] || null;
+            } else if (selfPlayer == null && duelists.length > 0) {
+                selfPlayer = duelists[0];
+                opponent = duelists[1] || null;
+            }
+
+            applySpectatorMode();
             playerbox.innerHTML = `
-                <div class="player-rail top">${renderPlayerCard(opponent, "Opponent", "opponent")}</div>
-                <div class="player-rail bottom">${renderPlayerCard(selfPlayer, "You", "player")}</div>
+                <div class="player-rail top">${renderPlayerCard(opponent, isSpectator ? "Duelist Two" : "Opponent", "opponent")}</div>
+                <div class="player-rail bottom">${renderPlayerCard(selfPlayer, isSpectator ? "Duelist One" : "You", "player")}</div>
             `;
-            startgame();
+            if (!isSpectator) {
+                startgame();
+            }
         }
     </script>
     <script>
         async function startgame(){
+            if (isSpectator) {
+                return;
+            }
             data = {
                 me: selfPlayer,
                 opponent: opponent,
@@ -642,15 +707,15 @@
         });
     </script>
     <script>
-        const chatInput = document.getElementById("message");
-        const chatButton = document.getElementById("sendChat");
         const actionDock = document.querySelector(".action-dock");
         const actionTrigger = document.querySelector(".action-trigger");
         const actionChoices = document.querySelectorAll(".action-choice");
-        const surrenderBtn = document.getElementById("surrenderBtn");
 
         if (actionTrigger && actionDock) {
             actionTrigger.addEventListener("click", function() {
+                if (isSpectator) {
+                    return;
+                }
                 if(game.currentPlayerIndex.id === selfPlayer.id){
                     actionDock.classList.toggle("is-open");
                 }
@@ -685,6 +750,9 @@
         if (chatInput && chatButton) {
             chatButton.addEventListener("click", sendMessage);
             chatInput.addEventListener("keydown", function(event) {
+                if (isSpectator) {
+                    return;
+                }
                 if (event.key === "Enter") {
                     event.preventDefault();
                     sendMessage();
