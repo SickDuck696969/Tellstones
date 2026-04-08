@@ -1,27 +1,92 @@
 package com.example.demo.model;
  
 import jakarta.persistence.*;
-import java.util.List;
-import java.util.Map;
-
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Setter
-public class Game { 
+public class Game {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    String gameId;
-    String roomCode;
+    private String gameId;
+    private String roomCode;
 
-    Account me;
-    Account opponent;
+    private Account me;
+    private Account opponent;
 
-    int mescore = 0;
-    int theyscore = 0;
+    private int mescore = 0;
+    private int theyscore = 0;
     
-    int wincondition = 3;
+    private int wincondition = 3;
 
-    Account currentPlayerIndex;
+    private Account currentPlayerIndex;
+    private Stone[] line = new Stone[7];
+
+    public String getGameId() {
+        return gameId;
+    }
+
+    public void setGameId(String gameId) {
+        this.gameId = gameId;
+    }
+
+    public String getRoomCode() {
+        return roomCode;
+    }
+
+    public void setRoomCode(String roomCode) {
+        this.roomCode = roomCode;
+    }
+
+    public Account getMe() {
+        return me;
+    }
+
+    public void setMe(Account me) {
+        this.me = me;
+    }
+
+    public Account getOpponent() {
+        return opponent;
+    }
+
+    public void setOpponent(Account opponent) {
+        this.opponent = opponent;
+    }
+
+    public int getMescore() {
+        return mescore;
+    }
+
+    public void setMescore(int mescore) {
+        this.mescore = mescore;
+    }
+
+    public int getTheyscore() {
+        return theyscore;
+    }
+
+    public void setTheyscore(int theyscore) {
+        this.theyscore = theyscore;
+    }
+
+    public int getWincondition() {
+        return wincondition;
+    }
+
+    public void setWincondition(int wincondition) {
+        this.wincondition = wincondition;
+    }
+
+    public Account getCurrentPlayerIndex() {
+        return currentPlayerIndex;
+    }
+
+    public void setCurrentPlayerIndex(Account currentPlayerIndex) {
+        this.currentPlayerIndex = currentPlayerIndex;
+    }
+
+    public Stone[] getLine() {
+        return line;
+    }
+
+    public void setLine(Stone[] line) {
+        this.line = line;
+    }
 }

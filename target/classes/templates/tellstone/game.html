@@ -40,6 +40,16 @@
                                 Create a chamber first, then its sigil and player list will appear here.
                             </p>
                         </div>
+
+                    <div class="choice-card" style="display: grid; gap: 0.8rem;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+                            <div>
+                                <div class="eyebrow" style="margin-bottom: 0.25rem;">Room ID</div>
+                                <div class="title-md" th:id="${roomId}" th:text="${roomId}" style="font-size: 1.55rem;"></div>
+                            </div>
+                            <div class="menu-actions">
+                                <button type="button" class="icon-btn" id="copyRoomBtn" aria-label="Copy room id" title="Copy room id">⧉</button>
+                                <button type="button" class="fantasy-btn primary" id="startRoomBtn" onclick="Startgame()">Start Game</button>
                         <div class="choice-card" style="display: grid; gap: 1rem;">
                             <p class="text-muted" style="margin: 0;">
                                 This button is currently a placeholder so you can verify the flow before wiring real room creation.
@@ -104,7 +114,7 @@
                     </label>
 
                     <div class="menu-actions">
-                        <button type="button" class="fantasy-btn primary" id="joinRoomBtn">Join Room</button>
+                        <button type="button" class="fantasy-btn primary" id="joinRoomBtn" onclick="moveroom()">Join Room</button>
                     </div>
                 </section>
             </div>
@@ -135,31 +145,14 @@
             </section>
         </main>
     </div>
-    <div id="spectatorModal" class="modal-backdrop">
-        <div class="modal-panel panel card" style="max-width: 420px; text-align: center;">
-
-            <div class="eyebrow">Chamber Status</div>
-            <h2 class="title-md" style="margin: 0.4rem 0 0.6rem;">
-                The Chamber is Sealed
-            </h2>
-
-            <p class="text-muted" style="margin-bottom: 1.2rem;">
-                Two challengers already occupy this chamber.  
-                Will you bear witness to their duel?
-            </p>
-
-            <div class="menu-actions" style="justify-content: center;">
-                <button id="joinAsSpectatorBtn" class="fantasy-btn primary">
-                    Observe the Duel
-                </button>
-                <button id="cancelJoinBtn" class="fantasy-btn ghost">
-                    Turn Away
-                </button>
-            </div>
-
+    <div id="spectatorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:999;">
+        <div style="background:white; padding:20px; border-radius:10px; width:300px; margin:15% auto; text-align:center;">
+            <h3>Room is full</h3>
+            <p>Phòng đã có đủ 2 người chơi. Bạn có muốn vào với tư cách người theo dõi không?</p>
+            <button id="joinAsSpectatorBtn" class="fantasy-btn primary">Xem trận</button>
+            <button id="cancelJoinBtn" class="fantasy-btn ghost">Hủy</button>
         </div>
     </div>
-
     <script>
         const token = document.querySelector('meta[name="_csrf"]').content;
         const header = document.querySelector('meta[name="_csrf_header"]').content;
@@ -240,266 +233,124 @@
     </script>
 
 <script>
-    const socket = io("http://192.168.89.101:9092", {
+    const socket = io("http://192.168.100.207:9092", {
         transports: ["websocket"],
         query: {
-            userId: currentUserId
+            userId: window.location.pathname.split("/").pop()
         }
     });
 
-    const createRoomCollapsed = document.getElementById("createRoomCollapsed");
-    const createRoomExpanded = document.getElementById("createRoomExpanded");
-    const createRoomBtn = document.getElementById("createRoomBtn");
-    const currentRoomIdLabel = document.getElementById("currentRoomId");
-    const roomStatusLabel = document.querySelector("[data-room-status]");
-    const roomInfoLabel = document.querySelector("[data-room-info]");
-    const roomBanner = document.querySelector("[data-room-banner]");
-    const roomInput = document.getElementById("roomId");
-    const roomPlayerList = document.getElementById("roomPlayerList");
-    const copyRoomBtn = document.getElementById("copyRoomBtn");
-    const startRoomBtn = document.getElementById("startRoomBtn");
-    const joinRoomBtn = document.getElementById("joinRoomBtn");
-    const spectatorModal = document.getElementById("spectatorModal");
-    const joinAsSpectatorBtn = document.getElementById("joinAsSpectatorBtn");
-    const cancelJoinBtn = document.getElementById("cancelJoinBtn");
-    const stoneSkinSelect = document.getElementById("stoneSkinSelect");
-    const stoneSkinDesc = document.getElementById("stoneSkinDesc");
+        const createRoomCollapsed = document.getElementById("createRoomCollapsed");
+        const createRoomExpanded = document.getElementById("createRoomExpanded");
+        const createRoomBtn = document.getElementById("createRoomBtn");
+        const currentRoomIdLabel = document.getElementById("currentRoomId");
+        const roomStatusLabel = document.querySelector("[data-room-status]");
+        const roomInfoLabel = document.querySelector("[data-room-info]");
+        const roomBanner = document.querySelector("[data-room-banner]");
+        const roomInput = document.getElementById("roomId");
+        const roomPlayerList = document.getElementById("roomPlayerList");
+        const copyRoomBtn = document.getElementById("copyRoomBtn");
+        const startRoomBtn = document.getElementById("startRoomBtn");
+        const joinRoomBtn = document.getElementById("joinRoomBtn");
 
-    const stoneSkinOptions = {
-        ivory: "Ivory face, obsidian edge, crestwork in brass.",
-        shadow: "Shadow obsidian with rune etching.",
-        frost: "Frosted marble with silver rim.",
-        ember: "Ember red with gold inlay."
-    };
+        const roomid = window.location.pathname.split("/")[window.location.pathname.split("/").length - 2];
+        const userid = window.location.pathname.split("/")[window.location.pathname.split("/").length - 3];
+        const user = window.location.pathname.split("/")[window.location.pathname.split("/").length - 1];
 
-    let joinedRoomId = null;
-    let pendingJoinRoomId = null;
-    let pendingJoinRole = "player";
-    let currentRoomId = currentRoomFromPath || "";
-    let createMode = false;
+        let createMode = false;
 
-    function generateRoomId() {
-        return Math.random().toString(36).slice(2, 8).toUpperCase();
-    }
-
-    function renderPlayerList(players) {
-        if (!roomPlayerList) {
-            return;
+    socket.on("message", (data) => {
+        const li = document.createElement("li");
+        li.innerText = data;
+        document.getElementById("messages").appendChild(li);
+    });
+        function generateRoomId() {
+            return Math.random().toString(36).slice(2, 8).toUpperCase();
         }
 
-        if (!players || players.length === 0) {
-            roomPlayerList.innerHTML = `
-                <li>
-                    <span class="rune">I</span>
-                    <div><strong>No challengers yet</strong><br>The chamber roster will appear here once players join.</div>
-                </li>
-            `;
-            return;
-        }
-
-        roomPlayerList.innerHTML = players.map((player, index) => `
-            <li>
-                <span class="rune">${index + 1}</span>
-                <div><strong>${player.displayName || player.username || "Player"}</strong><br>${player.username || "Unknown challenger"}</div>
-            </li>
-        `).join("");
-    }
-
-    async function fetchPlayers(roomId) {
-        if (!roomId) {
-            return [];
-        }
-
-        const res = await fetch("/tellstones/getplayers/" + roomId);
-        if (!res.ok) {
-            return [];
-        }
-
-        return res.json();
-    }
-
-    async function loadPlayers(roomId) {
-        try {
-            const players = await fetchPlayers(roomId);
-            renderPlayerList(players);
-        } catch (err) {
-            console.error("Error loading players:", err);
-            renderPlayerList([]);
-        }
-    }
-
-    function setCreateRoomView(expanded) {
-        if (createRoomCollapsed) {
-            createRoomCollapsed.style.display = expanded ? "none" : "grid";
-        }
-        if (createRoomExpanded) {
-            createRoomExpanded.style.display = expanded ? "grid" : "none";
-        }
-    }
-
-    function updateRoomCopy(roomId, mode) {
-        if (roomBanner) {
-            roomBanner.textContent = roomId
-                ? `Chamber ${roomId} is assembled.`
-                : "Light a fresh chamber, copy its sigil, or step into another room before the duel begins.";
-        }
-
-        if (roomStatusLabel) {
-            roomStatusLabel.textContent = mode === "create"
-                ? "Your chamber is open. Share the sigil and begin when everyone is present."
-                : "You are joining an existing chamber.";
-        }
-
-        if (roomInfoLabel) {
-            roomInfoLabel.textContent = mode === "create"
-                ? "Your chamber is open. Share the sigil, then start once everyone is seated."
-                : "You have stepped into an existing chamber.";
-        }
-
-        if (currentRoomIdLabel) {
-            currentRoomIdLabel.textContent = roomId || "Awaiting Sigil";
-        }
-    }
-
-    function updateStoneSkinDescription() {
-        if (!stoneSkinSelect || !stoneSkinDesc) {
-            return;
-        }
-        stoneSkinDesc.textContent = stoneSkinOptions[stoneSkinSelect.value] || "Choose your stone skin from the list.";
-    }
-
-    function emitMoveRoom(roomId, role) {
-        if (!roomId) {
-            return;
-        }
-        pendingJoinRoomId = roomId;
-        pendingJoinRole = role;
-        joinedRoomId = null;
-        socket.emit("moveRoom", { roomId, role });
-    }
-
-    function startGame() {
-        const targetRoomId = joinedRoomId || currentRoomId;
-        if (!targetRoomId) {
-            return;
-        }
-        socket.emit("startgame", targetRoomId);
-    }
-
-    async function handleJoinRoomClick() {
-        const targetRoom = roomInput.value.trim().toUpperCase();
-        if (!targetRoom) {
-            return;
-        }
-
-        try {
-            const players = await fetchPlayers(targetRoom);
-            if (players.length >= 2) {
-                spectatorModal.style.display = "block";
-                joinAsSpectatorBtn.onclick = () => {
-                    spectatorModal.style.display = "none";
-                    createMode = false;
-                    emitMoveRoom(targetRoom, "spectator");
-                };
-                cancelJoinBtn.onclick = () => {
-                    spectatorModal.style.display = "none";
-                };
+        function renderPlayerList(players) {
+            if (!roomPlayerList) {
                 return;
             }
 
-            createMode = false;
-            emitMoveRoom(targetRoom, "player");
-        } catch (err) {
-            console.error("Error checking room:", err);
-        }
-    }
+            if (!players || players.length === 0) {
+                roomPlayerList.innerHTML = `
+                    <li>
+                        <span class="rune">I</span>
+                        <div><strong>No challengers yet</strong><br>The chamber roster will appear here once players join.</div>
+                    </li>
+                `;
+                return;
+            }
 
-        socket.on("connect", () => {
+            roomPlayerList.innerHTML = players.map((player, index) => `
+                <li>
+                    <span class="rune">${index + 1}</span>
+                    <div><strong>${player.displayName || player.username || "Player"}</strong><br>${player.username || "Unknown challenger"}</div>
+                </li>
+            `).join("");
+        }
+
+        async function loadPlayers(roomId) {
+            if (!roomId) {
+                renderPlayerList([]);
+                return;
+            }
+
+            try {
+                const res = await fetch("/tellstones/getplayers/" + roomId);
+                if (!res.ok) {
+                    renderPlayerList([]);
+                    return;
+                }
+                const players = await res.json();
+                renderPlayerList(players);
+            } catch (err) {
+                console.error(err);
+                renderPlayerList([]);
+            }
+        }
+
+        socket.on("connect", async () => {
             console.log("CONNECTED");
-            updatebaackendline();
-            inRoom();
+            await updatebaackendline();
+            await inRoom();
         });
 
-    socket.on("connect_error", (err) => {
-        console.log("ERROR:", err);
-    });
+        socket.on("connect_error", (err) => {
+            console.log("ERROR:", err);
+        });
 
         socket.on("message", (data) => {
             console.log(data);
-        });
-
-        socket.on("roomJoined", async (roomId) => {
-            console.log("Joined room:", roomId);
-            joined = roomId;
-
-            if (roomBanner) {
-                roomBanner.textContent = "Chamber " + roomId + " is assembled.";
-            }
-
-            if (roomStatusLabel) {
-                roomStatusLabel.textContent = createMode
-                    ? "Your chamber is open. Share the sigil and begin when everyone is present."
-                    : "You are joining an existing chamber.";
-            }
-
-            if (roomInfoLabel) {
-                roomInfoLabel.textContent = createMode
-                    ? "Your chamber is open. Share the sigil, then start once everyone is seated."
-                    : "You have stepped into an existing chamber.";
-            }
-
-            await loadPlayers(roomId);
         });
 
         if (createRoomBtn) {
             createRoomBtn.addEventListener("click", () => {
                 currentRoomId = generateRoomId();
 
-                if (createRoomCollapsed) {
-                    createRoomCollapsed.style.display = "none";
-                }
-
-                if (createRoomExpanded) {
-                    createRoomExpanded.style.display = "grid";
-                }
-
-                if (currentRoomIdLabel) {
-                    currentRoomIdLabel.textContent = currentRoomId;
-                }
-
-                if (roomStatusLabel) {
-                    roomStatusLabel.textContent = "Placeholder chamber prepared. Start Game will create it when you are ready.";
-                }
-
-                if (roomInfoLabel) {
-                    roomInfoLabel.textContent = "This is only a placeholder preview for now. The actual room will be created when you continue the flow.";
-                }
-
-                if (roomBanner) {
-                    roomBanner.textContent = "A placeholder chamber has been prepared so you can test the create-room button.";
-                }
+                socket.emit("moveRoom", currentRoomId);
 
                 renderPlayerList([]);
             });
         }
 
-    if (copyRoomBtn) {
-        copyRoomBtn.addEventListener("click", async () => {
-            const targetRoomId = joinedRoomId || currentRoomId;
-            if (!targetRoomId) {
-                return;
-            }
-            try {
-                await navigator.clipboard.writeText(targetRoomId);
-                copyRoomBtn.textContent = "✓";
-                setTimeout(() => {
-                    copyRoomBtn.textContent = "⧉";
-                }, 1000);
-            } catch (err) {
-                console.error(err);
-            }
-        });
-    }
+        if (copyRoomBtn) {
+            copyRoomBtn.addEventListener("click", async () => {
+                if (!roomId) {
+                    return;
+                }
+                try {
+                    await navigator.clipboard.writeText(roomid);
+                    copyRoomBtn.textContent = "✓";
+                    setTimeout(() => {
+                        copyRoomBtn.textContent = "⧉";
+                    }, 1000);
+                } catch (err) {
+                    console.error(err);
+                }
+            });
+        }
 
         function inRoom() {
             const roomId = productId;
@@ -508,7 +359,8 @@
         }
 
         socket.on("Youin", async () => {
-            loadProduct();
+            await getinroom();
+            await loadProduct();
         });
 
         let joined = null;
@@ -521,8 +373,17 @@
         });
 
         function moveroom() {
-            socket.emit("moveRoom", currentRoomId);
+            socket.emit("checkRoom", document.getElementById("roomId").value);
         }
+
+        socket.on("checkedRoom", (len) => {
+            console.log(`Room ${roomid}: ${len} player(s)`);
+            if(len >= 2){
+                spectatorModal.style.display = "block";
+            }else{
+                socket.emit("moveRoom", roomid);
+            }
+        });
 
         socket.on("roomJoined", (roomId) => {
             console.log("Joined room:", roomId);
@@ -547,30 +408,13 @@
         const joinAsSpectatorBtn = document.getElementById("joinAsSpectatorBtn");
         const cancelJoinBtn = document.getElementById("cancelJoinBtn");
 
-        if (joinRoomBtn) {
-            joinRoomBtn.addEventListener("click", async () => {
-                const targetRoom = roomInput.value.trim().toUpperCase();
-                if (!targetRoom) return;
-
-                try {
-                    const res = await fetch("/tellstones/getplayers/" + targetRoom);
-                    const players = await res.json();
-
-                    // 🚨 Nếu phòng đã đủ 2 người
-                    if (players.length >= 2) {
-                        spectatorModal.style.display = "block";
-
-                        // Nếu chọn xem
-                        joinAsSpectatorBtn.onclick = () => {
+        joinAsSpectatorBtn.onclick = () => {
                             spectatorModal.style.display = "none";
                             createMode = false;
                             joined = null;
 
                             // gửi thêm role spectator
-                            socket.emit("moveRoom", {
-                                roomId: targetRoom,
-                                role: "spectator"
-                            });
+                            socket.emit("moveRoom", roomid);
 
                             console.log("Join as spectator:", targetRoom);
                         };
@@ -580,24 +424,6 @@
                             spectatorModal.style.display = "none";
                         };
 
-                    } else {
-                        // 👤 Vào như player bình thường
-                        createMode = false;
-                        joined = null;
-
-                        socket.emit("moveRoom", {
-                            roomId: targetRoom,
-                            role: "player"
-                        });
-
-                        console.log("Join as player:", targetRoom);
-                    }
-
-                } catch (err) {
-                    console.error("Error checking room:", err);
-                }
-            });
-        }
 
 
         const stoneSkinSelect = document.getElementById("stoneSkinSelect");
