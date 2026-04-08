@@ -145,7 +145,14 @@
             </section>
         </main>
     </div>
-
+    <div id="spectatorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:999;">
+        <div style="background:white; padding:20px; border-radius:10px; width:300px; margin:15% auto; text-align:center;">
+            <h3>Room is full</h3>
+            <p>Phòng đã có đủ 2 người chơi. Bạn có muốn vào với tư cách người theo dõi không?</p>
+            <button id="joinAsSpectatorBtn" class="fantasy-btn primary">Xem trận</button>
+            <button id="cancelJoinBtn" class="fantasy-btn ghost">Hủy</button>
+        </div>
+    </div>
     <script>
         const token = document.querySelector('meta[name="_csrf"]').content;
         const header = document.querySelector('meta[name="_csrf_header"]').content;
@@ -404,18 +411,62 @@
             window.location.href = `/tellstones/room/${userid}/${roomid}/${user}`;
         });
 
+        const spectatorModal = document.getElementById("spectatorModal");
+        const joinAsSpectatorBtn = document.getElementById("joinAsSpectatorBtn");
+        const cancelJoinBtn = document.getElementById("cancelJoinBtn");
+
         if (joinRoomBtn) {
-            joinRoomBtn.addEventListener("click", () => {
+            joinRoomBtn.addEventListener("click", async () => {
                 const targetRoom = roomInput.value.trim().toUpperCase();
-                if (!targetRoom) {
-                    return;
+                if (!targetRoom) return;
+
+                try {
+                    const res = await fetch("/tellstones/getplayers/" + targetRoom);
+                    const players = await res.json();
+
+                    // 🚨 Nếu phòng đã đủ 2 người
+                    if (players.length >= 2) {
+                        spectatorModal.style.display = "block";
+
+                        // Nếu chọn xem
+                        joinAsSpectatorBtn.onclick = () => {
+                            spectatorModal.style.display = "none";
+                            createMode = false;
+                            joined = null;
+
+                            // gửi thêm role spectator
+                            socket.emit("moveRoom", {
+                                roomId: targetRoom,
+                                role: "spectator"
+                            });
+
+                            console.log("Join as spectator:", targetRoom);
+                        };
+
+                        // Nếu hủy
+                        cancelJoinBtn.onclick = () => {
+                            spectatorModal.style.display = "none";
+                        };
+
+                    } else {
+                        // 👤 Vào như player bình thường
+                        createMode = false;
+                        joined = null;
+
+                        socket.emit("moveRoom", {
+                            roomId: targetRoom,
+                            role: "player"
+                        });
+
+                        console.log("Join as player:", targetRoom);
+                    }
+
+                } catch (err) {
+                    console.error("Error checking room:", err);
                 }
-                createMode = false;
-                joined = null;
-                socket.emit("moveRoom", targetRoom);
-                console.log("Joined room request:", targetRoom);
             });
         }
+
 
         const stoneSkinSelect = document.getElementById("stoneSkinSelect");
         const stoneSkinDesc = document.getElementById("stoneSkinDesc");
@@ -438,5 +489,6 @@
         <source th:src="@{/audio/bgm.mp3}" type="audio/mpeg">
     </audio>
     <script th:src="@{/js/tellstone-ui.js}"></script>
+
 </body>
 </html>

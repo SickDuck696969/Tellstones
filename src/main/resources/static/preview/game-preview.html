@@ -6,7 +6,7 @@
     <meta name="_csrf" th:content="${_csrf.token}" />
     <meta name="_csrf_header" th:content="${_csrf.headerName}" />
     <title>Tellstones - Room Hall</title>
-    <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
+    <link rel="stylesheet" href="../css/tellstone-fantasy.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.4.0/socket.io.js"></script>
 </head>
 <body>
@@ -45,7 +45,7 @@
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
                             <div>
                                 <div class="eyebrow" style="margin-bottom: 0.25rem;">Room ID</div>
-                                <div class="title-md" th:id="${roomId}" th:text="${roomId}" style="font-size: 1.55rem;"></div>
+                                <div class="title-md" th:id="${roomId}" href="${roomId}" style="font-size: 1.55rem;"></div>
                             </div>
                             <div class="menu-actions">
                                 <button type="button" class="icon-btn" id="copyRoomBtn" aria-label="Copy room id" title="Copy room id">⧉</button>
@@ -114,7 +114,7 @@
                     </label>
 
                     <div class="menu-actions">
-                        <button type="button" class="fantasy-btn primary" id="joinRoomBtn" onclick="moveroom()">Join Room</button>
+                        <button type="button" class="fantasy-btn primary" id="joinRoomBtn" >Join Room</button>
                     </div>
                 </section>
             </div>
@@ -136,7 +136,7 @@
                         <select id="stoneSkinSelect" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 0.35rem; background: #fff;">
                             <option th:each="c : ${stoneskins}"
                                     th:value="${c.id}"
-                                    th:text="${c.name}">
+                                    href="${c.name}">
                             </option>
                         </select>
                         <p class="text-muted" id="stoneSkinDesc" style="margin: 0;">Ivory face, obsidian edge, crestwork in brass.</p>
@@ -145,14 +145,33 @@
             </section>
         </main>
     </div>
-    <div id="spectatorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:999;">
-        <div style="background:white; padding:20px; border-radius:10px; width:300px; margin:15% auto; text-align:center;">
-            <h3>Room is full</h3>
-            <p>Phòng đã có đủ 2 người chơi. Bạn có muốn vào với tư cách người theo dõi không?</p>
-            <button id="joinAsSpectatorBtn" class="fantasy-btn primary">Xem trận</button>
-            <button id="cancelJoinBtn" class="fantasy-btn ghost">Hủy</button>
+    <!-- SPECTATOR MODAL -->
+    <div id="spectatorModal" class="modal-backdrop">
+        <div class="modal-panel panel card" style="max-width: 420px; text-align: center;">
+
+            <div class="eyebrow">Chamber Status</div>
+            <h2 class="title-md" style="margin: 0.4rem 0 0.6rem;">
+                The Chamber is Sealed
+            </h2>
+
+            <p class="text-muted" style="margin-bottom: 1.2rem;">
+                Two challengers already occupy this chamber.  
+                Will you bear witness to their duel?
+            </p>
+
+            <div class="menu-actions" style="justify-content: center;">
+                <button id="joinAsSpectatorBtn" class="fantasy-btn primary">
+                    Observe the Duel
+                </button>
+                <button id="cancelJoinBtn" class="fantasy-btn ghost">
+                    Turn Away
+                </button>
+            </div>
+
         </div>
     </div>
+
+
     <script>
         const token = document.querySelector('meta[name="_csrf"]').content;
         const header = document.querySelector('meta[name="_csrf_header"]').content;
@@ -264,24 +283,14 @@
         }
 
         async function loadPlayers(roomId) {
-            if (!roomId) {
-                renderPlayerList([]);
-                return;
-            }
+    const players = [
+        { username: "Player1", displayName: "Alice" },
+        { username: "Player2", displayName: "Bob" }
+    ];
 
-            try {
-                const res = await fetch("/tellstones/getplayers/" + roomId);
-                if (!res.ok) {
-                    renderPlayerList([]);
-                    return;
-                }
-                const players = await res.json();
-                renderPlayerList(players);
-            } catch (err) {
-                console.error(err);
-                renderPlayerList([]);
-            }
-        }
+    renderPlayerList(players);
+}
+
 
         socket.on("connect", () => {
             console.log("CONNECTED");
@@ -412,60 +421,60 @@
         });
 
         const spectatorModal = document.getElementById("spectatorModal");
-        const joinAsSpectatorBtn = document.getElementById("joinAsSpectatorBtn");
-        const cancelJoinBtn = document.getElementById("cancelJoinBtn");
+const joinAsSpectatorBtn = document.getElementById("joinAsSpectatorBtn");
+const cancelJoinBtn = document.getElementById("cancelJoinBtn");
 
-        if (joinRoomBtn) {
-            joinRoomBtn.addEventListener("click", async () => {
-                const targetRoom = roomInput.value.trim().toUpperCase();
-                if (!targetRoom) return;
+if (joinRoomBtn) {
+    joinRoomBtn.addEventListener("click", async () => {
+        const targetRoom = roomInput.value.trim().toUpperCase();
+        if (!targetRoom) return;
 
-                try {
-                    const res = await fetch("/tellstones/getplayers/" + targetRoom);
-                    const players = await res.json();
+        try {
+            const players = ["A", "B"]; // giả lập room full
 
-                    // 🚨 Nếu phòng đã đủ 2 người
-                    if (players.length >= 2) {
-                        spectatorModal.style.display = "block";
 
-                        // Nếu chọn xem
-                        joinAsSpectatorBtn.onclick = () => {
-                            spectatorModal.style.display = "none";
-                            createMode = false;
-                            joined = null;
+            // 🚨 Nếu phòng đã đủ 2 người
+            if (players.length >= 2) {
+                spectatorModal.classList.add("is-open");
 
-                            // gửi thêm role spectator
-                            socket.emit("moveRoom", {
-                                roomId: targetRoom,
-                                role: "spectator"
-                            });
+                // Nếu chọn xem
+                joinAsSpectatorBtn.onclick = () => {
+                    spectatorModal.style.display = "none";
+                    createMode = false;
+                    joined = null;
 
-                            console.log("Join as spectator:", targetRoom);
-                        };
+                    // gửi thêm role spectator
+                    socket.emit("moveRoom", {
+                        roomId: targetRoom,
+                        role: "spectator"
+                    });
 
-                        // Nếu hủy
-                        cancelJoinBtn.onclick = () => {
-                            spectatorModal.style.display = "none";
-                        };
+                    console.log("Join as spectator:", targetRoom);
+                };
 
-                    } else {
-                        // 👤 Vào như player bình thường
-                        createMode = false;
-                        joined = null;
+                // Nếu hủy
+                cancelJoinBtn.onclick = () => {
+                    spectatorModal.classList.remove("is-open");
+                };
 
-                        socket.emit("moveRoom", {
-                            roomId: targetRoom,
-                            role: "player"
-                        });
+            } else {
+                // 👤 Vào như player bình thường
+                createMode = false;
+                joined = null;
 
-                        console.log("Join as player:", targetRoom);
-                    }
+                socket.emit("moveRoom", {
+                    roomId: targetRoom,
+                    role: "player"
+                });
 
-                } catch (err) {
-                    console.error("Error checking room:", err);
-                }
-            });
+                console.log("Join as player:", targetRoom);
+            }
+
+        } catch (err) {
+            console.error("Error checking room:", err);
         }
+    });
+}
 
 
         const stoneSkinSelect = document.getElementById("stoneSkinSelect");
