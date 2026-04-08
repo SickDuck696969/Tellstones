@@ -310,6 +310,58 @@
         }
     }
 
+    function getTurnOwnerName(turnId) {
+        if (selfPlayer && String(selfPlayer.id) === String(turnId)) {
+            return selfPlayer.displayName || selfPlayer.username || "Player";
+        }
+        if (opponent && String(opponent.id) === String(turnId)) {
+            return opponent.displayName || opponent.username || "Player";
+        }
+        return "Player";
+    }
+
+    function setTurnDisplay(turnId) {
+        const eventDisplay = document.getElementById("eventDisplay");
+        if (!eventDisplay) {
+            return;
+        }
+
+        if (isSpectator) {
+            eventDisplay.innerText = `${getTurnOwnerName(turnId)}'s turn`;
+            return;
+        }
+
+        if (String(turnId) === String(selfPlayer.id)) {
+            if(firstturn){
+                eventDisplay.innerText = "Place the starting stone";
+                firstturn = false;
+            } else if (placeon) {
+                eventDisplay.innerText = "Place";
+                placeon = false;
+            } else if (hideon) {
+                eventDisplay.innerText = "Hide";
+                hideon = false;
+            } else if (swapon) {
+                eventDisplay.innerText = "Swap";
+                swapon = false;
+            } else if (peekon) {
+                eventDisplay.innerText = "Peek";
+                peekon = false;
+            } else if (challengeon) {
+                eventDisplay.innerText = "Challenge";
+                challengeon = false;
+            } else if (boaston) {
+                eventDisplay.innerText = "Boast";
+                boaston = false;
+            } else {
+                eventDisplay.innerText = "Your turn";
+            }
+        }
+        else {
+            eventDisplay.innerText = "Opponent's turn";
+        }
+    }
+
     function renderPlayerCard(player, roleLabel, cardClass) {
             const avatar = player && player.avatar
                 ? player.avatar
@@ -1056,35 +1108,7 @@
 			} catch (err) {
 				console.error(err);
 			}
-            if(data.turn === String(selfPlayer.id)){
-                if(firstturn){
-                    document.getElementById("eventDisplay").innerText = "Place the starting stone";
-                    firstturn = false;
-                } else if (placeon) {
-                    document.getElementById("eventDisplay").innerText = "Place";
-                    placeon = false;
-                } else if (hideon) {
-                    document.getElementById("eventDisplay").innerText = "Hide";
-                    hideon = false;
-                } else if (swapon) {
-                    document.getElementById("eventDisplay").innerText = "Swap";
-                    swapon = false;
-                } else if (peekon) {
-                    document.getElementById("eventDisplay").innerText = "Peek";
-                    peekon = false;
-                } else if (challengeon) {
-                    document.getElementById("eventDisplay").innerText = "Challenge";
-                    challengeon = false;
-                } else if (boaston) {
-                    document.getElementById("eventDisplay").innerText = "Boast";
-                    boaston = false;
-                } else {
-                    document.getElementById("eventDisplay").innerText = "Your turn";
-                }
-            }
-            else {
-                document.getElementById("eventDisplay").innerText = "Opponent's turn";
-            }
+            setTurnDisplay(data.turn);
         });
         let sideing = "left";
         socket.on("place", (data) => {
