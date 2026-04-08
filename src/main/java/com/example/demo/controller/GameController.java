@@ -51,7 +51,6 @@ import com.mysql.cj.x.protobuf.MysqlxDatatypes.Object;
 import java.util.Collection;
 
 import java.util.Random;
-import java.util.stream.Collectors;
 
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -143,19 +142,12 @@ public class GameController {
             }
         }
         if(game == null){
-            Random random = new Random();
-            int result = random.nextInt(2);
             game = new Game();
             game.setRoomCode(request.getRoomId());
             game.setMe(request.getMe());
             game.setOpponent(request.getOpponent());
             game.setMescore(0);
             game.setTheyscore(0);
-            if(result ==  0){
-                game.setCurrentPlayerIndex(game.getMe());
-            } else {
-                game.setCurrentPlayerIndex(game.getOpponent());
-            }
             gameService.addGame(game);
         }
         for (int i = 0; i < theline.length; i++) {
@@ -181,18 +173,6 @@ public class GameController {
             System.out.println(e);
         }
         return "tellstone/game";
-    }
-
-    @GetMapping("/coinflip/{id}")
-    public ResponseEntity<?> flip(@PathVariable String id) {
-        System.out.println("flip in room" + id);
-        Game game = gameService.getGame(id);
-        Random random = new Random();
-        int result = random.nextInt(2);
-        if(result == 0){
-            return ResponseEntity.ok(game.getMe().getUsername());
-        }
-        return ResponseEntity.ok(game.getOpponent().getUsername());
     }
 
     @GetMapping("/leave")
@@ -224,19 +204,18 @@ public class GameController {
     public ResponseEntity<?> getPlayers(@PathVariable String id) {
         System.out.println("in room" + id);
         Collection<com.corundumstudio.socketio.SocketIOClient> clients = socketservice.getServer().getRoomOperations(id).getClients();
-        List<Map<String, Account>> playersl = playerService.getRoom(id);
+        List<Map<String, Account>> playersl = playerService.getPlayers();
         List<Account> players = new ArrayList<Account>();
 
-        for(var c : playersl){
-            for (var cl : clients){
-                String pp = java.net.URLDecoder.decode(cl.getHandshakeData().getSingleUrlParam("userId"), StandardCharsets.UTF_8);
-                System.out.println("getme " + pp);
-                if(c.get(id).getUsername().equals(pp) && cl.getAllRooms().contains(id)){
+        for (var c : clients) {
+            String pp = java.net.URLDecoder.decode(c.getHandshakeData().getSingleUrlParam("userId"), StandardCharsets.UTF_8);
+            System.out.println("getme" + pp);
+            for (var cl : playersl){
+                if(cl.containsKey(pp) && c.getAllRooms().contains(id)){
                     System.out.println("player " + pp + " in room " + id );
-                    Account vc = c.get(id);
-                    System.out.println("Player " + vc.getUsername() + " in room " + cl.getAllRooms());
+                    Account vc = cl.get(pp);
+                    System.out.println("Player " + vc.getUsername() + " in room " + c.getAllRooms());
                     players.add(vc);
-                    break;
                 }
             }
         }
@@ -246,30 +225,6 @@ public class GameController {
         return ResponseEntity.ok(players);
     }
 
-    @PostMapping("/setplayersinrooms/{id}")
-    public ResponseEntity<?> roomsetter(@RequestBody Map<String, Long> request, @PathVariable String id) {
-        Account player = accountService.getAccountById(request.get("userid")).get();
-        System.out.println("player " + player.getUsername() + " in room " + id);
-        Map<String, Account> registry = new HashMap<>();
-        registry.put(id, player);
-        List<Map<String, Account>> roomers = playerService.getRoom(id);
-        if(!roomers.isEmpty()){
-            boolean[] doit = {true};
-            roomers.forEach(n -> {
-                if(n.get(id).getId() == player.getId()){
-                    doit[0] = false;
-                }
-            });
-            if(doit[0]){
-                playerService.registerRoom(registry);
-            }
-        } else {
-            playerService.registerRoom(registry);
-        }
-        roomers = playerService.getRoom(id);
-        return ResponseEntity.ok(roomers);
-    }
-
     @GetMapping("/getskin/{id}")
     public ResponseEntity<?> getskin(@PathVariable String id) {
         return ResponseEntity.ok(skinlinks);
@@ -277,15 +232,6 @@ public class GameController {
 
     @PostMapping("/settinggame")
     public ResponseEntity<?> deleteProduct(@RequestBody List<Map<String, String>> body,  @AuthenticationPrincipal UserDetails user) {
-        bag = Arrays.asList(
-            new Stone(2, skinlinks.get("Sword"), true),
-            new Stone(3, skinlinks.get("Shield"), true),
-            new Stone(4, skinlinks.get("Scale"), true),
-            new Stone(5, skinlinks.get("Knight"), true),
-            new Stone(6, skinlinks.get("Hammer"), true),
-            new Stone(7, skinlinks.get("Flag"), true),
-            new Stone(8, skinlinks.get("Crown"), true)
-        );
         body.forEach(stone -> {
             bag.forEach(bagstone -> {
                 System.out.println("Value from key: " + stone.get("stoneid"));
@@ -340,12 +286,9 @@ public class GameController {
 
     @PostMapping("/setskins")
     public ResponseEntity<?> handlesPayment(@RequestBody Map<String, Long> request, @AuthenticationPrincipal UserDetails user) {
+        skinpointer = request.get("stoneid").intValue();
         Account s = accountService.getAccountByUsername(user.getUsername()).get();
         Map<Account, stoneskin> fs = new HashMap<>();
-        if(request.get("stoneid") == null){
-            return ResponseEntity.ok().body("null");
-        }
-        skinpointer = request.get("stoneid").intValue();
         fs.put(s, stoneskinservice.findById(request.get("stoneid")).get());
         playerService.addSkin(fs);
         return ResponseEntity.ok().body(skinpointer);

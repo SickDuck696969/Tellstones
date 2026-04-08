@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
  
 import java.util.List; 
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.ArrayList;
 
 import com.example.demo.model.stoneskin;
@@ -18,20 +17,6 @@ import com.example.demo.model.stoneskin;
 public class PlayerService {
     private final List<Map<String, Account>> players = new ArrayList<>();
     private final List<Map<Account, stoneskin>> stoneskins = new ArrayList<>();
-    private final List<Map<String, Account>> playerrooms = new ArrayList<>();
-
-    public void registerRoom(Map<String, Account> room) {
-        playerrooms.add(room);
-    }
-
-    public void removeRoom(Account account) {
-        playerrooms.removeIf(player -> player.containsValue(account));
-    }
-
-    public List<Map<String, Account>> getRoom(String room){
-        List<Map<String, Account>> roomers = playerrooms.stream().filter(n -> n.containsKey(room)).collect(Collectors.toList());
-        return roomers;
-    }
 
     public void addPlayer(Map<String, Account> player) {
         players.add(player);
