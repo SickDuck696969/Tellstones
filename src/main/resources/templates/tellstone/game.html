@@ -1,413 +1,754 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    <title>Tellstones - Room Hall</title>
+    <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.4.0/socket.io.js"></script>
-    <title>Game</title>
-
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background: #f0f0f0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            width: 100%;
-            flex-direction: column;
-        }
-
-        /* LINE */
-        .theline {
-            background: blue;
-            height: 250px;
-            width: 100%;
+        .skin-picker {
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-        }
-
-        /* LEFT / RIGHT DROP AREAS */
-        .side {
-            position: absolute;
-            top: 0;
             height: 100%;
-            width: 50%;
-        }
-
-        .left {
-            left: 0;
-        }
-
-        .right {
-            right: 0;
-        }
-
-        /* SLOTS */
-        .slots {
-            display: flex;
-            gap: 100px;
             width: 100%;
-            align-items: center;
-            justify-content: center;
         }
 
-        .slot {
-            width: 80px;
-            height: 80px;
-            border: 2px dashed white;
-            display: flex;
+        .skin-carousel {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
             align-items: center;
-            justify-content: center;
-            position: relative;
-            pointer-events:none;
-        }
-
-        /* BAG */
-        .bag {
-            display: flex;
+            gap: 0.55rem;
             width: 100%;
-            align-items: top;
-            justify-content: center;
-            gap: 5px;
-            position: absolute;
-            bottom: -120px;
-            height: 200px;
-            transition: gap .3s ease, bottom .3s ease;
+            max-width: 16rem;
+            margin: 0 auto;
         }
 
-        .bag:not(.pause):hover {
-            bottom: 10px;
-            gap: 40px;
+        .skin-arrow {
+            width: 2.45rem;
+            height: 2.45rem;
+            border-radius: 999px;
+            border: 1px solid rgba(223, 193, 125, 0.3);
+            background: rgba(17, 11, 9, 0.72);
+            color: #f1e6d2;
+            font-size: 1rem;
+            flex-shrink: 0;
         }
 
-        .bag.pause {
-            user-select: none;
-        }
-
-        .stone {
+        .skin-stage {
+            min-height: 9.2rem;
             display: flex;
-            width: 150px;
-            height: 150px;
+            flex-direction: column;
+            gap: 0.55rem;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-width: 0;
+            width: 100%;
+        }
+
+        .skin-preview-row {
+            display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-            cursor: grab;
+            gap: 0.55rem;
+            min-height: 5rem;
+            flex-wrap: nowrap;
+            width: 100%;
+            margin: 0 auto;
         }
 
-        .stone.pause {
-            user-select: none;
-        }
-
-        .stone:not(.pause):hover .stonevisual {
-            height: 170px;
-            width: 170px;
-            margin-bottom: 30px;
-            box-shadow: 0 0 10px rgba(128, 128, 128, .4);
-        }
-
-        .stonevisual {
-            position: absolute;
-            background: #333;
+        .skin-preview-orb {
+            width: 3.2rem;
+            height: 3.2rem;
             border-radius: 50%;
-            height: 150px;
-            width: 150px;
+            display: grid;
+            place-items: center;
+            background:
+                radial-gradient(circle at 35% 28%, rgba(255,255,255,0.18), transparent 28%),
+                radial-gradient(circle at center, rgba(115, 77, 31, 0.7), rgba(24, 14, 11, 0.96));
+            border: 1px solid rgba(223, 193, 125, 0.3);
+            box-shadow: inset 0 0 1.2rem rgba(255,255,255,0.05), 0 1rem 1.7rem rgba(0,0,0,0.26);
+        }
+
+        .skin-preview-orb img {
+            width: 60%;
+            height: 60%;
+            object-fit: contain;
+            filter: drop-shadow(0 0.6rem 0.7rem rgba(0,0,0,0.35));
+        }
+
+        .skin-meta {
+            display: grid;
+            gap: 0.15rem;
+            max-width: 12rem;
+            justify-items: center;
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        .skin-card {
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            box-shadow: 5px 5px 20px rgba(128, 128, 128, .4);
-            transition: height .3s, width .3s, margin-bottom .2s, box-shadow .3s;
-            color: white;
-            font-size: 30px;
+            gap: 0.85rem;
+            text-align: center;
         }
 
-        .startbutton {
-            position: absolute;
-            bottom: 40px;
-            z-index: 10;
-            height: 100px;
-            width: 300px;
-            outline: none;
-            border: none;
-            background-color: yellowgreen;
-            font-size: large;
-            font-weight: 500;
-            cursor: pointer;
-            transition: transform 0.1s ease, background-color 0.1s ease, color 0.1s ease;
+        .skin-card > strong {
+            align-self: flex-start;
         }
 
-        .startbutton:hover {
-            background-color: rgb(160, 223, 35);
-            transform: scale(1.05);
-            color: white;
-        }
-
-        .playerbox {
-            position: fixed;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            
-            width: fit-content;
-            height: fit-content;
-
-            background-color: #333;
-            /* Optional styling */
-            z-index: 1000;
+        .skin-status {
+            color: #d6b073;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
         }
     </style>
-    <p th:id="${roomId}" th:text="'room: ' + ${roomId}" style="position: fixed; top: 0; left: 0; margin: 10px">></p>
 </head>
-
 <body>
-    <div class="playerbox"></div>
-    <div class="theline">
-        <div class="side left"></div>
-        <div class="side right"></div>
+    <div class="page-shell">
+        <header class="topbar compact">
+            <a class="brand-mark" href="/">
+                <img src="/logo.png" alt="Tellstones Logo">
+            </a>
+            <div class="nav-cluster">
+                <a href="/rules" class="fantasy-btn ghost">Rulebook</a>
+                <a href="/shop" class="fantasy-btn">Shop</a>
+            </div>
+        </header>
 
-        <div class="slots">
-            <div class="slot"></div>
-            <div class="slot"></div>
-            <div class="slot"></div>
-            <div class="slot"></div>
-            <div class="slot"></div>
-            <div class="slot"></div>
-            <div class="slot"></div>
+        <main class="center-stage" style="padding: 1rem 0 2rem;">
+            <div class="panel card">
+                <div class="eyebrow">Room Hall</div>
+                <h1 class="title-lg">Gather the challengers</h1>
+                <p class="lead" data-room-banner>
+                    Light a fresh chamber, copy its sigil, or step into another room before the duel begins.
+                </p>
+            </div>
+
+            <div class="dashboard-grid" style="margin-top: 1.25rem; display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 1.5rem;">
+                <section class="card panel" style="display: grid; gap: 1rem;">
+                    <div id="createRoomCollapsed" style="display: grid; gap: 1rem;">
+                        <div>
+                            <div class="eyebrow">Current Chamber</div>
+                            <h2 class="title-md" th:text="${roomId == 'QUEUE'} ? 'Matchmaking Hall' : 'Open chamber'">Open chamber</h2>
+                            <p class="text-muted" data-room-status style="margin: 0.45rem 0 0;">
+                                <span th:if="${roomId == 'QUEUE'}">Enter the quick match queue and wait for another challenger to be paired with you.</span>
+                                <span th:unless="${roomId == 'QUEUE'}">Create a chamber first, then its sigil and player list will appear here.</span>
+                                <button type="button" class="fantasy-btn primary" id="createRoomBtn">Quick Match</button>
+                            </p>
+                        </div>
+
+                        <div class="choice-card" style="display: grid; gap: 0.8rem;" th:unless="${roomId == 'QUEUE'}">
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+                                <div>
+                                    <div class="eyebrow" style="margin-bottom: 0.25rem;">Room ID</div>
+                                    <div class="title-md" id="activeRoomCode" th:text="${roomId}" style="font-size: 1.55rem;"></div>
+                                </div>
+                                <div class="menu-actions">
+                                    <button type="button" class="icon-btn" id="copyRoomBtn" aria-label="Copy room id" title="Copy room id">⧉</button>
+                                    <button type="button" class="fantasy-btn primary" id="startRoomBtn" onclick="Startgame()">Start Game</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="choice-card" style="display: grid; gap: 1rem;" th:if="${roomId == 'QUEUE'}">
+                            <p class="text-muted" style="margin: 0;">
+                                Enter the queue and the chamber will open as soon as another challenger is found.
+                            </p>
+                            <div class="menu-actions">
+                                <button type="button" class="fantasy-btn primary" id="createRoomBtn">Quick Match</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="createRoomExpanded" style="display: none; gap: 1rem;" th:if="${roomId == 'QUEUE'}">
+                        <div>
+                            <div class="eyebrow">Quick Match</div>
+                            <h2 class="title-md">Seeking a challenger</h2>
+                            <p class="text-muted" data-room-info style="margin: 0.45rem 0 0;">
+                                Matchmaking is searching for an opponent. You will enter the duel as soon as the queue pairs you.
+                            </p>
+                        </div>
+
+                        <div class="choice-card" style="display: grid; gap: 0.8rem;">
+                            <div class="queue-loader-shell">
+                                <div class="queue-loader" aria-hidden="true"></div>
+                                <div>
+                                    <div class="eyebrow" style="text-align: center; margin-bottom: 0.3rem;">Queue Status</div>
+                                    <div class="title-md" id="currentRoomId" style="font-size: 1.3rem; text-align: center;">Waiting For Challenger</div>
+                                </div>
+                                <p class="text-muted queue-loader-text" id="quickMatchHint" style="margin: 0;">
+                                    A loading circle marks your place in the queue. The duel will begin the moment another player is found.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="choice-card">
+                            <div class="section-head" style="margin-bottom: 0.65rem;">
+                                <div>
+                                    <div class="eyebrow">Player List</div>
+                                    <h3 class="title-md" style="font-size: 1.2rem;">Inside the chamber</h3>
+                                </div>
+                            </div>
+                            <ul id="roomPlayerList" class="feature-list" style="margin-top: 0;">
+                                <li>
+                                    <span class="rune">I</span>
+                                    <div><strong>No challengers yet</strong><br>The chamber roster will appear here once players join.</div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card panel" style="display: grid; gap: 1rem; align-content: start;">
+                    <div>
+                        <div class="eyebrow">Join Chamber</div>
+                        <h2 class="title-md">Enter by sigil</h2>
+                        <p class="text-muted" style="margin: 0.45rem 0 0;">
+                            Paste an existing room id to step directly into an ongoing table.
+                        </p>
+                    </div>
+
+                    <label class="field-label">
+                        <span>Room ID</span>
+                        <input type="text" id="roomId" data-room-input placeholder="Type or paste a chamber sigil">
+                    </label>
+
+                    <div class="menu-actions">
+                        <button type="button" class="fantasy-btn primary" id="joinRoomBtn">Join Room</button>
+                    </div>
+                </section>
+            </div>
+
+            <section class="card panel" style="margin-top: 1.5rem;">
+                <div class="section-head">
+                    <div>
+                        <div class="eyebrow">Accessories</div>
+                        <h2 class="title-md">Ceremonial Loadout</h2>
+                    </div>
+                </div>
+                <div class="shop-grid">
+                    <div class="choice-card">
+                        <strong>Board Skin</strong>
+                        <p class="text-muted">Velvet tournament dais with gilt corners.</p>
+                    </div>
+                    <div class="choice-card skin-card" style="display: grid; gap: 0.6rem;">
+                        <strong>Stone Skin</strong>
+                        <div class="skin-picker">
+                            <div class="skin-carousel">
+                                <button type="button" class="skin-arrow" id="stoneSkinPrev" aria-label="Previous skin">&#10094;</button>
+                                <div class="skin-stage">
+                                    <div class="skin-preview-row" id="stoneSkinPreviewRow">
+                                        <div class="skin-preview-orb">
+                                            <img data-queue-stone-slot="0" th:src="@{/textu/stones/default/crown.png}" alt="Default crown">
+                                        </div>
+                                        <div class="skin-preview-orb">
+                                            <img data-queue-stone-slot="1" th:src="@{/textu/stones/default/shield.png}" alt="Default shield">
+                                        </div>
+                                        <div class="skin-preview-orb">
+                                            <img data-queue-stone-slot="2" th:src="@{/textu/stones/default/sword.png}" alt="Default sword">
+                                        </div>
+                                    </div>
+                                    <div class="skin-meta">
+                                        <div class="title-md" id="stoneSkinName" style="font-size: 1.25rem;">Default</div>
+                                        <div class="skin-status" id="stoneSkinStatus">Equipped</div>
+                                        <p class="text-muted" id="stoneSkinDesc" style="margin: 0;">Choose your ceremonial stone skin for this chamber.</p>
+                                    </div>
+                                </div>
+                                <button type="button" class="skin-arrow" id="stoneSkinNext" aria-label="Next skin">&#10095;</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div id="spectatorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:999;">
+        <div style="background:white; padding:20px; border-radius:10px; width:300px; margin:15% auto; text-align:center;">
+            <h3>Room is full</h3>
+            <p>Phòng đã có đủ 2 người chơi. Bạn có muốn vào với tư cách người theo dõi không?</p>
+            <button id="joinAsSpectatorBtn" class="fantasy-btn primary">Xem trận</button>
+            <button id="cancelJoinBtn" class="fantasy-btn ghost">Hủy</button>
         </div>
     </div>
-    <button id="bagBtn" class="startbutton">
-        Click me to start the game
-    </button>
-    <div class="bag pause" id="bag"></div>
-    <script>
-        async function updatebaackendline() {
-            const theline = document.querySelectorAll(".slot .stonevisual");
-            const data = [];
-            for(let i = 0; i < theline.length; i++){
-                data.push({position: i, stoneid: theline[i].textContent})
-            }
-            try {
-				const res = await fetch("/tellstones/settinggame", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(data)
-				});
+    <script th:inline="javascript">
+        const token = document.querySelector('meta[name="_csrf"]').content;
+        const header = document.querySelector('meta[name="_csrf_header"]').content;
+        const currentRoomCode = window.location.pathname.split("/")[window.location.pathname.split("/").length - 2];
+const currentAccountId = window.location.pathname.split("/")[window.location.pathname.split("/").length - 3];
+const currentUsername = window.location.pathname.split("/")[window.location.pathname.split("/").length - 1];
+        const ownedSkinIdsRaw = /*[[${ownedSkinIds}]]*/ [];
+        const selectedStoneSkinRaw = /*[[${selectedStoneSkin}]]*/ "default";
+        const ownedSkinIds = Array.isArray(ownedSkinIdsRaw) ? ownedSkinIdsRaw.map(Number) : [];
+        const selectedStoneSkin = typeof selectedStoneSkinRaw === "string" && selectedStoneSkinRaw ? selectedStoneSkinRaw : "default";
+        const isQueueLobby = currentRoomCode === "QUEUE";
+        let restone = [];
+        const spectatorModal = document.getElementById("spectatorModal");
+const joinAsSpectatorBtn = document.getElementById("joinAsSpectatorBtn");
+const cancelJoinBtn = document.getElementById("cancelJoinBtn");
 
-				if (res.ok) {
-					const restone = await res.json();
-					alert(JSON.stringify(restone));
-				} else {
-					alert(await res.text());
-				}
-			} catch (err) {
-				alert("Network error");
-				console.error(err);
-			}
+joinAsSpectatorBtn.onclick = () => {
+    spectatorModal.style.display = "none";
+    createMode = false;
+    joined = null;
+
+    // gửi thêm role spectator
+    socket.emit("moveRoom", roomid);
+
+    console.log("Join as spectator:");
+};
+
+// Nếu hủy
+cancelJoinBtn.onclick = () => {
+    spectatorModal.style.display = "none";
+};
+        async function updatebaackendline() {
+            const currentSkin = window.getCurrentStoneSkinCode ? window.getCurrentStoneSkinCode() : "default";
+            try {
+                const res = await fetch("/tellstones/setskins", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        [header]: token,
+                    },
+                    body: JSON.stringify({
+                        stoneid: stoneSkinIdByCode[currentSkin]
+                    }),
+                    credentials: "include",
+                });
+
+                if (res.ok) {
+                    restone = await res.json();
+                    console.log(restone);
+                }
+            } catch (err) {
+                console.error(err);
+            }
         }
     </script>
+
     <script>
-        async function updatebaackendlinea(data) {
+        async function loadProduct() {
             try {
-				const res = await fetch("/tellstones/welcomeplayer", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(data)
-				});
+                const res = await fetch("/tellstones/getplayers/" + currentRoomCode);
+                const players = await res.json();
 
-				if (res.ok) {
-					const restone = await res.json();
-				} else {
-				}
-			} catch (err) {
-				console.error(err);
-			}
+                console.log(players);
+ 
+            } catch (err) {
+                console.error("Error loading players:", err);
+            }
         }
-</script>
+        async function getinroom() {
+            try {
+                const res = await fetch("/tellstones/setplayersinrooms/" + currentRoomCode, {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        [header]: token,
+                    },
+                    body: JSON.stringify({
+                        userid: userid
+                    }),
+                    credentials: "include",
+                });
 
+                if (res.ok) {
+                    const a = await res.json();
+                    console.log(a);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    </script>
 <script>
-    let isSocketConnected = false;
-    const socket = io("http://localhost:9092", {
-        transports: ["websocket"]
+    const socketServerUrl = "http://192.168.100.207:9092";
+    const socket = io(socketServerUrl, {
+        transports: ["websocket"],
+        query: {
+            userId: currentUsername
+        }
     });
 
-    socket.on("connect", () => {
-        inRoom();
-        console.log("CONNECTED");
-    });
+        const createRoomCollapsed = document.getElementById("createRoomCollapsed");
+        const createRoomExpanded = document.getElementById("createRoomExpanded");
+        const createRoomBtn = document.getElementById("createRoomBtn");
+        const currentRoomIdLabel = document.getElementById("currentRoomId");
+        const roomStatusLabel = document.querySelector("[data-room-status]");
+        const roomInfoLabel = document.querySelector("[data-room-info]");
+        const roomBanner = document.querySelector("[data-room-banner]");
+        const roomInput = document.getElementById("roomId");
+        const roomPlayerList = document.getElementById("roomPlayerList");
+        const copyRoomBtn = document.getElementById("copyRoomBtn");
+        const startRoomBtn = document.getElementById("startRoomBtn");
+        const joinRoomBtn = document.getElementById("joinRoomBtn");
+        const quickMatchHint = document.getElementById("quickMatchHint");
 
-    socket.on("Youin", () => {
-        loadProduct();
-    });
+        const roomid = currentRoomCode;
+        const userid = currentAccountId;
+        const user = currentUsername;
 
-    socket.on("connect_error", (err) => {
-        console.log("ERROR:", err);
-    });
+        let createMode = false;
 
     socket.on("message", (data) => {
         const li = document.createElement("li");
         li.innerText = data;
         document.getElementById("messages").appendChild(li);
     });
+        function generateRoomId() {
+            return Math.random().toString(36).slice(2, 8).toUpperCase();
+        }
 
-    let data = [];
+        function renderPlayerList(players) {
+            if (!roomPlayerList) {
+                return;
+            }
 
-    socket.on("roomJoined", (roomId) => {
-        console.log("Joined room:", roomId);
-        window.location.href = `/tellstones/room/${roomId}`;
-    });
+            if (!players || players.length === 0) {
+                roomPlayerList.innerHTML = `
+                    <li>
+                        <span class="rune">I</span>
+                        <div><strong>No challengers yet</strong><br>The chamber roster will appear here once players join.</div>
+                    </li>
+                `;
+                return;
+            }
 
-    // Start room
-    function startRoom() {
-        const roomId = document.getElementById("roomId").value;
-        socket.emit("startRoom", roomId);
-        console.log("Started room:", roomId);
-    }
+            roomPlayerList.innerHTML = players.map((player, index) => `
+                <li>
+                    <span class="rune">${index + 1}</span>
+                    <div><strong>${player.displayName || player.username || "Player"}</strong><br>${player.username || "Unknown challenger"}</div>
+                </li>
+            `).join("");
+        }
 
-    // In room
-    function inRoom() {
-        const roomId = window.location.pathname.split("/").pop();
-        socket.emit("inRoom", roomId);
-        console.log("In room:", roomId);
-    }
+        async function loadPlayers(roomId) {
+            if (!roomId) {
+                renderPlayerList([]);
+                return;
+            }
 
-    // Send message
-    function sendMessage() {
-        const msg = document.getElementById("message").value;
-        socket.emit("message", msg);
-    }
-</script>
-    <script>
-        async function loadProduct() {
             try {
-                const productId = window.location.pathname.split("/").pop();
-                const res = await fetch("/tellstones/getplayers/" + productId);
-                const players = await res.json(); // ✅ no .data
-
-                console.log(players);
-
-                const list = document.getElementById("messages");
-                list.innerHTML = "";
-
-                players.forEach(player => {
-                    const li = document.createElement("li");
-                    li.innerText = player.username + " (" + player.session + ")";
-                    list.appendChild(li);
-                });
- 
+                const res = await fetch("/tellstones/getplayers/" + roomId);
+                if (!res.ok) {
+                    renderPlayerList([]);
+                    return;
+                }
+                const players = await res.json();
+                renderPlayerList(players);
             } catch (err) {
-                console.error("Error loading players:", err);
+                console.error(err);
+                renderPlayerList([]);
             }
         }
-    </script>
-    <script>
-        /* SPAWN STONES */
-        const bag = document.getElementById("bag");
 
-        for (let i = 2; i <= 8; i++) {
-            const stone = document.createElement("div");
-            stone.className = "stone pause";
-            stone.draggable = true;
-            stone.id = i;
-
-            stone.innerHTML = `<div class="stonevisual">${i}</div>`;
-
-            stone.draggable = false;
-
-            bag.appendChild(stone);
-        }
-
-        /* DRAG */
-        const stones = document.querySelectorAll(".stone");
-        stones.forEach(stone => {
-            stone.addEventListener("dragstart", function(e) {
-                e.dataTransfer.setData("text", stone.id);
-            });
-        });
-
-        /* DROP AREAS */
-        const left = document.querySelector(".left");
-        const right = document.querySelector(".right");
-        const slots = document.querySelectorAll(".slot");
-
-        [left, right].forEach(side => {
-            side.addEventListener("dragover", e => e.preventDefault());
-        });
-
-        /* SLOT LOGIC */
-        function placeStone(id, side) {
-            let index;
-
-            const filled = [...slots].filter(s => s.children.length > 0);
-
-            if (filled.length === 0) {
-                index = Math.floor(slots.length / 2);
-            } else {
-                const mid = Math.floor(slots.length / 2);
-
-                if (side === "left") {
-                    for (let i = mid; i >= 0; i--) {
-                        if (slots[i].children.length === 0) {
-                            index = i;
-                            break;
-                        }
-                    }
-                }
-
-                if (side === "right") {
-                    for (let i = mid; i < slots.length; i++) {
-                        if (slots[i].children.length === 0) {
-                            index = i;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (index === undefined) return;
-
-            const stone = document.getElementById(id);
-            const visual = stone.querySelector(".stonevisual");
-
-            slots[index].appendChild(visual);
-
-            stone.remove();
+        socket.on("connect", () => {
+            console.log("CONNECTED");
             updatebaackendline();
+            if (!isQueueLobby) {
+                inRoom();
+            }
+        });
+
+        socket.on("connect_error", (err) => {
+            console.log("ERROR:", err);
+        });
+
+        socket.on("message", (data) => {
+            console.log(data);
+        });
+
+        socket.on("roomJoined", async (roomId) => {
+            console.log("Joined room:", roomId);
+            joined = roomId;
+
+            if (roomBanner) {
+                roomBanner.textContent = "Chamber " + roomId + " is assembled.";
+            }
+
+            if (roomStatusLabel) {
+                roomStatusLabel.textContent = createMode
+                    ? "Your chamber is open. Share the sigil and begin when everyone is present."
+                    : "You are joining an existing chamber.";
+            }
+
+            if (roomInfoLabel) {
+                roomInfoLabel.textContent = createMode
+                    ? "Your chamber is open. Share the sigil, then start once everyone is seated."
+                    : "You have stepped into an existing chamber.";
+            }
+
+            await loadPlayers(roomId);
+        });
+
+        if (createRoomBtn) {
+            createRoomBtn.addEventListener("click", () => {
+                createMode = true;
+
+                if (createRoomCollapsed) {
+                    createRoomCollapsed.style.display = "none";
+                }
+
+                if (createRoomExpanded) {
+                    createRoomExpanded.style.display = "grid";
+                }
+
+                if (currentRoomIdLabel) {
+                    currentRoomIdLabel.textContent = "Waiting For Challenger";
+                }
+
+                if (roomStatusLabel) {
+                    roomStatusLabel.textContent = "The queue is active. Hold your place while the hall searches for another challenger.";
+                }
+
+                if (roomInfoLabel) {
+                    roomInfoLabel.textContent = "A loading sigil is spinning while matchmaking searches. As soon as another player is waiting too, both of you will enter the duel.";
+                }
+
+                if (roomBanner) {
+                    roomBanner.textContent = "Waiting for challenger...";
+                }
+
+                if (quickMatchHint) {
+                    quickMatchHint.textContent = "The queue is live. Stay on this page and the chamber will open automatically as soon as a rival appears.";
+                }
+
+                renderPlayerList([]);
+                socket.emit("quickmatch", user);
+            });
         }
 
-        left.addEventListener("drop", function(e) {
-            e.preventDefault();
+        if (copyRoomBtn) {
+            copyRoomBtn.addEventListener("click", async () => {
+                if (!roomid || roomid === "QUEUE") {
+                    return;
+                }
+                try {
+                    await navigator.clipboard.writeText(roomid);
+                    copyRoomBtn.textContent = "✓";
+                    setTimeout(() => {
+                        copyRoomBtn.textContent = "⧉";
+                    }, 1000);
+                } catch (err) {
+                    console.error(err);
+                }
+            });
+        }
 
-            const id = e.dataTransfer.getData("text");
+        function inRoom() {
+            socket.emit("inRoom", currentRoomCode);
+            console.log("In room:", currentRoomCode);
+        }
 
-            placeStone(id, "left");
+        socket.on("Youin", async () => {
+            await getinroom();
+            await loadProduct();
         });
 
-        right.addEventListener("drop", function(e) {
-            e.preventDefault();
+        let joined = null;
 
-            const id = e.dataTransfer.getData("text");
-
-            placeStone(id, "right");
+        socket.on("sessionID", async (sessionID) => {
+            console.log("Joined room:", sessionID);
+            if(joined != null){
+                window.location.href = `/tellstones/${userid}/${joined}/${user}`;
+            }
         });
+
+        socket.on("quickmatchwaiting", () => {
+            if (createRoomCollapsed) {
+                createRoomCollapsed.style.display = "none";
+            }
+
+            if (createRoomExpanded) {
+                createRoomExpanded.style.display = "grid";
+            }
+
+            if (roomBanner) {
+                roomBanner.textContent = "Waiting for challenger...";
+            }
+
+            if (currentRoomIdLabel) {
+                currentRoomIdLabel.textContent = "Waiting For Challenger";
+            }
+
+            if (quickMatchHint) {
+                quickMatchHint.textContent = "The loading circle means your quick match request is active. Another waiting player will immediately pair into the same duel.";
+            }
+        });
+
+        socket.on("quickmatched", (roomId) => {
+            joined = roomId;
+
+            if (roomBanner) {
+                roomBanner.textContent = "Challenger found. Entering the duel...";
+            }
+
+            if (currentRoomIdLabel) {
+                currentRoomIdLabel.textContent = "Challenger Found";
+            }
+
+            if (quickMatchHint) {
+                quickMatchHint.textContent = `Room ${roomId} is ready. Opening the chamber now.`;
+            }
+
+            setTimeout(() => {
+                window.location.href = `/tellstones/room/${userid}/${roomId}/${user}`;
+            }, 450);
+        });
+
+        socket.on("roomJoined", (roomId) => {
+            console.log("Joined room:", roomId);
+            joined = roomId;
+        });
+
+
+        
+        socket.on("goto", (session) => {
+            socket.emit("startRoom", document.getElementById("roomId").value);
+        });
+
+        function Startgame() {
+            socket.emit("startgame", roomid);
+        }
+
+        socket.on("gamestart", () => {
+            window.location.href = `/tellstones/room/${userid}/${roomid}/${user}`;
+        });
+
+        if (joinRoomBtn) {
+            joinRoomBtn.addEventListener("click", () => {
+                const targetRoom = roomInput.value.trim().toUpperCase();
+                if (!targetRoom) {
+                    return;
+                }
+                createMode = false;
+                joined = null;
+                socket.emit("checkRoom", document.getElementById("roomId").value);
+                console.log("Joined room request:", targetRoom);
+            });
+        }
+
+        socket.on("checkedRoom", (len) => {
+            console.log(`Room ${roomid}: ${len} player(s)`);
+            if(len >= 2){
+                spectatorModal.style.display = "block";
+            }else{
+                socket.emit("moveRoom", roomid);
+            }
+        });
+
+
+        const stoneSkinPreviewRow = document.getElementById("stoneSkinPreviewRow");
+        const stoneSkinName = document.getElementById("stoneSkinName");
+        const stoneSkinDesc = document.getElementById("stoneSkinDesc");
+        const stoneSkinStatus = document.getElementById("stoneSkinStatus");
+        const stoneSkinPrev = document.getElementById("stoneSkinPrev");
+        const stoneSkinNext = document.getElementById("stoneSkinNext");
+        const queueStoneSkinSlots = Array.from(document.querySelectorAll("[data-queue-stone-slot]"));
+        const stoneSkinIdByCode = {
+            default: 0,
+            black: 1,
+            golden: 2,
+            neon: 3,
+            primitive: 4
+        };
+        const stoneSkinCatalog = [
+            {
+                code: "default",
+                id: 0,
+                name: "Default",
+                description: "The original royal relic set kept in the main hall for every duelist.",
+                preview: ["crown", "shield", "sword"]
+            },
+            {
+                code: "black",
+                id: 1,
+                name: "Black",
+                description: "Midnight stone edged with a duelist's somber steel finish.",
+                preview: ["hammer", "knight", "flag"]
+            },
+            {
+                code: "golden",
+                id: 2,
+                name: "Golden",
+                description: "Bright ceremonial gold for victories meant to be seen.",
+                preview: ["crown", "scale", "sword"]
+            },
+            {
+                code: "neon",
+                id: 3,
+                name: "Neon",
+                description: "A charged modern glow wrapped around the old relic shapes.",
+                preview: ["flag", "shield", "hammer"]
+            },
+            {
+                code: "primitive",
+                id: 4,
+                name: "Primitive",
+                description: "Rough-hewn carved relics with a weathered ancient-court feel.",
+                preview: ["knight", "scale", "crown"]
+            }
+        ];
+        const unlockedStoneSkins = stoneSkinCatalog.filter((skin) => skin.code === "default" || ownedSkinIds.includes(skin.id));
+        let currentStoneSkinIndex = Math.max(0, unlockedStoneSkins.findIndex((skin) => skin.code === selectedStoneSkin));
+
+        function renderStoneSkinPicker() {
+            if (!stoneSkinPreviewRow || !stoneSkinName || !stoneSkinDesc || unlockedStoneSkins.length === 0) {
+                return;
+            }
+
+            const currentSkin = unlockedStoneSkins[currentStoneSkinIndex] || unlockedStoneSkins[0];
+            queueStoneSkinSlots.forEach((slot, index) => {
+                const stoneName = currentSkin.preview[index];
+                if (!stoneName) {
+                    return;
+                }
+                slot.src = `/textu/stones/${currentSkin.code}/${stoneName}.png`;
+                slot.alt = `${currentSkin.name} ${stoneName}`;
+            });
+            stoneSkinName.textContent = currentSkin.name;
+            stoneSkinDesc.textContent = currentSkin.description;
+            if (stoneSkinStatus) {
+                stoneSkinStatus.textContent = currentSkin.code === "default" ? "Equipped Default Set" : "Unlocked Skin";
+            }
+        }
+
+        window.getCurrentStoneSkinCode = function () {
+            const currentSkin = unlockedStoneSkins[currentStoneSkinIndex] || unlockedStoneSkins[0];
+            return currentSkin ? currentSkin.code : "default";
+        };
+
+        if (stoneSkinPrev) {
+            stoneSkinPrev.addEventListener("click", async () => {
+                currentStoneSkinIndex = (currentStoneSkinIndex - 1 + unlockedStoneSkins.length) % unlockedStoneSkins.length;
+                renderStoneSkinPicker();
+                await updatebaackendline();
+            });
+        }
+
+        if (stoneSkinNext) {
+            stoneSkinNext.addEventListener("click", async () => {
+                currentStoneSkinIndex = (currentStoneSkinIndex + 1) % unlockedStoneSkins.length;
+                renderStoneSkinPicker();
+                await updatebaackendline();
+            });
+        }
+
+        renderStoneSkinPicker();
     </script>
-    <script>
-        document.getElementById("bagBtn").addEventListener("click", function() {
-            this.style.display = "none";
-            bag.classList.remove("pause");
 
-            document.querySelectorAll(".stone").forEach(stone => {
-                stone.classList.remove("pause");
-                stone.draggable = true;
-    });
-        });
-    </script>
+
+    <audio data-bgm loop>
+        <source th:src="@{/audio/bgm.mp3}" type="audio/mpeg">
+    </audio>
+    <script th:src="@{/js/tellstone-ui.js}"></script>
 </body>
 </html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tellstones - Rules</title>
+    <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
+</head>
+<body>
+    <div class="page-shell">
+        <div class="rule-shell">
+            <header class="topbar compact">
+                <div>
+                    <div class="eyebrow">Rulebook</div>
+                    <h1 class="title-md">The codex of Tellstones</h1>
+                </div>
+                <div class="nav-cluster">
+                    <span class="fantasy-chip" data-rule-page>Page 1</span>
+                    <button type="button" class="icon-btn" aria-label="Close rulebook" onclick="window.history.length > 1 ? window.history.back() : window.location.href='/'">✕</button>
+                </div>
+            </header>
+
+            <div class="panel rule-frame">
+                <div class="rule-window">
+                    <button class="rule-hit left" type="button" data-rule-prev aria-label="Previous page"></button>
+                    <div class="rule-canvas-shell">
+                        <canvas data-rule-canvas aria-label="Tellstones Rulebook page"></canvas>
+                        <div class="text-muted" data-rule-loading>Loading rulebook...</div>
+                    </div>
+                    <button class="rule-hit right" type="button" data-rule-next aria-label="Next page"></button>
+                </div>
+                <div class="menu-actions" style="margin-top: 1rem;">
+                    <button type="button" class="fantasy-btn ghost" data-rule-prev>Previous Page</button>
+                    <button type="button" class="fantasy-btn ghost" data-rule-next>Next Page</button>
+                    <button type="button" class="fantasy-btn primary" onclick="window.history.length > 1 ? window.history.back() : window.location.href='/'">Close Rulebook</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <audio data-bgm loop>
+        <source th:src="@{/audio/bgm.mp3}" type="audio/mpeg">
+    </audio>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.4.456/pdf.min.js"></script>
+    <script th:src="@{/js/tellstone-ui.js}"></script>
+</body>
+</html>

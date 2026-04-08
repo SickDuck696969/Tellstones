@@ -1,34 +1,66 @@
 package com.example.demo.service;
 
 import com.example.demo.model.Account;
-import com.example.demo.repository.AccountRepository;
-
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service; 
 import org.springframework.transaction.annotation.Transactional; 
  
-import jakarta.validation.constraints.NotNull; 
 import java.util.List; 
-import java.util.Optional; 
-
 import java.util.Map;
- 
+import java.util.stream.Collectors;
 import java.util.ArrayList;
+
+import com.example.demo.model.stoneskin;
 
 @Service 
 @RequiredArgsConstructor
 @Transactional 
 public class PlayerService {
     private final List<Map<String, Account>> players = new ArrayList<>();
+    private final List<Map<Account, stoneskin>> stoneskins = new ArrayList<>();
+    private final List<Map<String, Account>> playerrooms = new ArrayList<>();
+
+    public void registerRoom(Map<String, Account> room) {
+        playerrooms.add(room);
+    }
+
+    public void removeRoom(Account account) {
+        playerrooms.removeIf(player -> player.containsValue(account));
+    }
+
+    public List<Map<String, Account>> getRoom(String room){
+        List<Map<String, Account>> roomers = playerrooms.stream().filter(n -> n.containsKey(room)).collect(Collectors.toList());
+        return roomers;
+    }
 
     public void addPlayer(Map<String, Account> player) {
         players.add(player);
     }
 
+    public void addSkin(Map<Account, stoneskin> da) {
+        stoneskins.add(da);
+    }
+
+    public void removePlayer(Account account) {
+        players.removeIf(player -> player.containsKey(account.getUsername()));
+    }
+
+    public Map<String, Account> getPlayerByUsername(String username) {
+        return players.stream()
+                .filter(player -> player.containsKey(username))
+                .findFirst()
+                .orElse(null);
+    }
+
     public List<Map<String, Account>> getPlayers() {
         return players;
+    }
+
+    public stoneskin getSkin(Account account) {
+        return stoneskins.stream()
+                .filter(map -> map.containsKey(account))
+                .map(map -> map.get(account))
+                .findFirst()
+                .orElse(null);
     }
 }

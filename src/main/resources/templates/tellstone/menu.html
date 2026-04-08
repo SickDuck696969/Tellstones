@@ -1,110 +1,349 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Socket Room Client</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    <title>Tellstones: King's Gambit</title>
+    <link rel="stylesheet" th:href="@{/css/tellstone-fantasy.css}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.4.0/socket.io.js"></script>
+    <style>
+        .preview-stone-cluster {
+            position: relative;
+            width: 19rem;
+            height: 7.2rem;
+            margin-inline: auto;
+        }
+
+        .preview-stone-medallion {
+            position: relative;
+            overflow: hidden;
+            display: grid;
+            place-items: center;
+            background:
+                radial-gradient(circle at 30% 28%, rgba(255, 247, 220, 0.38), transparent 26%),
+                radial-gradient(circle at 50% 50%, rgba(120, 82, 38, 0.78), rgba(52, 32, 16, 0.94));
+            transition: box-shadow 220ms ease, border-color 220ms ease;
+        }
+
+        .preview-stone-cluster .preview-stone-medallion {
+            position: absolute;
+            top: 50%;
+        }
+
+        .preview-stone-cluster .preview-stone-medallion.center {
+            left: 50%;
+            width: 6rem;
+            height: 6rem;
+            z-index: 3;
+            transform: translate(-50%, -50%);
+        }
+
+        .preview-stone-cluster .preview-stone-medallion.left,
+        .preview-stone-cluster .preview-stone-medallion.right {
+            width: 4.65rem;
+            height: 4.65rem;
+            z-index: 2;
+            opacity: 0.92;
+        }
+
+        .preview-stone-cluster .preview-stone-medallion.far-left,
+        .preview-stone-cluster .preview-stone-medallion.far-right {
+            width: 3.75rem;
+            height: 3.75rem;
+            z-index: 1;
+            opacity: 0.78;
+        }
+
+        .preview-stone-cluster .preview-stone-medallion.far-left {
+            left: 0.35rem;
+            transform: translateY(-50%);
+        }
+
+        .preview-stone-cluster .preview-stone-medallion.left {
+            left: 3.35rem;
+            transform: translateY(-50%);
+        }
+
+        .preview-stone-cluster .preview-stone-medallion.right {
+            right: 3.35rem;
+            transform: translateY(-50%);
+        }
+
+        .preview-stone-cluster .preview-stone-medallion.far-right {
+            right: 0.35rem;
+            transform: translateY(-50%);
+        }
+
+        .preview-stone-medallion::after {
+            content: "";
+            position: absolute;
+            inset: 14%;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 220, 150, 0.16);
+            pointer-events: none;
+        }
+
+        .preview-stone-face {
+            width: 62%;
+            height: 62%;
+            object-fit: contain;
+            filter: drop-shadow(0 0.8rem 1rem rgba(0, 0, 0, 0.38));
+            transform-origin: center center;
+            will-change: transform;
+            pointer-events: none;
+        }
+
+        .preview-stone-medallion:hover {
+            box-shadow: 0 0 0 1px rgba(211, 170, 104, 0.52), 0 1.1rem 2rem rgba(0, 0, 0, 0.28);
+            border-color: rgba(211, 170, 104, 0.58);
+        }
+
+        .preview-stone-medallion:hover .preview-stone-face {
+            animation: preview-stone-spin 900ms cubic-bezier(0.2, 0.72, 0.22, 1);
+        }
+
+        @keyframes preview-stone-spin {
+            0% { transform: scale(1) rotate(0deg); }
+            22% { transform: scale(1.2) rotate(0deg); }
+            78% { transform: scale(1.2) rotate(360deg); }
+            100% { transform: scale(1) rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
+    <div class="page-shell">
+        <header class="topbar">
+            <a class="brand-mark" href="/">
+                <img th:src="@{/logo.png}" alt="Tellstones Logo">
+            </a>
+            <div class="nav-cluster">
+                <div th:if="${loggedIn}" class="action-row">
+                    <a href="/account" class="fantasy-chip" title="Account">
+                        <img class="avatar-badge" th:src="${avatarUrl}" alt="Avatar">
+                    </a>
+                    <a href="/shop" class="fantasy-btn">Shop</a>
+                </div>
+                <a th:if="${!loggedIn}" href="/login" class="fantasy-btn ghost">Account</a>
+                <a href="/rules" class="fantasy-btn ghost">Rulebook</a>
+                <button class="icon-btn" type="button" data-open-modal="settings-modal" aria-label="Settings">⚙</button>
+            </div>
+        </header>
 
-<h2>Join Room Now</h2>
+        <main class="hero panel">
+            <div class="hero-grid">
+                <section>
+                    <div class="eyebrow">High Fantasy Strategy</div>
+                    <h1 class="title-xl">The line is drawn. The stones remember.</h1>
+                    <p class="lead">
+                        Enter a carved-stone court of hidden intent, royal gambits, and fast multiplayer duels.
+                    </p>
+                    <div class="menu-actions">
+                        <button type="button" onclick="startRoom()" class="fantasy-btn primary">Enter The Chamber</button>
+                        <a href="/rules" class="fantasy-btn ghost">Study The Rulebook</a>
+                    </div>
+                    <ul class="feature-list">
+                        <li>
+                            <span class="rune">I</span>
+                            <div><strong>Royal Table</strong><br>Create a room, copy the sigil, and bring rivals to the board.</div>
+                        </li>
+                        <li>
+                            <span class="rune">II</span>
+                            <div><strong>Ancient Relics</strong><br>Boards, stones, and spirits share one medieval fantasy look.</div>
+                        </li>
+                        <li>
+                            <span class="rune">III</span>
+                            <div><strong>Persistent Legend</strong><br>Keep your account, spirit, and duel history in one place.</div>
+                        </li>
+                    </ul>
+                </section>
 
-<input type="text" id="roomId" placeholder="Enter Room ID">
-<button onclick="pay()">Play</button>
+                <aside class="panel play-callout">
+                    <div>
+                        <div class="eyebrow">King's Gambit</div>
+                        <h2 class="title-md">A ceremonial duel of memory, bluff, and nerve.</h2>
+                        <p class="text-muted">
+                            Every reveal pushes the match toward victory or ruin.
+                        </p>
+                    </div>
 
-<br><br>
+                    <div class="preview-stone-cluster" aria-hidden="true">
+                        <div class="play-medallion preview-stone-medallion far-left">
+                            <img class="preview-stone-face" id="previewStoneFaceFarLeft" alt="Random Tellstones stone">
+                        </div>
+                        <div class="play-medallion preview-stone-medallion left">
+                            <img class="preview-stone-face" id="previewStoneFaceLeft" alt="Random Tellstones stone">
+                        </div>
+                        <div class="play-medallion preview-stone-medallion center">
+                            <img class="preview-stone-face" id="previewStoneFace" alt="Random Tellstones stone">
+                        </div>
+                        <div class="play-medallion preview-stone-medallion right">
+                            <img class="preview-stone-face" id="previewStoneFaceRight" alt="Random Tellstones stone">
+                        </div>
+                        <div class="play-medallion preview-stone-medallion far-right">
+                            <img class="preview-stone-face" id="previewStoneFaceFarRight" alt="Random Tellstones stone">
+                        </div>
+                    </div>
 
-<input type="text" id="guestname" placeholder="guest name">
+                    <div class="mini-stats">
+                        <div class="stat">
+                            <span class="stat-label">Mode</span>
+                            <span class="stat-value">Multiplayer</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Setting</span>
+                            <span class="stat-value">Medieval Court</span>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </main>
 
-<ul id="messages"></ul>
+        <div id="settings-modal" class="modal-backdrop">
+            <div class="modal-panel panel">
+                <button class="icon-btn close-link" type="button" data-close-modal aria-label="Close settings">✕</button>
+                <div class="eyebrow">Settings</div>
+                <h2 class="title-md">Wardrobe of the Realm</h2>
+                <div class="field-stack" style="margin-top: 1rem;">
+                    <label class="field-label">
+                        <span>BGM Volume</span>
+                        <input data-bgm-volume type="range" min="0" max="1" step="0.05">
+                    </label>
+                </div>
+                <div class="shop-grid" style="margin-top: 1.25rem;">
+                    <div class="choice-card">
+                        <strong>Board Skin</strong>
+                        <p class="text-muted">Moonlit oak, scorched obsidian, and tournament velvet motifs prepared for future unlocks.</p>
+                    </div>
+                    <div class="choice-card">
+                        <strong>Stone Skin</strong>
+                        <p class="text-muted">Swap engraved relic sets and heraldic inlays to make your chamber unmistakable.</p>
+                    </div>
+                    <div class="choice-card">
+                        <strong>Spirit Aura</strong>
+                        <p class="text-muted">Preview atmospheric companions and ceremonial effects without leaving the main hall.</p>
+                    </div>
+                </div>
+                <form th:if="${loggedIn}" action="/logout" method="post" style="margin-top: 1.25rem;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button type="submit" class="fantasy-btn ghost">Logout</button>
+                </form>
+            </div>
+        </div>
+    </div>
 
-<script>
-function pay() {
-    const amount = 100000;
-    const bankCode = "NCB"; // or ""
+    <audio data-bgm loop>
+        <source th:src="@{/audio/bgm.mp3}" type="audio/mpeg">
+    </audio>
+    <script th:src="@{/js/tellstone-ui.js}"></script>
 
-    const url = `/moolah/vnpay?amount=${amount}&bankCode=${bankCode}`;
+    <script>
+        const token = document.querySelector('meta[name="_csrf"]')?.content;
+        const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+        let restone = {};
+        let joined = null;
 
-    fetch(url)
-        .then(res => res.json())
-        .then(data => {
-            console.log(data);
+        const previewStones = [
+            "/textu/stones/default/crown.png",
+            "/textu/stones/default/flag.png",
+            "/textu/stones/default/hammer.png",
+            "/textu/stones/default/knight.png",
+            "/textu/stones/default/scale.png",
+            "/textu/stones/default/shield.png",
+            "/textu/stones/default/sword.png"
+        ];
 
-            // Redirect to VNPay
-            if (data.paymentUrl) {
-                window.location.href = data.paymentUrl;
-            }
-        })
-        .catch(err => console.error(err));
-}
-</script>
-
-<script>
-        async function updatebaackendline(data) {
-            try {
-				const res = await fetch("/tellstones/welcomeplayer", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(data)
-				});
-
-				if (res.ok) {
-					const restone = await res.json();
-				} else {
-				}
-			} catch (err) {
-				console.error(err);
-			}
+        function pickRandomStone(excluded = []) {
+            const available = previewStones.filter((stone) => !excluded.includes(stone));
+            return available[Math.floor(Math.random() * available.length)];
         }
-</script>
 
-<script>
-    const socket = io("http://localhost:9092", {
-        transports: ["websocket"]
-    });
+        function populatePreviewStones() {
+            const center = document.getElementById("previewStoneFace");
+            const farLeft = document.getElementById("previewStoneFaceFarLeft");
+            const left = document.getElementById("previewStoneFaceLeft");
+            const right = document.getElementById("previewStoneFaceRight");
+            const farRight = document.getElementById("previewStoneFaceFarRight");
 
-    socket.on("connect", () => {
-        console.log("CONNECTED");
-    });
+            if (!center || !farLeft || !left || !right || !farRight) {
+                return;
+            }
 
-    socket.on("connect_error", (err) => {
-        console.log("ERROR:", err);
-    });
+            const centerStone = pickRandomStone();
+            const leftStone = pickRandomStone([centerStone]);
+            const rightStone = pickRandomStone([centerStone, leftStone]);
+            const farLeftStone = pickRandomStone([centerStone, leftStone, rightStone]);
+            const farRightStone = pickRandomStone([centerStone, leftStone, rightStone, farLeftStone]);
 
-    socket.on("message", (data) => {
-        const li = document.createElement("li");
-        li.innerText = data;
-        document.getElementById("messages").appendChild(li);
-    });
+            center.src = centerStone;
+            farLeft.src = farLeftStone;
+            left.src = leftStone;
+            right.src = rightStone;
+            farRight.src = farRightStone;
+        }
 
-    let data = [];
+        async function updatebaackendline() {
+            if (!token || !header) {
+                return;
+            }
 
-    socket.on("sessionID", (sessionID) => {
-        data = {
-            username: document.getElementById("guestname").value,
-            session: sessionID
-        };
-        updatebaackendline(data);
-    });
+            try {
+                const res = await fetch("/tellstones/welcomeplayer", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        [header]: token
+                    },
+                    credentials: "include"
+                });
 
-    socket.on("roomJoined", (roomId) => {
-        console.log("Joined room:", roomId);
-        window.location.href = `/tellstones/room/${roomId}`;
-    });
+                if (res.ok) {
+                    restone = await res.json();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
 
-    // 🔹 Start room
-    function startRoom() {
-        const roomId = document.getElementById("roomId").value;
-        socket.emit("startRoom", roomId);
-        console.log("Started room:", roomId);
-    }
+        const socket = io("http://192.168.100.207:9092", {
+            transports: ["websocket"],
+            query: {
+                userId: restone.username
+            }
+        });
 
-    // 🔹 Send message
-    function sendMessage() {
-        const msg = document.getElementById("message").value;
-        socket.emit("message", msg);
-    }
-</script>
+        socket.on("connect", () => {
+            socket.emit("massleave");
+        });
 
+        socket.on("connect_error", (err) => {
+            console.log("ERROR:", err);
+        });
+
+        socket.on("sessionID", async () => {
+            await updatebaackendline();
+            if (joined != null) {
+                socket.emit("inRoom", joined);
+            }
+        });
+
+        socket.on("Youin", async () => {
+            if (joined != null && restone?.id != null && restone?.username) {
+                window.location.href = `tellstones/${restone.id}/${joined}/${restone.username}`;
+            }
+        });
+
+        socket.on("roomJoined", (roomId) => {
+            joined = roomId;
+        });
+
+        function startRoom() {
+            const roomId = Math.random().toString(36).slice(2, 8).toUpperCase();
+            socket.emit("startRoom", roomId);
+        }
+
+        populatePreviewStones();
+    </script>
 </body>
 </html>

@@ -2,98 +2,65 @@ package com.example.demo.service;
 
 import com.example.demo.model.Account;
 import com.example.demo.repository.AccountRepository;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import jakarta.validation.constraints.NotNull;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service; 
-import org.springframework.transaction.annotation.Transactional; 
- 
-import jakarta.validation.constraints.NotNull; 
-import java.util.List; 
-import java.util.Optional; 
+import java.util.Optional;
 
-import java.util.Map;
- 
-@Service 
-@RequiredArgsConstructor
-@Transactional 
-public class AccountService { 
-    private final AccountRepository Accrepo; 
-    @Autowired
-    public Security security;
-    // Retrieve all products from the database 
-    public List<Account> getAllAccounts() { 
-        return Accrepo.findAll(); 
-    } 
- 
-    // Retrieve a product by its id 
-    public Optional<Account> getAccountById(Long id) { 
-        return Accrepo.findById(id); 
-    } 
+@Service
+public class AccountService implements UserDetailsService {
 
-    // Retrieve a product by its name
-    public Optional<Account> getAccountByName(String name) { 
-        return Accrepo.findByname(name);
-    } 
+    private final AccountRepository accountRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public Optional<Account> getAccountByemail(String email){
-        return Accrepo.findByemail(email);
-    }
- 
-    // Add a new product to the database 
-    public Account addAccount(Account product) { 
-        Account yn = new Account();
-        yn.setName(product.getName());
-        yn.setBirthday(product.getBirthday());
-        yn.setEmail(product.getEmail());
-        yn.setPassword(security.passwordEncoder().encode(product.getPassword()));
-        yn.setIsAdmin(product.getIsAdmin());
-        return Accrepo.save(yn); 
-    } 
- 
-    // Update an existing product 
-    public Account updateAccount(@NotNull Account product) {
-        Account existingProduct = Accrepo.findById(product.getId())
-            .orElseThrow(() -> new IllegalStateException("Account with ID " + product.getId() + " does not exist."));
-
-        existingProduct.setName(product.getName());
-        existingProduct.setBirthday(product.getBirthday());
-        existingProduct.setEmail(product.getEmail());
-        existingProduct.setPassword(security.passwordEncoder().encode(product.getPassword()));
-        existingProduct.setIsAdmin(product.getIsAdmin());
-
-        return Accrepo.save(existingProduct);
+    public AccountService(AccountRepository accountRepository, PasswordEncoder passwordEncoder) {
+        this.accountRepository = accountRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public Map<String, String> checkpassword(String email, String password){
-        Optional<Account> a = Accrepo.findByemail(email);
-        if(a.isEmpty()){
-            return Map.of("status", "error",
-                      "message", "email not registered");
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return accountRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    }
+
+    public Account save(Account account) {
+        String password = account.getPassword();
+        if (password != null && !isEncodedPassword(password)) {
+            account.setPassword(passwordEncoder.encode(password));
         }
-        if(!security.passwordEncoder().matches(password, a.get().getPassword())){
-            return Map.of("status", "error",
-                      "message", "wrong password");
-        }
-        return Map.of("status", "ok",
-                "message", "login successful");
+        return accountRepository.save(account);
     }
 
- 
-    // Delete a product by its id 
-    public void deleteAccountById(Long id) { 
-        if (!Accrepo.existsById(id)) {
-            throw new IllegalStateException("Account with ID " + id + " does not exist.");
-        }
-        Accrepo.deleteById(id);
+    public Optional<Account> getAccountById(Long id) {
+        return accountRepository.findById(id);
     }
 
-    public void addstorecredit(long id, double amount){
-        Account existing = Accrepo.findById(id)
-        .orElseThrow(() -> new IllegalStateException("Account with ID " + id + " does not exist."));
-        existing.setCredit(existing.getCredit() + 10000);
-        Accrepo.save(existing);
+    public Optional<Account> getAccountByUsername(String name) {
+        return accountRepository.findByUsername(name);
     }
-} 
+
+    public Optional<Account> getAccountByEmail(String email){
+        return accountRepository.findByemail(email);
+    }
+
+    public Account enableAccount(Long id) {
+        Account account = accountRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        account.setIsEnabled(true);
+
+        return accountRepository.save(account);
+    }
+
+    private boolean isEncodedPassword(String password) {
+        return password.startsWith("$2a$")
+                || password.startsWith("$2b$")
+                || password.startsWith("$2y$");
+    }
+}

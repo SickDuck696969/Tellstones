@@ -1,12 +1,7 @@
 package com.example.demo.model;
  
 import jakarta.persistence.*;
-import lombok.*;
  
-@Setter 
-@Getter 
-@RequiredArgsConstructor 
-@AllArgsConstructor 
 @Entity 
 @Table(name = "cart") 
 public class Cart { 
@@ -31,4 +26,46 @@ public class Cart {
                 foreignKeyDefinition =
                   "FOREIGN KEY (category_id) REFERENCES category(id) ON DELETE CASCADE"))
     private Category category; 
+
+    public Cart() {
+    }
+
+    public Cart(Long id, Account account, Product product, Category category) {
+        this.id = id;
+        this.account = account;
+        this.product = product;
+        this.category = category;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Account getAccount() {
+        return account;
+    }
+
+    public void setAccount(Account account) {
+        this.account = account;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
 }

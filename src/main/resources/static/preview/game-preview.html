@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tellstones - Room Hall Preview</title>
+    <link rel="stylesheet" href="../css/tellstone-fantasy.css">
+</head>
+<body>
+    <div class="page-shell">
+        <header class="topbar compact">
+            <a class="brand-mark" href="./menu-preview.html">
+                <img src="../../logo.png" alt="Tellstones Logo">
+            </a>
+            <div class="nav-cluster">
+                <a href="./menu-preview.html" class="fantasy-btn ghost">Rulebook</a>
+                <a href="./menu-preview.html" class="fantasy-btn">Shop</a>
+            </div>
+        </header>
+
+        <main class="center-stage" style="padding: 1rem 0 2rem;">
+            <div class="panel card">
+                <div class="eyebrow">Room Hall</div>
+                <h1 class="title-lg">Gather the challengers</h1>
+                <p class="lead" data-room-banner>
+                    Light a fresh chamber, copy its sigil, or step into another room before the duel begins.
+                </p>
+            </div>
+
+            <div class="dashboard-grid" style="margin-top: 1.25rem; display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 1.5rem;">
+                <section class="card panel" style="display: grid; gap: 1rem;">
+                    <div id="createRoomCollapsed" style="display: grid; gap: 1rem;">
+                        <div>
+                            <div class="eyebrow">Current Chamber</div>
+                            <h2 class="title-md">Open a new room</h2>
+                            <p class="text-muted" data-room-status style="margin: 0.45rem 0 0;">
+                                Create a chamber first, then its sigil and player list will appear here.
+                            </p>
+                        </div>
+
+                        <div class="choice-card" style="display: grid; gap: 1rem;">
+                            <p class="text-muted" style="margin: 0;">
+                                This preview keeps the frontend flow only. Create a chamber to simulate the host experience.
+                            </p>
+                            <div class="menu-actions">
+                                <button type="button" class="fantasy-btn primary" id="createRoomBtn">Create Room</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="createRoomExpanded" style="display: none; gap: 1rem;">
+                        <div>
+                            <div class="eyebrow">Current Chamber</div>
+                            <h2 class="title-md">Active room</h2>
+                            <p class="text-muted" data-room-info style="margin: 0.45rem 0 0;">
+                                Placeholder chamber opened. Copy its sigil, then start once your rivals arrive.
+                            </p>
+                        </div>
+
+                        <div class="choice-card" style="display: grid; gap: 0.8rem;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+                                <div>
+                                    <div class="eyebrow" style="margin-bottom: 0.25rem;">Room ID</div>
+                                    <div class="title-md" id="currentRoomId" style="font-size: 1.55rem;">Awaiting Sigil</div>
+                                </div>
+                                <div class="menu-actions">
+                                    <button type="button" class="icon-btn" id="copyRoomBtn" aria-label="Copy room id" title="Copy room id">⧉</button>
+                                    <button type="button" class="fantasy-btn primary" id="startRoomBtn">Start Game</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="choice-card">
+                            <div class="section-head" style="margin-bottom: 0.65rem;">
+                                <div>
+                                    <div class="eyebrow">Player List</div>
+                                    <h3 class="title-md" style="font-size: 1.2rem;">Inside the chamber</h3>
+                                </div>
+                            </div>
+                            <ul id="roomPlayerList" class="feature-list" style="margin-top: 0;">
+                                <li>
+                                    <span class="rune">I</span>
+                                    <div><strong>No challengers yet</strong><br>The chamber roster will appear here once players join.</div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card panel" style="display: grid; gap: 1rem; align-content: start;">
+                    <div>
+                        <div class="eyebrow">Join Chamber</div>
+                        <h2 class="title-md">Enter by sigil</h2>
+                        <p class="text-muted" style="margin: 0.45rem 0 0;">
+                            Paste an existing room id to step directly into an ongoing table.
+                        </p>
+                    </div>
+
+                    <label class="field-label">
+                        <span>Room ID</span>
+                        <input type="text" id="roomId" data-room-input placeholder="Type or paste a chamber sigil">
+                    </label>
+
+                    <div class="menu-actions">
+                        <button type="button" class="fantasy-btn primary" id="joinRoomBtn">Join Room</button>
+                    </div>
+                </section>
+            </div>
+
+            <section class="card panel" style="margin-top: 1.5rem;">
+                <div class="section-head">
+                    <div>
+                        <div class="eyebrow">Accessories</div>
+                        <h2 class="title-md">Ceremonial Loadout</h2>
+                    </div>
+                </div>
+                <div class="shop-grid">
+                    <div class="choice-card">
+                        <strong>Board Skin</strong>
+                        <p class="text-muted">Velvet tournament dais with gilt corners.</p>
+                    </div>
+                    <div class="choice-card" style="display: grid; gap: 0.6rem;">
+                        <label for="stoneSkinSelect"><strong>Stone Skin</strong></label>
+                        <select id="stoneSkinSelect" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 0.35rem; background: #fff;">
+                            <option value="ivory">Ivory</option>
+                            <option value="shadow">Shadow</option>
+                            <option value="frost">Frost</option>
+                            <option value="ember">Ember</option>
+                        </select>
+                        <p class="text-muted" id="stoneSkinDesc" style="margin: 0;">Ivory face, obsidian edge, crestwork in brass.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="spectatorModal" class="modal-backdrop">
+        <div class="modal-panel panel card" style="max-width: 420px; text-align: center;">
+            <div class="eyebrow">Chamber Status</div>
+            <h2 class="title-md" style="margin: 0.4rem 0 0.6rem;">The Chamber is Sealed</h2>
+            <p class="text-muted" style="margin-bottom: 1.2rem;">
+                Two challengers already occupy this chamber. Will you bear witness to their duel?
+            </p>
+            <div class="menu-actions" style="justify-content: center;">
+                <button id="joinAsSpectatorBtn" class="fantasy-btn primary">Observe the Duel</button>
+                <button id="cancelJoinBtn" class="fantasy-btn ghost">Turn Away</button>
+            </div>
+        </div>
+    </div>
+
+    <audio data-bgm loop>
+        <source src="../audio/bgm.mp3" type="audio/mpeg">
+    </audio>
+    <script src="../js/tellstone-ui.js"></script>
+    <script>
+        const createRoomCollapsed = document.getElementById("createRoomCollapsed");
+        const createRoomExpanded = document.getElementById("createRoomExpanded");
+        const createRoomBtn = document.getElementById("createRoomBtn");
+        const currentRoomIdLabel = document.getElementById("currentRoomId");
+        const roomStatusLabel = document.querySelector("[data-room-status]");
+        const roomInfoLabel = document.querySelector("[data-room-info]");
+        const roomBanner = document.querySelector("[data-room-banner]");
+        const roomInput = document.getElementById("roomId");
+        const roomPlayerList = document.getElementById("roomPlayerList");
+        const copyRoomBtn = document.getElementById("copyRoomBtn");
+        const startRoomBtn = document.getElementById("startRoomBtn");
+        const joinRoomBtn = document.getElementById("joinRoomBtn");
+        const spectatorModal = document.getElementById("spectatorModal");
+        const joinAsSpectatorBtn = document.getElementById("joinAsSpectatorBtn");
+        const cancelJoinBtn = document.getElementById("cancelJoinBtn");
+        const stoneSkinSelect = document.getElementById("stoneSkinSelect");
+        const stoneSkinDesc = document.getElementById("stoneSkinDesc");
+
+        const stoneSkinOptions = {
+            ivory: "Ivory face, obsidian edge, crestwork in brass.",
+            shadow: "Shadow obsidian with rune etching.",
+            frost: "Frosted marble with silver rim.",
+            ember: "Ember red with gold inlay."
+        };
+
+        const previewRooms = {
+            ABK62W: [
+                { username: "SickDuck69", displayName: "SickDuck69" },
+                { username: "DINDIT", displayName: "DINDIT" }
+            ],
+            HG8WQS: [
+                { username: "MuthaFakka", displayName: "MuthaFakka" }
+            ],
+            SOLO77: []
+        };
+
+        let currentRoomId = "";
+        let joinedRoomId = null;
+        let createMode = false;
+        let pendingJoinRole = "player";
+        let pendingJoinRoomId = null;
+
+        function generateRoomId() {
+            return Math.random().toString(36).slice(2, 8).toUpperCase();
+        }
+
+        function renderPlayerList(players) {
+            if (!players || players.length === 0) {
+                roomPlayerList.innerHTML = `
+                    <li>
+                        <span class="rune">I</span>
+                        <div><strong>No challengers yet</strong><br>The chamber roster will appear here once players join.</div>
+                    </li>
+                `;
+                return;
+            }
+
+            roomPlayerList.innerHTML = players.map((player, index) => `
+                <li>
+                    <span class="rune">${index + 1}</span>
+                    <div><strong>${player.displayName || player.username || "Player"}</strong><br>${player.username || "Unknown challenger"}</div>
+                </li>
+            `).join("");
+        }
+
+        function setCreateRoomView(expanded) {
+            createRoomCollapsed.style.display = expanded ? "none" : "grid";
+            createRoomExpanded.style.display = expanded ? "grid" : "none";
+        }
+
+        function updateRoomCopy(roomId, mode) {
+            roomBanner.textContent = roomId
+                ? `Chamber ${roomId} is assembled.`
+                : "Light a fresh chamber, copy its sigil, or step into another room before the duel begins.";
+
+            roomStatusLabel.textContent = mode === "create"
+                ? "Your chamber is open. Share the sigil and begin when everyone is present."
+                : "You are joining an existing chamber.";
+
+            roomInfoLabel.textContent = mode === "create"
+                ? "Your chamber is open. Share the sigil, then start once everyone is seated."
+                : "You have stepped into an existing chamber.";
+
+            currentRoomIdLabel.textContent = roomId || "Awaiting Sigil";
+        }
+
+        function updateStoneSkinDescription() {
+            stoneSkinDesc.textContent = stoneSkinOptions[stoneSkinSelect.value] || "Choose your stone skin from the list.";
+        }
+
+        function loadPlayers(roomId) {
+            renderPlayerList(previewRooms[roomId] || []);
+        }
+
+        function finishJoin(roomId, role) {
+            spectatorModal.classList.remove("is-open");
+            spectatorModal.style.display = "none";
+            createMode = false;
+            pendingJoinRoomId = roomId;
+            pendingJoinRole = role;
+            joinedRoomId = roomId;
+            currentRoomId = roomId;
+            setCreateRoomView(true);
+            updateRoomCopy(roomId, "join");
+            loadPlayers(roomId);
+        }
+
+        function startGame() {
+            const targetRoomId = joinedRoomId || currentRoomId;
+            if (!targetRoomId) {
+                return;
+            }
+
+            const modeLabel = pendingJoinRole === "spectator" ? "spectator" : "player";
+            roomBanner.textContent = `Preview only: ${modeLabel} flow would now continue into chamber ${targetRoomId}.`;
+        }
+
+        createRoomBtn.addEventListener("click", () => {
+            createMode = true;
+            currentRoomId = generateRoomId();
+            joinedRoomId = currentRoomId;
+            previewRooms[currentRoomId] = [];
+            setCreateRoomView(true);
+            updateRoomCopy(currentRoomId, "create");
+            renderPlayerList([]);
+        });
+
+        copyRoomBtn.addEventListener("click", async () => {
+            const targetRoomId = joinedRoomId || currentRoomId;
+            if (!targetRoomId) {
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(targetRoomId);
+                copyRoomBtn.textContent = "✓";
+                setTimeout(() => {
+                    copyRoomBtn.textContent = "⧉";
+                }, 1000);
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        startRoomBtn.addEventListener("click", startGame);
+
+        joinRoomBtn.addEventListener("click", () => {
+            const targetRoom = roomInput.value.trim().toUpperCase();
+            if (!targetRoom) {
+                return;
+            }
+
+            const players = previewRooms[targetRoom] || [];
+            if (players.length >= 2) {
+                spectatorModal.style.display = "grid";
+                spectatorModal.classList.add("is-open");
+                joinAsSpectatorBtn.onclick = () => finishJoin(targetRoom, "spectator");
+                cancelJoinBtn.onclick = () => {
+                    spectatorModal.classList.remove("is-open");
+                    spectatorModal.style.display = "none";
+                };
+                return;
+            }
+
+            finishJoin(targetRoom, "player");
+        });
+
+        stoneSkinSelect.addEventListener("change", updateStoneSkinDescription);
+        updateStoneSkinDescription();
+    </script>
+</body>
+</html>

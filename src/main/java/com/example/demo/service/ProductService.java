@@ -10,7 +10,6 @@ import com.example.demo.repository.OrderRepository;
 import com.example.demo.repository.CartRepository;
 import com.example.demo.repository.AccountRepository;
 import com.example.demo.model.Account;
-import lombok.RequiredArgsConstructor; 
 import org.springframework.stereotype.Service; 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +20,6 @@ import java.util.Map;
 import java.util.HashMap;
  
 @Service 
-@RequiredArgsConstructor 
 @Transactional 
 public class ProductService { 
     private final ProductRepository productRepository; 
@@ -29,6 +27,19 @@ public class ProductService {
     private final AccountRepository accountRepository;
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
+
+    public ProductService(
+            ProductRepository productRepository,
+            CartRepository cartRepository,
+            AccountRepository accountRepository,
+            OrderRepository orderRepository,
+            OrderDetailRepository orderDetailRepository) {
+        this.productRepository = productRepository;
+        this.cartRepository = cartRepository;
+        this.accountRepository = accountRepository;
+        this.orderRepository = orderRepository;
+        this.orderDetailRepository = orderDetailRepository;
+    }
     // Retrieve all products from the database 
     public List<Product> getAllProducts() { 
         return productRepository.findAll(); 
