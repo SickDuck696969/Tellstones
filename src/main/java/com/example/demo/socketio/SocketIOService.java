@@ -116,11 +116,6 @@ public class SocketIOService {
             client.sendEvent("sessionID", client.getSessionId().toString());
         });
 
-        server.addEventListener("checkRoom", String.class, (client, roomId, ack) -> {
-            var clients = server.getRoomOperations(roomId).getClients();
-            client.sendEvent("checkedRoom", clients.toArray().length);
-        });
-
         server.addEventListener("inRoom", String.class, (client, roomId, ack) -> {
             System.out.println("Start room: " + roomId);
             client.joinRoom(roomId);
@@ -166,7 +161,6 @@ public class SocketIOService {
         });
 
         server.addEventListener("moveRoom", String.class, (client, roomId, ack) -> {
-            System.out.println(roomId);
             client.sendEvent("roomJoined", roomId);
             client.sendEvent("goto", client.getSessionId().toString());
         });

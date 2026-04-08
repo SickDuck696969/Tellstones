@@ -190,37 +190,9 @@
                 players = await res.json();
 
                 console.log(players);
-
-                players.forEach(player => {
-                    if(player.id.toString() === userid && players.indexOf(player) > 1){
-                        startRoomBtn.disabled = true;
-                    }
-                });
  
             } catch (err) {
                 console.error("Error loading players:", err);
-            }
-        }
-        async function getinroom() {
-            try {
-                const res = await fetch("/tellstones/setplayersinrooms/" + productId, {
-                    method: "POST",
-                    headers: {
-                        'Content-Type': 'application/json',
-                        [header]: token,
-                    },
-                    body: JSON.stringify({
-                        userid: userid
-                    }),
-                    credentials: "include",
-                });
-
-                if (res.ok) {
-                    const a = await res.json();
-                    console.log(a);
-                }
-            } catch (err) {
-                console.error(err);
             }
         }
     </script>
